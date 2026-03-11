@@ -1,65 +1,226 @@
-import Image from "next/image";
+import Link from "next/link";
+import {
+  Stethoscope,
+  BookOpen,
+  BarChart3,
+  Clock,
+  CheckCircle,
+  ArrowRight,
+  Sparkles,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export default function Home() {
+function FeatureCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div
+      className={cn(
+        "group rounded-2xl border border-border/70 bg-card/80 p-6 shadow-sm backdrop-blur",
+        "transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-primary/30"
+      )}
+    >
+      <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-primary transition-transform duration-200 group-hover:scale-105">
+        {icon}
+      </div>
+      <h3 className="mb-2 font-semibold text-foreground">{title}</h3>
+      <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
+    </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <div className="flex min-h-[calc(100vh-3.5rem)] flex-col">
+      {/* Hero */}
+      <section className="relative flex flex-1 flex-col justify-center px-4 py-16 lg:py-20">
+        <div className="absolute inset-0 hero-surface" />
+        <div className="absolute inset-0 soft-grain opacity-40" />
+        <div className="relative mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="space-y-6 text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/80 px-4 py-2 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground shadow-sm">
+              <Sparkles className="h-4 w-4 text-primary" />
+              Roteiro completo para o Internato MGF
+            </div>
+            <h1 className="font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+              Prepare-se com foco para{" "}
+              <span className="text-primary">Medicina Geral e Familiar</span>
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              Banco de questões orientado por módulos, explicações claras e
+              métricas práticas para acompanhar a evolução real do seu estudo.
+            </p>
+            <div className="flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
+              <Link
+                href="/treino"
+                className={cn(
+                  "inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-medium text-primary-foreground shadow-md transition-all hover:bg-primary/90 hover:shadow-lg"
+                )}
+              >
+                Começar a Estudar
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/auth"
+                className={cn(
+                  "inline-flex items-center justify-center rounded-xl border border-border bg-card/80 px-6 py-3 text-sm font-medium shadow-sm transition-all hover:bg-muted hover:border-primary/30"
+                )}
+              >
+                Já tenho conta
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-4 pt-4 sm:grid-cols-3">
+              {[
+                { label: "Questões revisadas", value: "1.200+" },
+                { label: "Módulos clínicos", value: "6" },
+                { label: "Tempo médio", value: "12 min/dia" },
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  className="rounded-2xl border border-border/70 bg-card/80 px-4 py-3 text-left shadow-sm"
+                >
+                  <p className="text-lg font-semibold text-foreground">
+                    {stat.value}
+                  </p>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="mx-auto w-full max-w-md">
+            <div className="card-elevated relative overflow-hidden rounded-3xl p-6">
+              <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-primary/15 to-transparent" />
+              <div className="relative space-y-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                      Sessao de estudo
+                    </p>
+                    <p className="text-xl font-semibold text-foreground">
+                      MGF - Pediatria
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">
+                    Em andamento
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {[
+                    { label: "Taxa de acerto", value: "78%" },
+                    { label: "Perguntas feitas", value: "42" },
+                    { label: "Dificuldade média", value: "Moderada" },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      className="flex items-center justify-between rounded-2xl border border-border/70 bg-secondary/60 px-4 py-3"
+                    >
+                      <span className="text-sm text-muted-foreground">
+                        {item.label}
+                      </span>
+                      <span className="text-sm font-semibold text-foreground">
+                        {item.value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="rounded-2xl border border-border/70 bg-muted/60 p-4">
+                  <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                    Proximo objetivo
+                  </p>
+                  <p className="text-sm font-medium text-foreground">
+                    Reforcar cardiologia e saude mental nesta semana.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="border-t border-border bg-secondary/60 px-4 py-16">
+        <div className="mx-auto max-w-5xl">
+          <div className="mx-auto mb-10 max-w-2xl text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+              Desenhado para resultados
+            </p>
+            <h2 className="font-display mt-3 text-3xl font-semibold text-foreground">
+              Tudo o que precisa para ter sucesso
+            </h2>
+            <p className="mt-2 text-muted-foreground">
+              Estruture o estudo com um fluxo claro: pratica, feedback imediato
+              e metricas que orientam as proximas decisoes.
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <FeatureCard
+              icon={<BookOpen className="h-5 w-5" />}
+              title="Perguntas por Módulos"
+              description="Perguntas organizadas por áreas: MGF, Medicina Interna, Pediatria, Ginecologia, Saúde Mental e Geriatria."
+            />
+            <FeatureCard
+              icon={<Clock className="h-5 w-5" />}
+              title="Dois Modos de Estudo"
+              description="Prática livre sem pressão ou exames simulados com tempo limitado para testar os seus conhecimentos."
+            />
+            <FeatureCard
+              icon={<BarChart3 className="h-5 w-5" />}
+              title="Estatísticas Detalhadas"
+              description="Acompanhe o seu desempenho por módulo, identifique pontos fracos e veja a sua evolução ao longo do tempo."
+            />
+            <FeatureCard
+              icon={<CheckCircle className="h-5 w-5" />}
+              title="Explicações Completas"
+              description="Cada pergunta inclui uma explicação detalhada para consolidar o conhecimento após a resposta."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="border-t border-border px-4 py-16">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="font-display mb-2 text-2xl font-semibold text-foreground">
+            Pronto para começar?
+          </h2>
+          <p className="mb-6 text-muted-foreground">
+            Crie a sua conta gratuitamente e comece a estudar hoje mesmo.
+          </p>
+          <Link
+            href="/auth"
+            className={cn(
+              "inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-medium text-primary-foreground shadow-md transition-all hover:bg-primary/90 hover:shadow-lg"
+            )}
+          >
+            Criar Conta Gratuita
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border px-4 py-6">
+        <div className="mx-auto flex max-w-5xl items-center justify-between">
+          <Link
+            href="/"
+            className="flex items-center gap-2 font-semibold text-foreground hover:text-primary"
+          >
+            <Stethoscope className="h-5 w-5" />
+            MGF Quiz
+          </Link>
+          <p className="text-sm text-muted-foreground">
+            Plataforma de estudo para Internato de MGF
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </footer>
     </div>
   );
 }
