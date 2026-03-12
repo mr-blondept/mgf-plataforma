@@ -25,6 +25,12 @@ const categories = [
         href: "/treino",
         icon: BookOpenCheck,
       },
+      {
+        title: "ICPC-2",
+        description: "Pesquisa rapida de codigos e explicacoes (versao portuguesa).",
+        href: "/icpc2",
+        icon: BookOpenCheck,
+      },
     ],
   },
   {

@@ -60,6 +60,15 @@ export default function AppHeader() {
           >
             Treino
           </Link>
+          <Link
+            href="/icpc2"
+            className={cn(
+              "rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            ICPC-2
+          </Link>
           {user && (
             <>
               <Link
