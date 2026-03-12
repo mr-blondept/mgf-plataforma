@@ -1,8 +1,8 @@
 "use client";
 
 import { useDeferredValue, useMemo, useState } from "react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import icpc2Data from "@/data/icpc2.json";
-import { cn } from "@/lib/utils";
 
 type ICPC2Entry = {
   code: string;
@@ -49,6 +49,37 @@ function getComponent(code: string) {
   if (number >= 63 && number <= 69) return "6";
   if (number >= 70 && number <= 99) return "7";
   return null;
+}
+
+function highlightText(text: string, terms: string[]) {
+  if (!text || terms.length === 0) return text;
+
+  const escapedTerms = terms
+    .map((term) => term.trim())
+    .filter((term) => term.length > 1)
+    .map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+
+  if (escapedTerms.length === 0) return text;
+
+  const matcher = new RegExp(`(${escapedTerms.join("|")})`, "gi");
+  const parts = text.split(matcher);
+
+  return parts.map((part, index) => {
+    const isMatch = escapedTerms.some((term) =>
+      new RegExp(`^${term}$`, "i").test(part)
+    );
+
+    return isMatch ? (
+      <mark
+        key={`${part}-${index}`}
+        className="rounded bg-primary/20 px-1 text-foreground"
+      >
+        {part}
+      </mark>
+    ) : (
+      <span key={`${part}-${index}`}>{part}</span>
+    );
+  });
 }
 
 export default function ICPC2Page() {
@@ -107,6 +138,9 @@ export default function ICPC2Page() {
     });
   }, [chapterFilter, componentFilter, indexedItems, queryTerms]);
 
+  const hasFilters =
+    query.trim() !== "" || chapterFilter !== "Todos" || componentFilter !== "Todos";
+
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10">
       <section className="rounded-3xl border border-border bg-card/90 p-6 shadow-sm">
@@ -123,77 +157,72 @@ export default function ICPC2Page() {
           </p>
         </div>
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="rounded-2xl border border-border bg-background/80 px-4 py-3">
-            <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-              Pesquisa
-            </label>
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Ex: P73, depressao, cefaleia, ansiedade..."
-              className="mt-2 w-full rounded-xl border border-border bg-card/80 px-4 py-2 text-sm text-foreground shadow-sm focus:border-primary focus:outline-none"
-            />
+        <div className="mt-6 rounded-2xl border border-border bg-background/60 p-4 shadow-sm">
+          <div className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+            <SlidersHorizontal className="h-4 w-4" />
+            Filtros
           </div>
-          <div className="grid gap-3">
+
+          <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
             <div className="rounded-2xl border border-border bg-background/80 px-4 py-3">
               <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                Capítulo
+                Pesquisa
               </label>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {chapters.map((chapter) => {
-                  const isActive = chapter === chapterFilter;
-                  return (
-                    <button
-                      key={chapter}
-                      type="button"
-                      onClick={() => setChapterFilter(chapter)}
-                      className={cn(
-                        "rounded-full px-3 py-1 text-xs font-semibold transition",
-                        isActive
-                          ? "bg-primary text-primary-foreground"
-                          : "border border-border bg-card/80 text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                      )}
-                    >
-                      {chapter}
-                    </button>
-                  );
-                })}
+              <div className="relative mt-2">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Ex: P73, depressão, cefaleia, ansiedade..."
+                  className="w-full rounded-xl border border-border bg-card/80 py-2 pl-9 pr-4 text-sm text-foreground shadow-sm focus:border-primary focus:outline-none"
+                />
               </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Dica: pode pesquisar por código (ex: P73) ou por palavras-chave.
+              </p>
             </div>
-            <div className="rounded-2xl border border-border bg-background/80 px-4 py-3">
-              <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                Componente
-              </label>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {COMPONENTS.map((component) => {
-                  const isActive = component.id === componentFilter;
-                  return (
-                    <button
-                      key={component.id}
-                      type="button"
-                      onClick={() => setComponentFilter(component.id)}
-                      className={cn(
-                        "rounded-full px-3 py-1 text-xs font-semibold transition",
-                        isActive
-                          ? "bg-primary text-primary-foreground"
-                          : "border border-border bg-card/80 text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                      )}
-                    >
+
+            <div className="grid gap-3 rounded-2xl border border-border bg-background/80 px-4 py-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                  Capítulo
+                </label>
+                <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                  Componente
+                </label>
+                <select
+                  value={chapterFilter}
+                  onChange={(event) => setChapterFilter(event.target.value)}
+                  className="w-full rounded-xl border border-border bg-card/80 px-3 py-2 text-sm text-foreground shadow-sm focus:border-primary focus:outline-none"
+                >
+                  {chapters.map((chapter) => (
+                    <option key={chapter} value={chapter}>
+                      {chapter === "Todos" ? "Todos os capítulos" : `Capítulo ${chapter}`}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={componentFilter}
+                  onChange={(event) => setComponentFilter(event.target.value)}
+                  className="w-full rounded-xl border border-border bg-card/80 px-3 py-2 text-sm text-foreground shadow-sm focus:border-primary focus:outline-none"
+                >
+                  {COMPONENTS.map((component) => (
+                    <option key={component.id} value={component.id}>
                       {component.label}
-                    </button>
-                  );
-                })}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
         </div>
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm font-medium text-muted-foreground">
             {filtered.length} resultado{filtered.length === 1 ? "" : "s"}
           </p>
-          {(query || chapterFilter !== "Todos" || componentFilter !== "Todos") && (
+          {hasFilters && (
             <button
               type="button"
               onClick={() => {
@@ -213,14 +242,14 @@ export default function ICPC2Page() {
         {filtered.map((item, index) => (
           <article
             key={`${item.code}-${item.title}-${index}`}
-            className="rounded-3xl border border-border bg-card/90 p-5 shadow-sm"
+            className="rounded-3xl border border-border bg-card/90 p-5 shadow-sm transition hover:border-primary/40"
           >
             <div className="flex flex-wrap items-center gap-3">
               <span className="rounded-full border border-border/70 bg-muted/60 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
                 {item.code}
               </span>
               <h2 className="text-lg font-semibold text-foreground">
-                {item.title}
+                {highlightText(item.title, queryTerms)}
               </h2>
               {item.is_standard_procedure && (
                 <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
@@ -230,7 +259,7 @@ export default function ICPC2Page() {
             </div>
             {item.details && (
               <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-                {item.details}
+                {highlightText(item.details, queryTerms)}
               </p>
             )}
           </article>
