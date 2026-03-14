@@ -55,7 +55,7 @@ function Notificacao({
   return (
     <div
       className={cn(
-        "fixed right-4 top-4 z-50 px-4 py-2 rounded shadow-lg flex items-center gap-2 transition-all animate-fade-in",
+        "fixed right-4 top-4 z-50 px-4 py-2 rounded-2xl border border-border/60 bg-card/90 shadow-lg flex items-center gap-2 transition-all animate-fade-in",
         tipo === "success"
           ? "bg-success/10 text-success"
           : "bg-destructive/10 text-destructive"
@@ -250,10 +250,10 @@ export default function CalendarioPage() {
         />
       )}
 
-      <section className="bg-card rounded-2xl border border-border shadow-md p-4 mb-8">
+      <section className="bg-card/90 rounded-3xl border border-border/60 shadow-md p-5 mb-8">
         <div className="flex items-center justify-between gap-2 mb-2">
           <button
-            className="p-2 hover:bg-muted rounded transition"
+            className="p-2 hover:bg-secondary rounded-full transition"
             title="Mês anterior"
             onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
           >
@@ -263,7 +263,7 @@ export default function CalendarioPage() {
             {format(currentMonth, "MMMM yyyy", { locale: pt })}
           </span>
           <button
-            className="p-2 hover:bg-muted rounded transition"
+            className="p-2 hover:bg-secondary rounded-full transition"
             title="Mês seguinte"
             onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
           >
@@ -295,11 +295,11 @@ export default function CalendarioPage() {
                 <button
                   key={dayKey}
                   className={cn(
-                    "aspect-square rounded flex flex-col items-center justify-start py-1 px-0.5 border transition group relative outline-none focus:ring-2 ring-offset-2",
+                    "aspect-square rounded-2xl flex flex-col items-center justify-start py-1 px-0.5 border border-border/60 transition group relative outline-none focus:ring-2 ring-offset-2",
                     isToday(day) && "border-primary ring-2 ring-primary/20",
                     isSameMonth(day, currentMonth)
-                      ? "bg-card hover:bg-muted"
-                      : "bg-muted/60 text-muted-foreground hover:bg-muted border-border/60"
+                      ? "bg-card hover:bg-secondary"
+                      : "bg-muted/60 text-muted-foreground hover:bg-secondary border-border/60"
                   )}
                   aria-label={format(day, "eeee, d MMMM yyyy", { locale: pt })}
                   // Corrigido: abrir o formulário com dia correto
@@ -320,7 +320,7 @@ export default function CalendarioPage() {
                         <span
                           title={ev.title}
                           key={ev.id}
-                          className="rounded px-1 py-0.5 bg-accent text-accent-foreground text-xs truncate w-16"
+                          className="rounded-full px-2 py-0.5 bg-accent text-accent-foreground text-xs truncate w-16"
                         >
                           {ev.title}
                         </span>
@@ -344,7 +344,7 @@ export default function CalendarioPage() {
           </div>
         )}
         <button
-          className="mt-4 flex gap-2 items-center bg-primary text-primary-foreground px-3 py-1.5 rounded hover:bg-primary/90 transition shadow"
+          className="mt-4 flex gap-2 items-center rounded-full bg-primary text-primary-foreground px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] hover:bg-primary/90 transition shadow"
           onClick={() => abrirFormulario(new Date())}
         >
           <Plus className="w-4 h-4" />
@@ -369,7 +369,7 @@ export default function CalendarioPage() {
               <li
                 key={ev.id}
                 className={cn(
-                  "bg-card rounded-2xl border border-border px-4 py-2 flex justify-between items-center shadow-sm",
+                  "bg-card rounded-2xl border border-border/60 px-4 py-2 flex justify-between items-center shadow-sm",
                   isBefore(parseISO(ev.start_at), new Date()) && "opacity-70"
                 )}
               >
@@ -387,7 +387,7 @@ export default function CalendarioPage() {
                   )}
                 </div>
                 <button
-                  className="p-1 text-destructive hover:bg-destructive/10 rounded transition"
+                  className="p-1 text-destructive hover:bg-destructive/10 rounded-full transition"
                   title="Eliminar evento"
                   aria-label="Eliminar evento"
                   onClick={() => handleDeleteEvento(ev.id)}
@@ -406,11 +406,11 @@ export default function CalendarioPage() {
           <form
             ref={formRef}
             onSubmit={handleSalvarEvento}
-            className="bg-card rounded-2xl p-6 shadow-xl w-full max-w-md animate-fade-in flex flex-col gap-3 border border-border relative"
+            className="bg-card rounded-3xl p-6 shadow-xl w-full max-w-md animate-fade-in flex flex-col gap-3 border border-border/60 relative"
           >
             <button
               type="button"
-              className="absolute right-2 top-2 p-1 rounded hover:bg-muted text-muted-foreground"
+              className="absolute right-2 top-2 p-1 rounded-full hover:bg-secondary text-muted-foreground"
               onClick={fecharFormulario}
               aria-label="Fechar"
             >
@@ -421,7 +421,7 @@ export default function CalendarioPage() {
               {selectedDate && format(selectedDate, "dd/MM/yyyy", { locale: pt })}
             </h3>
             {error && (
-              <div className="bg-red-50 text-red-600 rounded px-2 py-1 text-sm">{error}</div>
+              <div className="bg-destructive/10 text-destructive rounded-2xl px-3 py-2 text-sm">{error}</div>
             )}
             <label className="flex flex-col gap-1">
               <span className="font-medium">Título *</span>
@@ -429,7 +429,7 @@ export default function CalendarioPage() {
                 type="text"
                 value={formTitle}
                 onChange={e => setFormTitle(e.target.value)}
-                className="border border-input rounded p-2 focus:ring-2 ring-ring/30"
+                className="border border-input rounded-xl p-2 focus:ring-2 ring-ring/30"
                 required
                 maxLength={80}
                 placeholder="Título do evento"
@@ -440,7 +440,7 @@ export default function CalendarioPage() {
               <textarea
                 value={formDescription}
                 onChange={e => setFormDescription(e.target.value)}
-                className="border border-input rounded p-2 min-h-[60px] focus:ring-2 ring-ring/30"
+                className="border border-input rounded-xl p-2 min-h-[60px] focus:ring-2 ring-ring/30"
                 maxLength={200}
                 placeholder="Descrição (opcional)"
               />
@@ -452,7 +452,7 @@ export default function CalendarioPage() {
                   type="datetime-local"
                   value={formStart}
                   onChange={e => setFormStart(e.target.value)}
-                  className="border border-input rounded p-2"
+                  className="border border-input rounded-xl p-2"
                   required
                 />
               </label>
@@ -462,7 +462,7 @@ export default function CalendarioPage() {
                   type="datetime-local"
                   value={formEnd}
                   onChange={e => setFormEnd(e.target.value)}
-                  className="border border-input rounded p-2"
+                  className="border border-input rounded-xl p-2"
                 />
               </label>
             </div>
@@ -470,7 +470,7 @@ export default function CalendarioPage() {
               type="submit"
               disabled={saving}
               className={cn(
-                "mt-2 bg-primary text-white px-3 py-2 rounded font-semibold hover:bg-primary/90 transition",
+                "mt-2 bg-primary text-primary-foreground px-4 py-2 rounded-xl text-sm font-semibold uppercase tracking-[0.2em] hover:bg-primary/90 transition",
                 saving && "opacity-75 cursor-not-allowed"
               )}
             >

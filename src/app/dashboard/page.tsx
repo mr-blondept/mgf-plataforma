@@ -62,7 +62,7 @@ const categories = [
 export default function DashboardPage() {
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-10">
-      <section className="relative overflow-hidden rounded-3xl border border-border bg-card/80 p-8 shadow-md">
+      <section className="relative overflow-hidden rounded-3xl border border-border/60 bg-card/90 p-8 shadow-md">
         <div className="absolute inset-0 hero-surface" />
         <div className="absolute inset-0 soft-grain opacity-40" />
         <div className="relative">
@@ -80,7 +80,7 @@ export default function DashboardPage() {
             <Link
               href="/treino"
               className={cn(
-                "inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-all",
+                "inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground shadow-sm transition-all",
                 "hover:bg-primary/90 hover:shadow-md"
               )}
             >
@@ -90,8 +90,8 @@ export default function DashboardPage() {
             <Link
               href="/calendario"
               className={cn(
-                "inline-flex items-center gap-2 rounded-xl border border-border bg-card/80 px-4 py-2 text-sm font-medium",
-                "text-foreground shadow-sm transition-all hover:bg-muted"
+                "inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em]",
+                "text-foreground shadow-sm transition-all hover:bg-secondary"
               )}
             >
               Ver calendario
@@ -105,7 +105,7 @@ export default function DashboardPage() {
         {categories.map((category) => (
           <div
             key={category.title}
-            className="rounded-3xl border border-border bg-secondary/70 p-6 shadow-sm"
+            className="rounded-3xl border border-border/60 bg-card/70 p-6 shadow-sm"
           >
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -116,7 +116,7 @@ export default function DashboardPage() {
                   {category.description}
                 </p>
               </div>
-              <div className="h-1 w-20 rounded-full bg-primary/30" />
+              <div className="h-1 w-20 rounded-full bg-primary/40" />
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {category.items.map((item) => {
@@ -126,11 +126,11 @@ export default function DashboardPage() {
                     key={item.title}
                     href={item.href}
                     className={cn(
-                      "group flex items-start gap-4 rounded-2xl border border-border/70 bg-card/90 p-4",
-                      "transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+                      "group flex items-start gap-4 rounded-2xl border border-border/60 bg-card/90 p-4",
+                      "transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
                     )}
                   >
-                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border/60 bg-accent text-accent-foreground">
                       <Icon className="h-5 w-5" />
                     </span>
                     <div className="flex-1">

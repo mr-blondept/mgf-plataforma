@@ -1,51 +1,51 @@
 @import "tailwindcss";
 
-/* Palette: aurora_ink, mist_glass, tidal_teal, sky_dust */
+/* Palette: modern_coast */
 :root {
-  --background: #f6f7fb;
-  --foreground: #0f172a;
+  --background: #f6f8fb;
+  --foreground: #0b1220;
   --card: #ffffff;
-  --card-foreground: #0f172a;
-  --primary: #0ea5a4;
+  --card-foreground: #0b1220;
+  --primary: #2b59ff;
   --primary-foreground: #f8fafc;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
-  --muted: #eef2f6;
-  --muted-foreground: #64748b;
-  --accent: #e0f2fe;
-  --accent-foreground: #0f172a;
+  --secondary: #f1f4f9;
+  --secondary-foreground: #0b1220;
+  --muted: #edf1f6;
+  --muted-foreground: #4b5563;
+  --accent: #e8edff;
+  --accent-foreground: #0b1220;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #14b8a6;
+  --border: #d5dce6;
+  --input: #d5dce6;
+  --ring: #2b59ff;
   --radius: 0.75rem;
-  --success: #10b981;
+  --success: #16a34a;
   --success-foreground: #ffffff;
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.04);
-  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+  --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.06);
+  --shadow: 0 2px 6px 0 rgb(15 23 42 / 0.08);
+  --shadow-md: 0 8px 20px -12px rgb(15 23 42 / 0.25);
 }
 
 .dark {
   --background: #0b1220;
-  --foreground: #e2e8f0;
+  --foreground: #f1f5f9;
   --card: #111827;
-  --card-foreground: #e2e8f0;
-  --primary: #22d3ee;
+  --card-foreground: #f1f5f9;
+  --primary: #7aa2ff;
   --primary-foreground: #0b1220;
   --secondary: #0f172a;
-  --secondary-foreground: #e2e8f0;
+  --secondary-foreground: #f1f5f9;
   --muted: #0f172a;
   --muted-foreground: #94a3b8;
   --accent: #1e293b;
-  --accent-foreground: #e2e8f0;
+  --accent-foreground: #f1f5f9;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #1f2a3a;
-  --input: #1f2a3a;
-  --ring: #22d3ee;
-  --success: #34d399;
+  --border: #22304a;
+  --input: #22304a;
+  --ring: #7aa2ff;
+  --success: #22c55e;
   --success-foreground: #0b1220;
 }
 
@@ -91,17 +91,16 @@
   background: linear-gradient(
     180deg,
     var(--background) 0%,
-    #ffffff 50%,
-    #eef2f6 100%
+    #ffffff 45%,
+    #eef1f7 100%
   );
 }
 
 /* Layered hero atmosphere */
 .hero-surface {
   background:
-    radial-gradient(1200px 600px at 15% -10%, #c7f9f6 0%, transparent 60%),
-    radial-gradient(900px 500px at 85% 5%, #dbeafe 0%, transparent 55%),
-    radial-gradient(700px 500px at 50% 110%, #e0f2fe 0%, transparent 55%);
+    radial-gradient(900px 500px at 15% -10%, #e8edff 0%, transparent 60%),
+    radial-gradient(700px 400px at 90% 10%, #dff7ff 0%, transparent 55%);
 }
 
 .font-display {
@@ -111,7 +110,7 @@
 /* Decorative grain */
 .soft-grain {
   background-image:
-    radial-gradient(circle at 1px 1px, rgb(0 0 0 / 0.03) 1px, transparent 0);
+    radial-gradient(circle at 1px 1px, rgb(15 23 42 / 0.03) 1px, transparent 0);
   background-size: 24px 24px;
 }
 

@@ -36,6 +36,7 @@ const DIFFICULTY_LABELS: Record<number, string> = {
   3: "Difícil",
 };
 const EXAM_TIME_PER_QUESTION_MIN = 2;
+const AI_EXPLANATION_PREFIX = "Explicação (IA):";
 
 function deriveCategory(topic?: string | null) {
   if (!topic) return DEFAULT_CATEGORY;
@@ -56,6 +57,7 @@ export default function TreinoPage() {
   const [simuladoFinalizado, setSimuladoFinalizado] = useState(false);
   const [simuladoResumo, setSimuladoResumo] = useState<{ total: number; corretas: number } | null>(null);
   const [simuladoRespostas, setSimuladoRespostas] = useState<Record<string, boolean>>({});
+  const [focusMode, setFocusMode] = useState(false);
 
   const categoryNames = useMemo(
     () =>
@@ -127,6 +129,7 @@ export default function TreinoPage() {
     setSimuladoFinalizado(false);
     setSimuladoResumo(null);
     setSimuladoRespostas({});
+    setFocusMode(false);
     if (categoryFilter === EXAM_CATEGORY && mode === "simulado") {
       setTimeLeftSec(filteredQuestions.length * EXAM_TIME_PER_QUESTION_MIN * 60);
     } else {
@@ -183,6 +186,12 @@ export default function TreinoPage() {
     filteredQuestions.length > 0
       ? ((currentIndex + 1) / filteredQuestions.length) * 100
       : 0;
+
+  useEffect(() => {
+    if (!loading && question) {
+      setFocusMode(true);
+    }
+  }, [loading, question]);
 
   async function handleAnswer(option: QuestionOption) {
     if (!question) return;
@@ -241,7 +250,34 @@ export default function TreinoPage() {
   return (
     <main className="flex min-h-[calc(100vh-3.5rem)] justify-center px-4 py-10">
       <div className="w-full max-w-5xl space-y-6">
-        <section className="rounded-3xl border border-border bg-card/90 p-6 shadow-sm">
+        {!loading && question && focusMode ? (
+          <section className="flex items-center justify-between rounded-3xl border border-border/60 bg-card/90 p-4 shadow-sm">
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                A estudar
+              </p>
+              <p className="text-lg font-semibold text-foreground">
+                {categoryFilter}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedOptionId(null);
+                setFeedback(null);
+                setSimuladoFinalizado(false);
+                setSimuladoResumo(null);
+                setMode("treino");
+                setTimeLeftSec(null);
+                setFocusMode(false);
+              }}
+              className="rounded-full border border-border/60 bg-card/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-foreground hover:border-primary/50"
+            >
+              Voltar às categorias
+            </button>
+          </section>
+        ) : (
+          <section className="rounded-3xl border border-border/60 bg-card/90 p-6 shadow-sm">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-muted-foreground">
               <span>Treino contínuo</span>
@@ -280,7 +316,7 @@ export default function TreinoPage() {
                     "flex flex-col rounded-2xl border px-4 py-3 transition",
                     isActive
                       ? "border-primary bg-primary/10 text-foreground shadow-inner"
-                      : "border-border bg-background text-muted-foreground hover:border-primary hover:bg-muted/50"
+                      : "border-border/60 bg-background text-muted-foreground hover:border-primary hover:bg-secondary/60"
                   )}
                 >
                   <span className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
@@ -295,7 +331,7 @@ export default function TreinoPage() {
             })}
           </div>
           {categoryFilter === EXAM_CATEGORY && (
-            <div className="mt-5 rounded-3xl border border-border bg-background/80 p-4">
+            <div className="mt-5 rounded-3xl border border-border/60 bg-background/80 p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
@@ -313,7 +349,7 @@ export default function TreinoPage() {
                       "rounded-full px-4 py-2 text-xs font-semibold transition",
                       mode === "treino"
                         ? "bg-primary text-primary-foreground"
-                        : "border border-border bg-card/80 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                        : "border border-border/60 bg-card/80 text-muted-foreground hover:border-primary/50 hover:text-foreground"
                     )}
                   >
                     Treino
@@ -325,7 +361,7 @@ export default function TreinoPage() {
                       "rounded-full px-4 py-2 text-xs font-semibold transition",
                       mode === "simulado"
                         ? "bg-primary text-primary-foreground"
-                        : "border border-border bg-card/80 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                        : "border border-border/60 bg-card/80 text-muted-foreground hover:border-primary/50 hover:text-foreground"
                     )}
                   >
                     Simulado
@@ -334,10 +370,10 @@ export default function TreinoPage() {
               </div>
               {mode === "simulado" && (
                 <div className="mt-4 flex flex-wrap items-center gap-4">
-                  <div className="rounded-2xl border border-border bg-card/80 px-4 py-2 text-sm font-semibold text-foreground">
+                  <div className="rounded-2xl border border-border/60 bg-card/80 px-4 py-2 text-sm font-semibold text-foreground">
                     Tempo restante: {timeLeftSec !== null ? formatTime(timeLeftSec) : "--:--"}
                   </div>
-                  <div className="rounded-2xl border border-border bg-card/80 px-4 py-2 text-sm text-muted-foreground">
+                  <div className="rounded-2xl border border-border/60 bg-card/80 px-4 py-2 text-sm text-muted-foreground">
                     Respostas dadas: {Object.keys(simuladoRespostas).length} / {filteredQuestions.length}
                   </div>
                   <button
@@ -351,9 +387,10 @@ export default function TreinoPage() {
               )}
             </div>
           )}
-        </section>
+          </section>
+        )}
 
-        <section className="rounded-3xl border border-border bg-card/90 p-6 shadow-lg">
+        <section className="rounded-3xl border border-border/60 bg-card/90 p-6 shadow-lg">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">
@@ -393,7 +430,7 @@ export default function TreinoPage() {
 
           {!loading && question && !simuladoFinalizado && (
             <div className="mt-6 grid gap-6">
-              <div className="space-y-4 rounded-3xl border border-border bg-secondary/70 p-6">
+              <div className="space-y-4 rounded-3xl border border-border/60 bg-secondary/60 p-6">
                 <div className="flex flex-wrap items-center gap-3">
                   <span className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
                     Questão {currentIndex + 1} / {filteredQuestions.length}
@@ -418,13 +455,13 @@ export default function TreinoPage() {
                     let optionClass =
                       "w-full flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm transition-all ";
                     if (!showResult) {
-                      optionClass += "border-input bg-card/80 hover:bg-muted/60";
+                      optionClass += "border-input bg-card/80 hover:bg-secondary/60";
                     } else if (isSelected && opt.is_correct) {
                       optionClass += "border-success bg-success/10 text-foreground";
                     } else if (isSelected && !opt.is_correct) {
                       optionClass += "border-destructive bg-destructive/10 text-foreground";
                     } else {
-                      optionClass += "border-border bg-muted/50 text-muted-foreground";
+                      optionClass += "border-border/60 bg-muted/50 text-muted-foreground";
                     }
 
                     return (
@@ -465,8 +502,15 @@ export default function TreinoPage() {
                 )}
 
                 {question.explanation && selectedOptionId && mode === "treino" && (
-                  <div className="rounded-2xl border border-border bg-accent/60 p-4">
-                    <p className="text-sm font-semibold text-foreground">Explicação</p>
+                  <div className="rounded-2xl border border-border/60 bg-accent/60 p-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-semibold text-foreground">Explicação</p>
+                      {question.explanation.startsWith(AI_EXPLANATION_PREFIX) && (
+                        <span className="rounded-full border border-border/60 bg-card/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                          IA
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
                       {question.explanation}
                     </p>
@@ -487,7 +531,7 @@ export default function TreinoPage() {
                     <button
                       type="button"
                       onClick={goToNextQuestion}
-                      className="flex-1 rounded-2xl border border-border bg-card/80 px-5 py-3 text-sm font-semibold text-foreground hover:border-primary/40"
+                      className="flex-1 rounded-2xl border border-border/60 bg-card/80 px-5 py-3 text-sm font-semibold text-foreground hover:border-primary/50"
                     >
                       Próxima pergunta →
                     </button>
@@ -505,7 +549,7 @@ export default function TreinoPage() {
           )}
 
           {simuladoFinalizado && simuladoResumo && (
-            <div className="mt-6 rounded-3xl border border-border bg-card/90 p-6 shadow-sm">
+            <div className="mt-6 rounded-3xl border border-border/60 bg-card/90 p-6 shadow-sm">
               <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
                 Simulado concluído
               </p>
@@ -526,7 +570,7 @@ export default function TreinoPage() {
                 <button
                   type="button"
                   onClick={iniciarSimulado}
-                  className="rounded-2xl border border-border bg-card/80 px-5 py-3 text-sm font-semibold text-foreground hover:border-primary/40"
+                  className="rounded-2xl border border-border/60 bg-card/80 px-5 py-3 text-sm font-semibold text-foreground hover:border-primary/50"
                 >
                   Fazer novo simulado
                 </button>

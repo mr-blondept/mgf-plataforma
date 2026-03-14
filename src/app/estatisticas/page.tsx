@@ -50,40 +50,114 @@ export default function EstatisticasPage() {
   const [stats, setStats] = useState<AggregatedStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [resetting, setResetting] = useState(false);
 
-  useEffect(() => {
-    async function loadStats() {
-      setLoading(true);
-      setErrorMsg(null);
+  async function loadStats() {
+    setLoading(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
 
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-      if (!user) {
-        window.location.href = "/auth";
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("user_answers")
-        .select("is_correct, questions(topic, difficulty)")
-        .eq("user_id", user.id);
-
-      if (error) {
-        setErrorMsg("Erro a carregar estatísticas.");
-        setLoading(false);
-        return;
-      }
-
-      const computed = computeStats((data ?? []) as unknown as AnswerWithQuestion[]);
-      setStats(computed);
-      setLoading(false);
+    if (!user) {
+      window.location.href = "/auth";
+      return;
     }
 
+    const { data, error } = await supabase
+      .from("user_answers")
+      .select("is_correct, questions(topic, difficulty)")
+      .eq("user_id", user.id);
+
+    if (error) {
+      setErrorMsg("Erro a carregar estatísticas.");
+      setLoading(false);
+      return;
+    }
+
+    const computed = computeStats((data ?? []) as unknown as AnswerWithQuestion[]);
+    setStats(computed);
+    setLoading(false);
+  }
+
+  useEffect(() => {
     loadStats();
   }, []);
+
+  async function handleReset() {
+    const confirmed = window.confirm(
+      "Tens a certeza que queres apagar todas as tuas respostas? Esta ação não pode ser desfeita."
+    );
+    if (!confirmed) return;
+
+    setResetting(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      window.location.href = "/auth";
+      return;
+    }
+
+    const { data: idsData, error: idsError } = await supabase
+      .from("user_answers")
+      .select("id")
+      .eq("user_id", user.id);
+
+    if (idsError) {
+      setErrorMsg("Erro ao preparar reset das estatísticas.");
+      setResetting(false);
+      return;
+    }
+
+    const ids = (idsData ?? []).map((row) => row.id as string);
+
+    if (ids.length > 0) {
+      const chunkSize = 100;
+      for (let i = 0; i < ids.length; i += chunkSize) {
+        const chunk = ids.slice(i, i + chunkSize);
+        const { error: chunkError } = await supabase
+          .from("user_answers")
+          .delete()
+          .in("id", chunk);
+        if (chunkError) {
+          setErrorMsg("Erro ao apagar estatísticas.");
+          setResetting(false);
+          return;
+        }
+      }
+    }
+
+    const { count, error: countError } = await supabase
+      .from("user_answers")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id);
+
+    if (countError) {
+      setErrorMsg("Erro a confirmar o reset das estatísticas.");
+      setResetting(false);
+      return;
+    }
+
+    if (count && count > 0) {
+      setErrorMsg("Nem todas as respostas foram apagadas. Tenta novamente.");
+      setResetting(false);
+      return;
+    }
+
+    await loadStats();
+    setSuccessMsg("Estatísticas apagadas com sucesso.");
+    setResetting(false);
+  }
 
   const accuracy =
     stats && stats.total > 0
@@ -93,18 +167,39 @@ export default function EstatisticasPage() {
   return (
     <main className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center px-4 py-8">
       <div className="w-full max-w-2xl">
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-md sm:p-8 space-y-6">
+        <div className="rounded-3xl border border-border/60 bg-card/90 p-6 shadow-md sm:p-8 space-y-6">
           <div className="flex items-center justify-between">
-            <h1 className="text-lg font-bold text-foreground">
-              Estatísticas do treino
-            </h1>
-            <Link
-              href="/treino"
-              className="text-sm font-medium text-primary underline-offset-4 hover:underline"
-            >
-              ← Voltar ao treino
-            </Link>
+            <div>
+              <h1 className="text-lg font-bold text-foreground">
+                Estatísticas do treino
+              </h1>
+              <p className="text-xs text-muted-foreground">
+                Estatísticas pessoais para a tua conta.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleReset}
+                disabled={resetting}
+                className="rounded-full border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-destructive transition hover:bg-destructive/20 disabled:opacity-60"
+              >
+                {resetting ? "A apagar..." : "Reset estatísticas"}
+              </button>
+              <Link
+                href="/treino"
+                className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+              >
+                ← Voltar ao treino
+              </Link>
+            </div>
           </div>
+
+          {successMsg && (
+            <div className="rounded-2xl border border-success/40 bg-success/10 px-4 py-3 text-sm text-success">
+              {successMsg}
+            </div>
+          )}
 
           {loading && (
             <div className="flex items-center gap-2 text-muted-foreground text-sm py-8">
@@ -133,7 +228,7 @@ export default function EstatisticasPage() {
           )}
 
           {errorMsg && (
-            <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            <div className="rounded-2xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
               {errorMsg}
             </div>
           )}
@@ -141,7 +236,7 @@ export default function EstatisticasPage() {
           {stats && !loading && (
             <div className="space-y-6">
               <section className="grid grid-cols-3 gap-3 sm:gap-4">
-                <div className="rounded-xl border border-border bg-secondary p-4 text-center shadow-sm">
+                <div className="rounded-2xl border border-border/60 bg-secondary/70 p-4 text-center shadow-sm">
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Respondidas
                   </p>
@@ -149,7 +244,7 @@ export default function EstatisticasPage() {
                     {stats.total}
                   </p>
                 </div>
-                <div className="rounded-xl border border-border bg-success/15 p-4 text-center shadow-sm">
+                <div className="rounded-2xl border border-border/60 bg-success/10 p-4 text-center shadow-sm">
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Corretas
                   </p>
@@ -157,7 +252,7 @@ export default function EstatisticasPage() {
                     {stats.correct}
                   </p>
                 </div>
-                <div className="rounded-xl border border-border bg-accent p-4 text-center shadow-sm">
+                <div className="rounded-2xl border border-border/60 bg-accent p-4 text-center shadow-sm">
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Taxa de acerto
                   </p>
@@ -205,7 +300,7 @@ export default function EstatisticasPage() {
                         return (
                           <div
                             key={topic}
-                            className="rounded-xl border border-border bg-card p-3 flex items-center gap-3 shadow-sm"
+                            className="rounded-2xl border border-border/60 bg-card p-3 flex items-center gap-3 shadow-sm"
                           >
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-foreground truncate">
