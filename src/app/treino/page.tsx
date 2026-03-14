@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -25,14 +25,17 @@ type QuestionDisplay = QuestionFromDb & {
 };
 
 const DEFAULT_CATEGORY = "MGF 1";
+const EXAM_CATEGORY = "Exame MGF1 - 2025";
 const CATEGORY_DETAILS: Record<string, string> = {
   [DEFAULT_CATEGORY]: "Base oficial do Internato de Medicina Geral e Familiar.",
+  [EXAM_CATEGORY]: "Simulado oficial (2025) com tempo controlado.",
 };
 const DIFFICULTY_LABELS: Record<number, string> = {
   1: "Fácil",
   2: "Moderada",
   3: "Difícil",
 };
+const EXAM_TIME_PER_QUESTION_MIN = 2;
 
 function deriveCategory(topic?: string | null) {
   if (!topic) return DEFAULT_CATEGORY;
@@ -48,6 +51,11 @@ export default function TreinoPage() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState(DEFAULT_CATEGORY);
+  const [mode, setMode] = useState<"treino" | "simulado">("treino");
+  const [timeLeftSec, setTimeLeftSec] = useState<number | null>(null);
+  const [simuladoFinalizado, setSimuladoFinalizado] = useState(false);
+  const [simuladoResumo, setSimuladoResumo] = useState<{ total: number; corretas: number } | null>(null);
+  const [simuladoRespostas, setSimuladoRespostas] = useState<Record<string, boolean>>({});
 
   const categoryNames = useMemo(
     () =>
@@ -106,16 +114,69 @@ export default function TreinoPage() {
     loadQuestions();
   }, []);
 
+  const deferredCategoryFilter = useDeferredValue(categoryFilter);
   const filteredQuestions = useMemo(
-    () => questions.filter((question) => question.category === categoryFilter),
-    [questions, categoryFilter]
+    () => questions.filter((question) => question.category === deferredCategoryFilter),
+    [questions, deferredCategoryFilter]
   );
 
   useEffect(() => {
     setCurrentIndex(0);
     setSelectedOptionId(null);
     setFeedback(null);
+    setSimuladoFinalizado(false);
+    setSimuladoResumo(null);
+    setSimuladoRespostas({});
+    if (categoryFilter === EXAM_CATEGORY && mode === "simulado") {
+      setTimeLeftSec(filteredQuestions.length * EXAM_TIME_PER_QUESTION_MIN * 60);
+    } else {
+      setTimeLeftSec(null);
+    }
   }, [categoryFilter, filteredQuestions.length]);
+
+  useEffect(() => {
+    if (mode !== "simulado" || categoryFilter !== EXAM_CATEGORY) return;
+    if (simuladoFinalizado) return;
+    if (!timeLeftSec || timeLeftSec <= 0) return;
+
+    const timer = window.setInterval(() => {
+      setTimeLeftSec((prev) => {
+        if (!prev) return prev;
+        if (prev <= 1) return 0;
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [mode, categoryFilter, timeLeftSec, simuladoFinalizado]);
+
+  useEffect(() => {
+    if (mode !== "simulado" || categoryFilter !== EXAM_CATEGORY) return;
+    if (simuladoFinalizado) return;
+    if (timeLeftSec === 0) {
+      finalizarSimulado();
+    }
+  }, [timeLeftSec, mode, categoryFilter, simuladoFinalizado]);
+
+  function iniciarSimulado() {
+    setMode("simulado");
+    setCurrentIndex(0);
+    setSelectedOptionId(null);
+    setFeedback(null);
+    setSimuladoFinalizado(false);
+    setSimuladoResumo(null);
+    setSimuladoRespostas({});
+    setTimeLeftSec(filteredQuestions.length * EXAM_TIME_PER_QUESTION_MIN * 60);
+  }
+
+  function finalizarSimulado() {
+    const total = filteredQuestions.length;
+    const corretas = Object.values(simuladoRespostas).filter(Boolean).length;
+    setSimuladoResumo({ total, corretas });
+    setSimuladoFinalizado(true);
+    setSelectedOptionId(null);
+    setFeedback(null);
+  }
 
   const question = filteredQuestions[currentIndex] ?? null;
   const progress =
@@ -151,6 +212,10 @@ export default function TreinoPage() {
       return;
     }
 
+    if (mode === "simulado") {
+      setSimuladoRespostas((prev) => ({ ...prev, [question.id]: isCorrect }));
+    }
+
     setFeedback(
       isCorrect
         ? "Correto! Boa!"
@@ -163,6 +228,14 @@ export default function TreinoPage() {
     setSelectedOptionId(null);
     setFeedback(null);
     setCurrentIndex((prev) => (prev + 1) % filteredQuestions.length);
+  }
+
+  function formatTime(totalSeconds: number) {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
   }
 
   return (
@@ -221,6 +294,63 @@ export default function TreinoPage() {
               );
             })}
           </div>
+          {categoryFilter === EXAM_CATEGORY && (
+            <div className="mt-5 rounded-3xl border border-border bg-background/80 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                    Simulado oficial
+                  </p>
+                  <p className="text-lg font-semibold text-foreground">
+                    {filteredQuestions.length} questões · {EXAM_TIME_PER_QUESTION_MIN} min/questão
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setMode("treino")}
+                    className={cn(
+                      "rounded-full px-4 py-2 text-xs font-semibold transition",
+                      mode === "treino"
+                        ? "bg-primary text-primary-foreground"
+                        : "border border-border bg-card/80 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                    )}
+                  >
+                    Treino
+                  </button>
+                  <button
+                    type="button"
+                    onClick={iniciarSimulado}
+                    className={cn(
+                      "rounded-full px-4 py-2 text-xs font-semibold transition",
+                      mode === "simulado"
+                        ? "bg-primary text-primary-foreground"
+                        : "border border-border bg-card/80 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                    )}
+                  >
+                    Simulado
+                  </button>
+                </div>
+              </div>
+              {mode === "simulado" && (
+                <div className="mt-4 flex flex-wrap items-center gap-4">
+                  <div className="rounded-2xl border border-border bg-card/80 px-4 py-2 text-sm font-semibold text-foreground">
+                    Tempo restante: {timeLeftSec !== null ? formatTime(timeLeftSec) : "--:--"}
+                  </div>
+                  <div className="rounded-2xl border border-border bg-card/80 px-4 py-2 text-sm text-muted-foreground">
+                    Respostas dadas: {Object.keys(simuladoRespostas).length} / {filteredQuestions.length}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={finalizarSimulado}
+                    className="rounded-2xl border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/20"
+                  >
+                    Terminar simulado
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </section>
 
         <section className="rounded-3xl border border-border bg-card/90 p-6 shadow-lg">
@@ -261,7 +391,7 @@ export default function TreinoPage() {
             </div>
           )}
 
-          {!loading && question && (
+          {!loading && question && !simuladoFinalizado && (
             <div className="mt-6 grid gap-6">
               <div className="space-y-4 rounded-3xl border border-border bg-secondary/70 p-6">
                 <div className="flex flex-wrap items-center gap-3">
@@ -334,7 +464,7 @@ export default function TreinoPage() {
                   </p>
                 )}
 
-                {question.explanation && selectedOptionId && (
+                {question.explanation && selectedOptionId && mode === "treino" && (
                   <div className="rounded-2xl border border-border bg-accent/60 p-4">
                     <p className="text-sm font-semibold text-foreground">Explicação</p>
                     <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
@@ -343,7 +473,7 @@ export default function TreinoPage() {
                   </div>
                 )}
 
-                {selectedOptionId && (
+                {selectedOptionId && mode === "treino" && (
                   <button
                     type="button"
                     onClick={goToNextQuestion}
@@ -352,6 +482,54 @@ export default function TreinoPage() {
                     Próxima pergunta →
                   </button>
                 )}
+                {mode === "simulado" && (
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={goToNextQuestion}
+                      className="flex-1 rounded-2xl border border-border bg-card/80 px-5 py-3 text-sm font-semibold text-foreground hover:border-primary/40"
+                    >
+                      Próxima pergunta →
+                    </button>
+                    <button
+                      type="button"
+                      onClick={finalizarSimulado}
+                      className="rounded-2xl border border-primary/40 bg-primary/10 px-5 py-3 text-sm font-semibold text-primary hover:bg-primary/20"
+                    >
+                      Terminar simulado
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {simuladoFinalizado && simuladoResumo && (
+            <div className="mt-6 rounded-3xl border border-border bg-card/90 p-6 shadow-sm">
+              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                Simulado concluído
+              </p>
+              <h3 className="mt-2 text-2xl font-semibold text-foreground">
+                Resultado: {simuladoResumo.corretas} / {simuladoResumo.total}
+              </h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Revê as questões no modo treino para ver explicações detalhadas.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => setMode("treino")}
+                  className="rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary/90"
+                >
+                  Voltar ao treino
+                </button>
+                <button
+                  type="button"
+                  onClick={iniciarSimulado}
+                  className="rounded-2xl border border-border bg-card/80 px-5 py-3 text-sm font-semibold text-foreground hover:border-primary/40"
+                >
+                  Fazer novo simulado
+                </button>
               </div>
             </div>
           )}

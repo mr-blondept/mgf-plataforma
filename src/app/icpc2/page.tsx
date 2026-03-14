@@ -108,140 +108,181 @@ export default function ICPC2Page() {
   }, [chapterFilter, componentFilter, indexedItems, queryTerms]);
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-10">
-      <section className="rounded-3xl border border-border bg-card/90 p-6 shadow-sm">
-        <div className="flex flex-col gap-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-            ICPC-2
-          </p>
-          <h1 className="font-display text-3xl font-semibold text-foreground">
-            Códigos e explicações (versão portuguesa)
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Pesquisa rápida por código, título ou critérios. Use o filtro por
-            capítulo para navegar mais depressa.
-          </p>
-        </div>
-
-        <div className="mt-6 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="rounded-2xl border border-border bg-background/80 px-4 py-3">
-            <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-              Pesquisa
-            </label>
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Ex: P73, depressao, cefaleia, ansiedade..."
-              className="mt-2 w-full rounded-xl border border-border bg-card/80 px-4 py-2 text-sm text-foreground shadow-sm focus:border-primary focus:outline-none"
-            />
-          </div>
-          <div className="grid gap-3">
-            <div className="rounded-2xl border border-border bg-background/80 px-4 py-3">
-              <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                Capítulo
-              </label>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {chapters.map((chapter) => {
-                  const isActive = chapter === chapterFilter;
-                  return (
-                    <button
-                      key={chapter}
-                      type="button"
-                      onClick={() => setChapterFilter(chapter)}
-                      className={cn(
-                        "rounded-full px-3 py-1 text-xs font-semibold transition",
-                        isActive
-                          ? "bg-primary text-primary-foreground"
-                          : "border border-border bg-card/80 text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                      )}
-                    >
-                      {chapter}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            <div className="rounded-2xl border border-border bg-background/80 px-4 py-3">
-              <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                Componente
-              </label>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {COMPONENTS.map((component) => {
-                  const isActive = component.id === componentFilter;
-                  return (
-                    <button
-                      key={component.id}
-                      type="button"
-                      onClick={() => setComponentFilter(component.id)}
-                      className={cn(
-                        "rounded-full px-3 py-1 text-xs font-semibold transition",
-                        isActive
-                          ? "bg-primary text-primary-foreground"
-                          : "border border-border bg-card/80 text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                      )}
-                    >
-                      {component.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-muted-foreground">
-            {filtered.length} resultado{filtered.length === 1 ? "" : "s"}
-          </p>
-          {(query || chapterFilter !== "Todos" || componentFilter !== "Todos") && (
-            <button
-              type="button"
-              onClick={() => {
-                setQuery("");
-                setChapterFilter("Todos");
-                setComponentFilter("Todos");
-              }}
-              className="text-sm font-semibold text-primary underline-offset-4 hover:underline"
-            >
-              Limpar filtros
-            </button>
-          )}
-        </div>
-      </section>
-
-      <section className="mt-6 grid gap-4">
-        {filtered.map((item, index) => (
-          <article
-            key={`${item.code}-${item.title}-${index}`}
-            className="rounded-3xl border border-border bg-card/90 p-5 shadow-sm"
-          >
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="rounded-full border border-border/70 bg-muted/60 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                {item.code}
-              </span>
-              <h2 className="text-lg font-semibold text-foreground">
-                {item.title}
-              </h2>
-              {item.is_standard_procedure && (
-                <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                  Procedimento padrão
+    <main className="relative min-h-[calc(100vh-3.5rem)]">
+      <div className="absolute inset-0 hero-surface" />
+      <div className="absolute inset-0 soft-grain opacity-40" />
+      <div className="relative mx-auto w-full max-w-6xl px-4 py-10">
+        <section className="overflow-hidden rounded-3xl border border-border bg-card/85 shadow-md">
+          <div className="relative p-6">
+            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-primary/20 to-transparent" />
+            <div className="relative flex flex-col gap-4">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="rounded-full border border-border/70 bg-card/90 px-4 py-1 text-xs font-semibold uppercase tracking-[0.4em] text-muted-foreground">
+                  ICPC-2
                 </span>
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                  Versão portuguesa
+                </span>
+              </div>
+              <h1 className="font-display text-3xl font-semibold text-foreground sm:text-4xl">
+                Códigos e explicações clínicas
+              </h1>
+              <p className="max-w-2xl text-sm text-muted-foreground">
+                Pesquisa inteligente por código, capítulo, componente e texto
+                clínico. Ideal para revisão rápida e navegação estruturada.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border border-border/70 bg-card/90 px-4 py-3 shadow-sm">
+                  <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                    Total
+                  </p>
+                  <p className="text-xl font-semibold text-foreground">
+                    {RAW_ITEMS.length}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-border/70 bg-card/90 px-4 py-3 shadow-sm">
+                  <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                    Filtrados
+                  </p>
+                  <p className="text-xl font-semibold text-foreground">
+                    {filtered.length}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-border/70 bg-card/90 px-4 py-3 shadow-sm">
+                  <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                    Capítulos
+                  </p>
+                  <p className="text-xl font-semibold text-foreground">
+                    {chapters.length - 1}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="border-t border-border/70 bg-background/70 p-6">
+            <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+              <div className="rounded-2xl border border-border bg-card/80 px-4 py-3 shadow-sm">
+                <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                  Pesquisa
+                </label>
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Ex: P73, depressao, cefaleia, ansiedade..."
+                  className="mt-2 w-full rounded-xl border border-border bg-background/80 px-4 py-2 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+              <div className="grid gap-3">
+                <div className="rounded-2xl border border-border bg-card/80 px-4 py-3 shadow-sm">
+                  <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                    Capítulo
+                  </label>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {chapters.map((chapter) => {
+                      const isActive = chapter === chapterFilter;
+                      return (
+                        <button
+                          key={chapter}
+                          type="button"
+                          onClick={() => setChapterFilter(chapter)}
+                          className={cn(
+                            "rounded-full px-3 py-1 text-xs font-semibold transition",
+                            isActive
+                              ? "bg-primary text-primary-foreground shadow-sm"
+                              : "border border-border bg-background/80 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                          )}
+                        >
+                          {chapter}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-border bg-card/80 px-4 py-3 shadow-sm">
+                  <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                    Componente
+                  </label>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {COMPONENTS.map((component) => {
+                      const isActive = component.id === componentFilter;
+                      return (
+                        <button
+                          key={component.id}
+                          type="button"
+                          onClick={() => setComponentFilter(component.id)}
+                          className={cn(
+                            "rounded-full px-3 py-1 text-xs font-semibold transition",
+                            isActive
+                              ? "bg-primary text-primary-foreground shadow-sm"
+                              : "border border-border bg-background/80 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                          )}
+                        >
+                          {component.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm text-muted-foreground">
+                {filtered.length} resultado{filtered.length === 1 ? "" : "s"}
+              </p>
+              {(query ||
+                chapterFilter !== "Todos" ||
+                componentFilter !== "Todos") && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuery("");
+                    setChapterFilter("Todos");
+                    setComponentFilter("Todos");
+                  }}
+                  className="text-sm font-semibold text-primary underline-offset-4 hover:underline"
+                >
+                  Limpar filtros
+                </button>
               )}
             </div>
-            {item.details && (
-              <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-                {item.details}
-              </p>
-            )}
-          </article>
-        ))}
-
-        {filtered.length === 0 && (
-          <div className="rounded-3xl border border-border bg-card/90 p-6 text-center text-sm text-muted-foreground">
-            Nenhum código encontrado. Experimente outro termo de pesquisa.
           </div>
-        )}
-      </section>
+        </section>
+
+        <section className="mt-6 grid gap-4 lg:grid-cols-2">
+          {filtered.map((item, index) => (
+            <article
+              key={`${item.code}-${item.title}-${index}`}
+              className="group rounded-3xl border border-border bg-card/90 p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+            >
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="rounded-full border border-border/70 bg-muted/60 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                  {item.code}
+                </span>
+                <h2 className="text-lg font-semibold text-foreground">
+                  {item.title}
+                </h2>
+                {item.is_standard_procedure && (
+                  <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                    Procedimento padrão
+                  </span>
+                )}
+              </div>
+              {item.details && (
+                <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                  {item.details}
+                </p>
+              )}
+            </article>
+          ))}
+
+          {filtered.length === 0 && (
+            <div className="col-span-full rounded-3xl border border-border bg-card/90 p-6 text-center text-sm text-muted-foreground">
+              Nenhum código encontrado. Experimente outro termo de pesquisa.
+            </div>
+          )}
+        </section>
+      </div>
     </main>
   );
 }
