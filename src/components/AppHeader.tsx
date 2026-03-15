@@ -27,25 +27,25 @@ export default function AppHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
+    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/70 backdrop-blur">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
         <Link
           href="/"
-          className="flex items-center gap-2 text-lg font-bold tracking-tight text-foreground transition hover:text-primary"
+          className="flex items-center gap-2 text-base font-semibold tracking-tight text-foreground transition hover:text-primary"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-border bg-primary text-primary-foreground shadow-sm">
-            <Stethoscope className="h-4 w-4" />
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-border/70 bg-secondary/80 text-foreground shadow-sm">
+            <Stethoscope className="h-4 w-4 text-foreground" />
           </span>
-          <span className="hidden sm:inline">MGF Quiz</span>
+          <span className="hidden sm:inline">Internos MGF</span>
         </Link>
 
-        <nav className="flex items-center gap-2">
+        <nav className="flex items-center gap-1.5">
           {user && (
             <Link
               href="/dashboard"
               className={cn(
-                "rounded-full border border-border px-3 py-1.5 text-xs font-semibold tracking-[0.18em] transition-colors",
-                "text-foreground hover:bg-secondary"
+                "rounded-full border border-border/70 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] transition-colors",
+                "text-foreground/90 hover:bg-secondary/80"
               )}
             >
               Dashboard
@@ -54,17 +54,17 @@ export default function AppHeader() {
           <Link
             href="/treino"
             className={cn(
-              "rounded-full border border-border px-3 py-1.5 text-xs font-semibold tracking-[0.18em] transition-colors",
-              "text-foreground hover:bg-secondary"
+              "rounded-full border border-border/70 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] transition-colors",
+              "text-foreground/90 hover:bg-secondary/80"
             )}
           >
-            Treino
+            Banco de Perguntas
           </Link>
           <Link
             href="/icpc2"
             className={cn(
-              "rounded-full border border-border px-3 py-1.5 text-xs font-semibold tracking-[0.18em] transition-colors",
-              "text-foreground hover:bg-secondary"
+              "rounded-full border border-border/70 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] transition-colors",
+              "text-foreground/90 hover:bg-secondary/80"
             )}
           >
             ICPC-2
@@ -74,8 +74,8 @@ export default function AppHeader() {
               <Link
                 href="/calendario"
                 className={cn(
-                  "rounded-full border border-border px-3 py-1.5 text-xs font-semibold tracking-[0.18em] transition-colors",
-                  "text-foreground hover:bg-secondary"
+                  "rounded-full border border-border/70 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] transition-colors",
+                  "text-foreground/90 hover:bg-secondary/80"
                 )}
               >
                 Calendário
@@ -83,8 +83,8 @@ export default function AppHeader() {
               <Link
                 href="/estatisticas"
                 className={cn(
-                  "rounded-full border border-border px-3 py-1.5 text-xs font-semibold tracking-[0.18em] transition-colors",
-                  "text-foreground hover:bg-secondary"
+                  "rounded-full border border-border/70 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] transition-colors",
+                  "text-foreground/90 hover:bg-secondary/80"
                 )}
               >
                 Estatísticas
@@ -96,8 +96,8 @@ export default function AppHeader() {
               type="button"
               onClick={handleSignOut}
               className={cn(
-                "rounded-full border border-border px-3 py-1.5 text-xs font-semibold tracking-[0.18em] transition-colors",
-                "text-foreground hover:bg-secondary"
+                "rounded-full border border-border/70 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] transition-colors",
+                "text-foreground/90 hover:bg-secondary/80"
               )}
             >
               Sair
@@ -105,7 +105,7 @@ export default function AppHeader() {
           ) : (
             <Link
               href="/auth"
-              className="rounded-full border border-border bg-primary px-4 py-1.5 text-xs font-semibold tracking-[0.18em] text-primary-foreground transition-all hover:bg-primary/90"
+              className="rounded-full bg-primary px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-primary-foreground transition-all hover:bg-primary/90"
             >
               Entrar
             </Link>

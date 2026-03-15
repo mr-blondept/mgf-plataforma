@@ -52,8 +52,9 @@ export default function EstatisticasPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [resetting, setResetting] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
-  async function loadStats() {
+  async function loadStats(): Promise<AggregatedStats | null> {
     setLoading(true);
     setErrorMsg(null);
     setSuccessMsg(null);
@@ -82,6 +83,7 @@ export default function EstatisticasPage() {
     const computed = computeStats((data ?? []) as unknown as AnswerWithQuestion[]);
     setStats(computed);
     setLoading(false);
+    return computed;
   }
 
   useEffect(() => {
@@ -98,66 +100,50 @@ export default function EstatisticasPage() {
     setErrorMsg(null);
     setSuccessMsg(null);
 
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      window.location.href = "/auth";
-      return;
-    }
-
-    const { data: idsData, error: idsError } = await supabase
-      .from("user_answers")
-      .select("id")
-      .eq("user_id", user.id);
-
-    if (idsError) {
-      setErrorMsg("Erro ao preparar reset das estatísticas.");
+    const response = await fetch("/api/reset-stats", { method: "POST" });
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null);
+      const apiMsg = payload?.message ? ` (${payload.message})` : "";
+      setErrorMsg(`Erro ao apagar estatísticas.${apiMsg}`);
       setResetting(false);
       return;
     }
 
-    const ids = (idsData ?? []).map((row) => row.id as string);
+    const payload = await response.json().catch(() => null);
+    const remaining = typeof payload?.remaining === "number" ? payload.remaining : null;
 
-    if (ids.length > 0) {
-      const chunkSize = 100;
-      for (let i = 0; i < ids.length; i += chunkSize) {
-        const chunk = ids.slice(i, i + chunkSize);
-        const { error: chunkError } = await supabase
-          .from("user_answers")
-          .delete()
-          .in("id", chunk);
-        if (chunkError) {
-          setErrorMsg("Erro ao apagar estatísticas.");
-          setResetting(false);
-          return;
-        }
-      }
-    }
+    const refreshed = await loadStats();
+    const localRemaining = refreshed?.total ?? null;
 
-    const { count, error: countError } = await supabase
-      .from("user_answers")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id);
-
-    if (countError) {
-      setErrorMsg("Erro a confirmar o reset das estatísticas.");
+    if ((remaining !== null && remaining > 0) || (localRemaining !== null && localRemaining > 0)) {
+      const detailParts = [];
+      if (typeof payload?.before === "number") detailParts.push(`antes: ${payload.before}`);
+      if (typeof payload?.deleted === "number") detailParts.push(`apagadas: ${payload.deleted}`);
+      if (typeof payload?.remaining === "number") detailParts.push(`restantes: ${payload.remaining}`);
+      if (payload?.userId) detailParts.push(`user: ${payload.userId}`);
+      const detail = detailParts.length > 0 ? ` (${detailParts.join(", ")})` : "";
+      setErrorMsg(`Nem todas as respostas foram apagadas. Tenta novamente.${detail}`);
       setResetting(false);
       return;
     }
 
-    if (count && count > 0) {
-      setErrorMsg("Nem todas as respostas foram apagadas. Tenta novamente.");
-      setResetting(false);
-      return;
-    }
-
-    await loadStats();
     setSuccessMsg("Estatísticas apagadas com sucesso.");
+    setShowToast(true);
     setResetting(false);
   }
+
+  useEffect(() => {
+    if (!successMsg) {
+      setShowToast(false);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setShowToast(false);
+    }, 3200);
+
+    return () => window.clearTimeout(timer);
+  }, [successMsg]);
 
   const accuracy =
     stats && stats.total > 0
@@ -165,9 +151,14 @@ export default function EstatisticasPage() {
       : 0;
 
   return (
-    <main className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center px-4 py-8">
-      <div className="w-full max-w-2xl">
-        <div className="rounded-3xl border border-border/60 bg-card/90 p-6 shadow-md sm:p-8 space-y-6">
+    <main className="relative min-h-[calc(100vh-3.5rem)] app-surface">
+      <div className="relative mx-auto w-full max-w-2xl px-4 py-8">
+        {showToast && (
+          <div className="fixed right-4 top-24 z-40 rounded-2xl border border-success/40 bg-success/10 px-4 py-2 text-sm text-success shadow-lg transition-all backdrop-blur">
+            Estatísticas redefinidas
+          </div>
+        )}
+        <div className="rounded-3xl border border-border/70 bg-card/80 p-6 shadow-md backdrop-blur sm:p-8 space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-lg font-bold text-foreground">
@@ -182,7 +173,7 @@ export default function EstatisticasPage() {
                 type="button"
                 onClick={handleReset}
                 disabled={resetting}
-                className="rounded-full border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-destructive transition hover:bg-destructive/20 disabled:opacity-60"
+                className="rounded-full border border-destructive/40 bg-destructive/10 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-destructive transition hover:bg-destructive/20 disabled:opacity-60"
               >
                 {resetting ? "A apagar..." : "Reset estatísticas"}
               </button>
@@ -236,7 +227,7 @@ export default function EstatisticasPage() {
           {stats && !loading && (
             <div className="space-y-6">
               <section className="grid grid-cols-3 gap-3 sm:gap-4">
-                <div className="rounded-2xl border border-border/60 bg-secondary/70 p-4 text-center shadow-sm">
+                <div className="rounded-2xl border border-border/70 bg-secondary/70 p-4 text-center shadow-sm">
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Respondidas
                   </p>
@@ -244,7 +235,7 @@ export default function EstatisticasPage() {
                     {stats.total}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-border/60 bg-success/10 p-4 text-center shadow-sm">
+                <div className="rounded-2xl border border-border/70 bg-success/10 p-4 text-center shadow-sm">
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Corretas
                   </p>
@@ -252,7 +243,7 @@ export default function EstatisticasPage() {
                     {stats.correct}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-border/60 bg-accent p-4 text-center shadow-sm">
+                <div className="rounded-2xl border border-border/70 bg-secondary/80 p-4 text-center shadow-sm">
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Taxa de acerto
                   </p>
@@ -271,7 +262,7 @@ export default function EstatisticasPage() {
                       background: `conic-gradient(var(--primary) 0% ${accuracy}%, var(--muted) ${accuracy}% 100%)`,
                     }}
                   >
-                    <div className="absolute inset-1.5 rounded-full bg-card flex items-center justify-center">
+                    <div className="absolute inset-1.5 rounded-full bg-card/90 flex items-center justify-center">
                       <span className="text-lg font-bold text-foreground">
                         {accuracy}%
                       </span>
@@ -300,7 +291,7 @@ export default function EstatisticasPage() {
                         return (
                           <div
                             key={topic}
-                            className="rounded-2xl border border-border/60 bg-card p-3 flex items-center gap-3 shadow-sm"
+                            className="rounded-2xl border border-border/70 bg-card/80 p-3 flex items-center gap-3 shadow-sm backdrop-blur"
                           >
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-foreground truncate">

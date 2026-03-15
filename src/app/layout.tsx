@@ -1,22 +1,22 @@
 import type { Metadata } from "next";
-import { Fraunces, Manrope } from "next/font/google";
+import { Sora, Space_Grotesk } from "next/font/google";
 import AppHeader from "@/components/AppHeader";
 import "./globals.css";
 
-const manrope = Manrope({
-  variable: "--font-manrope",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
   subsets: ["latin"],
 });
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
+const sora = Sora({
+  variable: "--font-sora",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "MGF Quiz - Internato de Medicina Geral e Familiar",
+  title: "Internos MGF - Plataforma de estudo",
   description:
-    "Plataforma de estudo para o Internato de Medicina Geral e Familiar com perguntas de escolha múltipla, estatísticas e acompanhamento de progresso.",
+    "Internos MGF reúne banco de perguntas, estatísticas e ferramentas do Internato de Medicina Geral e Familiar.",
 };
 
 export default function RootLayout({
@@ -26,8 +26,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt">
+      <head>
+        <title>Internos MGF</title>
+        <link rel="icon" href="/favicon.svg" />
+      </head>
       <body
-        className={`${manrope.variable} ${fraunces.variable} min-h-screen app-surface`}
+        className={`${spaceGrotesk.variable} ${sora.variable} min-h-screen app-surface`}
       >
         <AppHeader />
         {children}

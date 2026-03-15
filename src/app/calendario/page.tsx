@@ -55,7 +55,7 @@ function Notificacao({
   return (
     <div
       className={cn(
-        "fixed right-4 top-4 z-50 px-4 py-2 rounded-2xl border border-border/60 bg-card/90 shadow-lg flex items-center gap-2 transition-all animate-fade-in",
+        "fixed right-4 top-4 z-50 px-4 py-2 rounded-2xl border border-border/70 bg-card/80 shadow-lg backdrop-blur flex items-center gap-2 transition-all animate-fade-in",
         tipo === "success"
           ? "bg-success/10 text-success"
           : "bg-destructive/10 text-destructive"
@@ -236,169 +236,169 @@ export default function CalendarioPage() {
   });
 
   return (
-    <main className="py-6 px-2 max-w-3xl mx-auto relative">
-      <h1 className="font-bold text-2xl mb-2 flex items-center gap-2">
-        <CalendarIcon className="w-7 h-7 text-primary" />
-        Calendário
-      </h1>
+    <main className="relative min-h-[calc(100vh-3.5rem)] app-surface">
+      <div className="relative mx-auto max-w-3xl px-4 py-6">
+        <h1 className="font-bold text-2xl mb-2 flex items-center gap-2">
+          <CalendarIcon className="w-7 h-7 text-primary" />
+          Calendário
+        </h1>
 
-      {notificacao && (
-        <Notificacao
-          mensagem={notificacao.msg}
-          tipo={notificacao.tipo}
-          onFechar={() => setNotificacao(null)}
-        />
-      )}
-
-      <section className="bg-card/90 rounded-3xl border border-border/60 shadow-md p-5 mb-8">
-        <div className="flex items-center justify-between gap-2 mb-2">
-          <button
-            className="p-2 hover:bg-secondary rounded-full transition"
-            title="Mês anterior"
-            onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-          >
-            <ChevronLeft />
-          </button>
-          <span className="font-semibold text-lg">
-            {format(currentMonth, "MMMM yyyy", { locale: pt })}
-          </span>
-          <button
-            className="p-2 hover:bg-secondary rounded-full transition"
-            title="Mês seguinte"
-            onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-          >
-            <ChevronRight />
-          </button>
-        </div>
-        <div className="grid grid-cols-7 text-center mb-2">
-          {WEEKDAYS.map((d, i) => (
-            <div key={i} className="font-medium text-muted-foreground text-sm py-1">
-              {d}
-            </div>
-          ))}
-        </div>
-        {loading ? (
-          <div className="flex justify-center items-center h-32">
-            <Loader2 className="animate-spin w-7 h-7 text-muted-foreground" />
-          </div>
-        ) : (
-          <div className="grid grid-cols-7 gap-1 text-center">
-            {Array(diasNoMes[0].getDay())
-              .fill(null)
-              .map((_, i) => (
-                <div key={"empty" + i} />
-              ))}
-            {diasNoMes.map((day, i) => {
-              const dayKey = format(day, "yyyy-MM-dd");
-              const eventosDia = eventosPorDia[dayKey];
-              return (
-                <button
-                  key={dayKey}
-                  className={cn(
-                    "aspect-square rounded-2xl flex flex-col items-center justify-start py-1 px-0.5 border border-border/60 transition group relative outline-none focus:ring-2 ring-offset-2",
-                    isToday(day) && "border-primary ring-2 ring-primary/20",
-                    isSameMonth(day, currentMonth)
-                      ? "bg-card hover:bg-secondary"
-                      : "bg-muted/60 text-muted-foreground hover:bg-secondary border-border/60"
-                  )}
-                  aria-label={format(day, "eeee, d MMMM yyyy", { locale: pt })}
-                  // Corrigido: abrir o formulário com dia correto
-                  onClick={() => abrirFormulario(day)}
-                  tabIndex={0}
-                >
-                  <span
-                    className={cn(
-                      "font-medium text-base mb-1",
-                      isToday(day) && "text-primary"
-                    )}
-                  >
-                    {format(day, "d")}
-                  </span>
-                  <div className="flex flex-col items-center gap-0.5">
-                    {eventosDia.length > 0 &&
-                      eventosDia.slice(0, 2).map((ev) => (
-                        <span
-                          title={ev.title}
-                          key={ev.id}
-                          className="rounded-full px-2 py-0.5 bg-accent text-accent-foreground text-xs truncate w-16"
-                        >
-                          {ev.title}
-                        </span>
-                      ))}
-                    {eventosDia.length > 2 && (
-                      <span className="text-xs text-muted-foreground">
-                        +{eventosDia.length - 2} mais
-                      </span>
-                    )}
-                  </div>
-                  <span className="sr-only">
-                    {eventosDia.length === 1
-                      ? "1 evento"
-                      : eventosDia.length > 1
-                      ? `${eventosDia.length} eventos`
-                      : ""}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+        {notificacao && (
+          <Notificacao
+            mensagem={notificacao.msg}
+            tipo={notificacao.tipo}
+            onFechar={() => setNotificacao(null)}
+          />
         )}
-        <button
-          className="mt-4 flex gap-2 items-center rounded-full bg-primary text-primary-foreground px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] hover:bg-primary/90 transition shadow"
-          onClick={() => abrirFormulario(new Date())}
-        >
-          <Plus className="w-4 h-4" />
-          Adicionar Evento
-        </button>
-      </section>
+
+        <section className="bg-card/80 rounded-3xl border border-border/70 shadow-md backdrop-blur p-5 mb-8">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <button
+              className="p-2 hover:bg-secondary/80 rounded-full transition"
+              title="Mês anterior"
+              onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+            >
+              <ChevronLeft />
+            </button>
+            <span className="font-semibold text-lg">
+              {format(currentMonth, "MMMM yyyy", { locale: pt })}
+            </span>
+            <button
+              className="p-2 hover:bg-secondary/80 rounded-full transition"
+              title="Mês seguinte"
+              onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+            >
+              <ChevronRight />
+            </button>
+          </div>
+          <div className="grid grid-cols-7 text-center mb-2">
+            {WEEKDAYS.map((d, i) => (
+              <div key={i} className="font-medium text-muted-foreground text-sm py-1">
+                {d}
+              </div>
+            ))}
+          </div>
+          {loading ? (
+            <div className="flex justify-center items-center h-32">
+              <Loader2 className="animate-spin w-7 h-7 text-muted-foreground" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-7 gap-1 text-center">
+              {Array(diasNoMes[0].getDay())
+                .fill(null)
+                .map((_, i) => (
+                  <div key={"empty" + i} />
+                ))}
+              {diasNoMes.map((day, i) => {
+                const dayKey = format(day, "yyyy-MM-dd");
+                const eventosDia = eventosPorDia[dayKey];
+                return (
+                  <button
+                    key={dayKey}
+                    className={cn(
+                      "aspect-square rounded-2xl flex flex-col items-center justify-start py-1 px-0.5 border border-border/70 transition group relative outline-none focus:ring-2 ring-offset-2",
+                      isToday(day) && "border-primary ring-2 ring-primary/20",
+                      isSameMonth(day, currentMonth)
+                        ? "bg-card/70 hover:bg-secondary/80"
+                        : "bg-muted/60 text-muted-foreground hover:bg-secondary/80 border-border/70"
+                    )}
+                    aria-label={format(day, "eeee, d MMMM yyyy", { locale: pt })}
+                    onClick={() => abrirFormulario(day)}
+                    tabIndex={0}
+                  >
+                    <span
+                      className={cn(
+                        "font-medium text-base mb-1",
+                        isToday(day) && "text-primary"
+                      )}
+                    >
+                      {format(day, "d")}
+                    </span>
+                    <div className="flex flex-col items-center gap-0.5">
+                      {eventosDia.length > 0 &&
+                        eventosDia.slice(0, 2).map((ev) => (
+                          <span
+                            title={ev.title}
+                            key={ev.id}
+                            className="rounded-full px-2 py-0.5 bg-secondary/80 text-foreground text-xs truncate w-16"
+                          >
+                            {ev.title}
+                          </span>
+                        ))}
+                      {eventosDia.length > 2 && (
+                        <span className="text-xs text-muted-foreground">
+                          +{eventosDia.length - 2} mais
+                        </span>
+                      )}
+                    </div>
+                    <span className="sr-only">
+                      {eventosDia.length === 1
+                        ? "1 evento"
+                        : eventosDia.length > 1
+                        ? `${eventosDia.length} eventos`
+                        : ""}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          <button
+            className="mt-4 flex gap-2 items-center rounded-full bg-primary text-primary-foreground px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] hover:bg-primary/90 transition shadow"
+            onClick={() => abrirFormulario(new Date())}
+          >
+            <Plus className="w-4 h-4" />
+            Adicionar Evento
+          </button>
+        </section>
 
       {/* Lista detalhada dos eventos do mês */}
-      <section>
-        <h2 className="font-semibold text-lg mt-6 mb-3 flex items-center gap-2">
-          Eventos do mês <CalendarIcon className="w-4 h-4" />
-        </h2>
-        {loading ? (
-          <div className="flex justify-center items-center h-12">
-            <Loader2 className="animate-spin w-6 h-6 text-muted-foreground" />
-          </div>
-        ) : events.length === 0 ? (
-          <p className="text-muted-foreground">Sem eventos neste mês.</p>
-        ) : (
-          <ul className="space-y-4">
-            {events.map((ev) => (
-              <li
-                key={ev.id}
-                className={cn(
-                  "bg-card rounded-2xl border border-border/60 px-4 py-2 flex justify-between items-center shadow-sm",
-                  isBefore(parseISO(ev.start_at), new Date()) && "opacity-70"
-                )}
-              >
-                <div>
-                  <div className="flex gap-2 items-center">
-                    <span className="font-semibold text-primary">
-                      {format(parseISO(ev.start_at), "dd/MM, HH:mm", { locale: pt })}
-                    </span>
-                    <span className="text-base">{ev.title}</span>
-                  </div>
-                  {ev.description && (
-                    <div className="text-muted-foreground text-sm mt-0.5">
-                      {ev.description}
-                    </div>
+        <section>
+          <h2 className="font-semibold text-lg mt-6 mb-3 flex items-center gap-2">
+            Eventos do mês <CalendarIcon className="w-4 h-4" />
+          </h2>
+          {loading ? (
+            <div className="flex justify-center items-center h-12">
+              <Loader2 className="animate-spin w-6 h-6 text-muted-foreground" />
+            </div>
+          ) : events.length === 0 ? (
+            <p className="text-muted-foreground">Sem eventos neste mês.</p>
+          ) : (
+            <ul className="space-y-4">
+              {events.map((ev) => (
+                <li
+                  key={ev.id}
+                  className={cn(
+                    "bg-card/80 rounded-2xl border border-border/70 px-4 py-2 flex justify-between items-center shadow-sm backdrop-blur",
+                    isBefore(parseISO(ev.start_at), new Date()) && "opacity-70"
                   )}
-                </div>
-                <button
-                  className="p-1 text-destructive hover:bg-destructive/10 rounded-full transition"
-                  title="Eliminar evento"
-                  aria-label="Eliminar evento"
-                  onClick={() => handleDeleteEvento(ev.id)}
                 >
-                  <Trash2 className="w-5 h-5" />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+                  <div>
+                    <div className="flex gap-2 items-center">
+                      <span className="font-semibold text-primary">
+                        {format(parseISO(ev.start_at), "dd/MM, HH:mm", { locale: pt })}
+                      </span>
+                      <span className="text-base">{ev.title}</span>
+                    </div>
+                    {ev.description && (
+                      <div className="text-muted-foreground text-sm mt-0.5">
+                        {ev.description}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    className="p-1 text-destructive hover:bg-destructive/10 rounded-full transition"
+                    title="Eliminar evento"
+                    aria-label="Eliminar evento"
+                    onClick={() => handleDeleteEvento(ev.id)}
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
 
       {/* Modal formulário adicionar evento */}
       {showForm && (
@@ -406,11 +406,11 @@ export default function CalendarioPage() {
           <form
             ref={formRef}
             onSubmit={handleSalvarEvento}
-            className="bg-card rounded-3xl p-6 shadow-xl w-full max-w-md animate-fade-in flex flex-col gap-3 border border-border/60 relative"
+            className="bg-card/80 rounded-3xl p-6 shadow-xl w-full max-w-md animate-fade-in flex flex-col gap-3 border border-border/70 backdrop-blur relative"
           >
             <button
               type="button"
-              className="absolute right-2 top-2 p-1 rounded-full hover:bg-secondary text-muted-foreground"
+              className="absolute right-2 top-2 p-1 rounded-full hover:bg-secondary/80 text-muted-foreground"
               onClick={fecharFormulario}
               aria-label="Fechar"
             >
@@ -429,7 +429,7 @@ export default function CalendarioPage() {
                 type="text"
                 value={formTitle}
                 onChange={e => setFormTitle(e.target.value)}
-                className="border border-input rounded-xl p-2 focus:ring-2 ring-ring/30"
+                className="border border-input rounded-xl p-2 bg-background/70 focus:ring-2 ring-ring/30"
                 required
                 maxLength={80}
                 placeholder="Título do evento"
@@ -440,7 +440,7 @@ export default function CalendarioPage() {
               <textarea
                 value={formDescription}
                 onChange={e => setFormDescription(e.target.value)}
-                className="border border-input rounded-xl p-2 min-h-[60px] focus:ring-2 ring-ring/30"
+                className="border border-input rounded-xl p-2 min-h-[60px] bg-background/70 focus:ring-2 ring-ring/30"
                 maxLength={200}
                 placeholder="Descrição (opcional)"
               />
@@ -452,7 +452,7 @@ export default function CalendarioPage() {
                   type="datetime-local"
                   value={formStart}
                   onChange={e => setFormStart(e.target.value)}
-                  className="border border-input rounded-xl p-2"
+                  className="border border-input rounded-xl p-2 bg-background/70"
                   required
                 />
               </label>
@@ -462,7 +462,7 @@ export default function CalendarioPage() {
                   type="datetime-local"
                   value={formEnd}
                   onChange={e => setFormEnd(e.target.value)}
-                  className="border border-input rounded-xl p-2"
+                  className="border border-input rounded-xl p-2 bg-background/70"
                 />
               </label>
             </div>
@@ -470,7 +470,7 @@ export default function CalendarioPage() {
               type="submit"
               disabled={saving}
               className={cn(
-                "mt-2 bg-primary text-primary-foreground px-4 py-2 rounded-xl text-sm font-semibold uppercase tracking-[0.2em] hover:bg-primary/90 transition",
+                "mt-2 bg-primary text-primary-foreground px-4 py-2 rounded-xl text-[11px] font-semibold uppercase tracking-[0.3em] hover:bg-primary/90 transition",
                 saving && "opacity-75 cursor-not-allowed"
               )}
             >
@@ -486,6 +486,7 @@ export default function CalendarioPage() {
           </form>
         </div>
       )}
+      </div>
     </main>
   );
 }

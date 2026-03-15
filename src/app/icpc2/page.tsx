@@ -108,19 +108,19 @@ export default function ICPC2Page() {
   }, [chapterFilter, componentFilter, indexedItems, queryTerms]);
 
   return (
-    <main className="relative min-h-[calc(100vh-3.5rem)]">
+    <main className="relative min-h-[calc(100vh-3.5rem)] app-surface">
       <div className="absolute inset-0 hero-surface" />
-      <div className="absolute inset-0 soft-grain opacity-40" />
+      <div className="absolute inset-0 soft-grain opacity-30" />
       <div className="relative mx-auto w-full max-w-6xl px-4 py-10">
-        <section className="overflow-hidden rounded-3xl border border-border/60 bg-card/90 shadow-md">
+        <section className="overflow-hidden rounded-3xl border border-border/70 bg-card/80 shadow-md backdrop-blur">
           <div className="relative p-6">
-            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-primary/20 to-transparent" />
+            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/20 to-transparent" />
             <div className="relative flex flex-col gap-4">
               <div className="flex flex-wrap items-center gap-3">
-                <span className="rounded-full border border-border/60 bg-card/90 px-4 py-1 text-xs font-semibold uppercase tracking-[0.4em] text-muted-foreground">
+                <span className="rounded-full border border-border/70 bg-secondary/70 px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.35em] text-muted-foreground">
                   ICPC-2
                 </span>
-                <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                <span className="rounded-full border border-border/70 bg-card/70 px-3 py-1 text-xs font-semibold text-foreground">
                   Versão portuguesa
                 </span>
               </div>
@@ -132,7 +132,7 @@ export default function ICPC2Page() {
                 clínico. Ideal para revisão rápida e navegação estruturada.
               </p>
               <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-border/60 bg-card/90 px-4 py-3 shadow-sm">
+                <div className="rounded-2xl border border-border/70 bg-card/80 px-4 py-3 shadow-sm backdrop-blur">
                   <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
                     Total
                   </p>
@@ -140,7 +140,7 @@ export default function ICPC2Page() {
                     {RAW_ITEMS.length}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-border/60 bg-card/90 px-4 py-3 shadow-sm">
+                <div className="rounded-2xl border border-border/70 bg-card/80 px-4 py-3 shadow-sm backdrop-blur">
                   <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
                     Filtrados
                   </p>
@@ -148,7 +148,7 @@ export default function ICPC2Page() {
                     {filtered.length}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-border/60 bg-card/90 px-4 py-3 shadow-sm">
+                <div className="rounded-2xl border border-border/70 bg-card/80 px-4 py-3 shadow-sm backdrop-blur">
                   <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
                     Capítulos
                   </p>
@@ -159,9 +159,9 @@ export default function ICPC2Page() {
               </div>
             </div>
           </div>
-          <div className="border-t border-border/60 bg-background/70 p-6">
+          <div className="border-t border-border/70 bg-secondary/40 p-6">
             <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-              <div className="rounded-2xl border border-border/60 bg-card/80 px-4 py-3 shadow-sm">
+              <div className="rounded-2xl border border-border/70 bg-card/70 px-4 py-3 shadow-sm backdrop-blur">
                 <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
                   Pesquisa
                 </label>
@@ -169,11 +169,11 @@ export default function ICPC2Page() {
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Ex: P73, depressao, cefaleia, ansiedade..."
-                  className="mt-2 w-full rounded-xl border border-border/60 bg-background/80 px-4 py-2 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="mt-2 w-full rounded-xl border border-border/70 bg-background/70 px-4 py-2 text-sm text-foreground shadow-sm transition focus:border-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
               <div className="grid gap-3">
-                <div className="rounded-2xl border border-border/60 bg-card/80 px-4 py-3 shadow-sm">
+                <div className="rounded-2xl border border-border/70 bg-card/70 px-4 py-3 shadow-sm backdrop-blur">
                   <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
                     Capítulo
                   </label>
@@ -186,10 +186,10 @@ export default function ICPC2Page() {
                           type="button"
                           onClick={() => setChapterFilter(chapter)}
                           className={cn(
-                            "rounded-full px-3 py-1 text-xs font-semibold transition",
+                            "rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] transition",
                             isActive
                               ? "bg-primary text-primary-foreground shadow-sm"
-                              : "border border-border/60 bg-background/80 text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                              : "border border-border/70 bg-secondary/70 text-muted-foreground hover:border-foreground/40 hover:text-foreground"
                           )}
                         >
                           {chapter}
@@ -198,7 +198,7 @@ export default function ICPC2Page() {
                     })}
                   </div>
                 </div>
-                <div className="rounded-2xl border border-border/60 bg-card/80 px-4 py-3 shadow-sm">
+                <div className="rounded-2xl border border-border/70 bg-card/70 px-4 py-3 shadow-sm backdrop-blur">
                   <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
                     Componente
                   </label>
@@ -211,10 +211,10 @@ export default function ICPC2Page() {
                           type="button"
                           onClick={() => setComponentFilter(component.id)}
                           className={cn(
-                            "rounded-full px-3 py-1 text-xs font-semibold transition",
+                            "rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] transition",
                             isActive
                               ? "bg-primary text-primary-foreground shadow-sm"
-                              : "border border-border/60 bg-background/80 text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                              : "border border-border/70 bg-secondary/70 text-muted-foreground hover:border-foreground/40 hover:text-foreground"
                           )}
                         >
                           {component.label}
@@ -253,17 +253,17 @@ export default function ICPC2Page() {
           {filtered.map((item, index) => (
             <article
               key={`${item.code}-${item.title}-${index}`}
-              className="group rounded-3xl border border-border/60 bg-card/90 p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
+              className="group rounded-3xl border border-border/70 bg-card/80 p-5 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:border-foreground/40 hover:shadow-md"
             >
               <div className="flex flex-wrap items-center gap-3">
-                <span className="rounded-full border border-border/60 bg-muted/60 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                <span className="rounded-full border border-border/70 bg-secondary/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
                   {item.code}
                 </span>
                 <h2 className="text-lg font-semibold text-foreground">
                   {item.title}
                 </h2>
                 {item.is_standard_procedure && (
-                  <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                  <span className="rounded-full border border-border/70 bg-card/70 px-3 py-1 text-xs font-semibold text-foreground">
                     Procedimento padrão
                   </span>
                 )}
@@ -277,7 +277,7 @@ export default function ICPC2Page() {
           ))}
 
           {filtered.length === 0 && (
-            <div className="col-span-full rounded-3xl border border-border bg-card/90 p-6 text-center text-sm text-muted-foreground">
+            <div className="col-span-full rounded-3xl border border-border/70 bg-card/80 p-6 text-center text-sm text-muted-foreground">
               Nenhum código encontrado. Experimente outro termo de pesquisa.
             </div>
           )}
