@@ -66,7 +66,7 @@ export default function EstatisticasPage() {
 
     if (!user) {
       window.location.href = "/auth";
-      return;
+      return null;
     }
 
     const { data, error } = await supabase
@@ -77,7 +77,7 @@ export default function EstatisticasPage() {
     if (error) {
       setErrorMsg("Erro a carregar estatísticas.");
       setLoading(false);
-      return;
+      return null;
     }
 
     const computed = computeStats((data ?? []) as unknown as AnswerWithQuestion[]);
