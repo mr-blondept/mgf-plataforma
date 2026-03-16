@@ -89,6 +89,15 @@ export default function AppHeader() {
               >
                 Estatísticas
               </Link>
+              <Link
+                href="/perfil"
+                className={cn(
+                  "rounded-full border border-border/70 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] transition-colors",
+                  "text-foreground/90 hover:bg-secondary/80"
+                )}
+              >
+                Perfil
+              </Link>
             </>
           )}
           {user ? (

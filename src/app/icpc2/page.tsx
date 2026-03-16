@@ -160,8 +160,8 @@ export default function ICPC2Page() {
             </div>
           </div>
           <div className="border-t border-border/70 bg-secondary/40 p-6">
-            <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-              <div className="rounded-2xl border border-border/70 bg-card/70 px-4 py-3 shadow-sm backdrop-blur">
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-border/70 bg-card/80 px-4 py-3 shadow-sm backdrop-blur">
                 <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
                   Pesquisa
                 </label>
@@ -169,15 +169,15 @@ export default function ICPC2Page() {
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Ex: P73, depressao, cefaleia, ansiedade..."
-                  className="mt-2 w-full rounded-xl border border-border/70 bg-background/70 px-4 py-2 text-sm text-foreground shadow-sm transition focus:border-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="mt-2 w-full rounded-2xl border border-border/70 bg-background/80 px-5 py-3 text-base text-foreground shadow-sm transition focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
-              <div className="grid gap-3">
-                <div className="rounded-2xl border border-border/70 bg-card/70 px-4 py-3 shadow-sm backdrop-blur">
+              <div className="grid gap-2 lg:grid-cols-2">
+                <div className="rounded-2xl border border-border/70 bg-card/70 px-3 py-2 shadow-sm backdrop-blur">
                   <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
                     Capítulo
                   </label>
-                  <div className="mt-2 flex flex-wrap gap-2">
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
                     {chapters.map((chapter) => {
                       const isActive = chapter === chapterFilter;
                       return (
@@ -186,10 +186,10 @@ export default function ICPC2Page() {
                           type="button"
                           onClick={() => setChapterFilter(chapter)}
                           className={cn(
-                            "rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] transition",
+                            "rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.22em] transition",
                             isActive
                               ? "bg-primary text-primary-foreground shadow-sm"
-                              : "border border-border/70 bg-secondary/70 text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+                              : "border border-border/70 bg-secondary/70 text-muted-foreground hover:border-primary/40 hover:text-foreground"
                           )}
                         >
                           {chapter}
@@ -198,11 +198,11 @@ export default function ICPC2Page() {
                     })}
                   </div>
                 </div>
-                <div className="rounded-2xl border border-border/70 bg-card/70 px-4 py-3 shadow-sm backdrop-blur">
+                <div className="rounded-2xl border border-border/70 bg-card/70 px-3 py-2 shadow-sm backdrop-blur">
                   <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
                     Componente
                   </label>
-                  <div className="mt-2 flex flex-wrap gap-2">
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
                     {COMPONENTS.map((component) => {
                       const isActive = component.id === componentFilter;
                       return (
@@ -211,10 +211,10 @@ export default function ICPC2Page() {
                           type="button"
                           onClick={() => setComponentFilter(component.id)}
                           className={cn(
-                            "rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] transition",
+                            "rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.22em] transition",
                             isActive
                               ? "bg-primary text-primary-foreground shadow-sm"
-                              : "border border-border/70 bg-secondary/70 text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+                              : "border border-border/70 bg-secondary/70 text-muted-foreground hover:border-primary/40 hover:text-foreground"
                           )}
                         >
                           {component.label}

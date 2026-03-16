@@ -8,8 +8,12 @@ import { cn } from "@/lib/utils";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"login" | "signup">("login");
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [medicalOrderNumber, setMedicalOrderNumber] = useState("");
+  const [graduationYear, setGraduationYear] = useState("");
+  const [workplace, setWorkplace] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -21,8 +25,58 @@ export default function AuthPage() {
     try {
       const supabase = createClient();
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const normalizedName = fullName.trim();
+        if (normalizedName.length < 2) {
+          throw new Error("Nome inválido.");
+        }
+        if (password.length < 4) {
+          throw new Error("A palavra-passe deve ter pelo menos 4 dígitos.");
+        }
+        const medicalOrderValue = Number(medicalOrderNumber);
+        if (
+          !Number.isInteger(medicalOrderValue) ||
+          medicalOrderValue < 1000 ||
+          medicalOrderValue > 199999
+        ) {
+          throw new Error("Nº Ordem dos Médicos inválido.");
+        }
+        const yearValue = Number(graduationYear);
+        if (
+          !Number.isInteger(yearValue) ||
+          yearValue < 1950 ||
+          yearValue > new Date().getFullYear()
+        ) {
+          throw new Error("Ano de conclusão inválido.");
+        }
+
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: normalizedName,
+              medical_order_number: String(medicalOrderValue),
+              graduation_year: String(yearValue),
+              workplace: workplace.trim() || null,
+            },
+          },
+        });
         if (error) throw error;
+
+        const userId = data.user?.id ?? null;
+        if (userId && data.session) {
+          const { error: profileError } = await supabase.from("profiles").upsert(
+            {
+              id: userId,
+              full_name: normalizedName,
+              medical_order_number: String(medicalOrderValue),
+              graduation_year: yearValue,
+              workplace: workplace.trim() || null,
+            },
+            { onConflict: "id" }
+          );
+          if (profileError) throw profileError;
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -110,6 +164,28 @@ export default function AuthPage() {
                 required
               />
             </div>
+            {mode === "signup" && (
+              <div className="space-y-2">
+                <label
+                  htmlFor="full-name"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Nome
+                </label>
+                <input
+                  id="full-name"
+                  type="text"
+                  placeholder="Ex: Ana Marques"
+                  className={cn(
+                    "flex h-10 w-full rounded-xl border border-input bg-card px-3 py-2.5 text-sm transition-colors",
+                    "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  )}
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                />
+              </div>
+            )}
             <div className="space-y-2">
               <label
                 htmlFor="password"
@@ -120,7 +196,8 @@ export default function AuthPage() {
               <input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder="••••"
+                minLength={4}
                 className={cn(
                   "flex h-10 w-full rounded-xl border border-input bg-card px-3 py-2.5 text-sm transition-colors",
                   "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
@@ -130,6 +207,75 @@ export default function AuthPage() {
                 required
               />
             </div>
+            {mode === "signup" && (
+              <>
+                <div className="space-y-2">
+                  <label
+                    htmlFor="medical-order"
+                    className="text-sm font-medium text-foreground"
+                  >
+                    Nº Ordem dos Médicos
+                  </label>
+                  <input
+                    id="medical-order"
+                    type="number"
+                    min={1000}
+                    max={199999}
+                    inputMode="numeric"
+                    placeholder="Ex: 12345"
+                    className={cn(
+                      "flex h-10 w-full rounded-xl border border-input bg-card px-3 py-2.5 text-sm transition-colors",
+                      "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    )}
+                    value={medicalOrderNumber}
+                    onChange={(e) => setMedicalOrderNumber(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label
+                    htmlFor="graduation-year"
+                    className="text-sm font-medium text-foreground"
+                  >
+                    Ano de conclusão do curso de Medicina
+                  </label>
+                  <input
+                    id="graduation-year"
+                    type="number"
+                    min={1950}
+                    max={new Date().getFullYear()}
+                    placeholder="Ex: 2021"
+                    className={cn(
+                      "flex h-10 w-full rounded-xl border border-input bg-card px-3 py-2.5 text-sm transition-colors",
+                      "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    )}
+                    value={graduationYear}
+                    onChange={(e) => setGraduationYear(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label
+                    htmlFor="workplace"
+                    className="text-sm font-medium text-foreground"
+                  >
+                    Local de trabalho
+                  </label>
+                  <input
+                    id="workplace"
+                    type="text"
+                    placeholder="Ex: USF Viver Melhor"
+                    className={cn(
+                      "flex h-10 w-full rounded-xl border border-input bg-card px-3 py-2.5 text-sm transition-colors",
+                      "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    )}
+                    value={workplace}
+                    onChange={(e) => setWorkplace(e.target.value)}
+                    required
+                  />
+                </div>
+              </>
+            )}
 
             {errorMsg && (
               <div className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
