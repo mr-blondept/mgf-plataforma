@@ -24,6 +24,12 @@ type QuestionDisplay = QuestionFromDb & {
   category: string;
 };
 
+type QuestionMeta = {
+  id: string;
+  topic: string | null;
+  category: string;
+};
+
 type SessionAnswer = {
   option_id: string;
   is_correct: boolean;
@@ -97,7 +103,7 @@ function normalizeAnswers(raw: QuestionSession["answers"]) {
   return raw as Record<string, SessionAnswer>;
 }
 
-function pickRandomIds(items: QuestionDisplay[], count: number) {
+function pickRandomIds(items: QuestionMeta[], count: number) {
   const shuffled = [...items];
   for (let i = shuffled.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -107,11 +113,13 @@ function pickRandomIds(items: QuestionDisplay[], count: number) {
 }
 
 export default function TreinoPage() {
-  const [questions, setQuestions] = useState<QuestionDisplay[]>([]);
+  const [questionIndex, setQuestionIndex] = useState<QuestionMeta[]>([]);
+  const [sessionQuestions, setSessionQuestions] = useState<QuestionDisplay[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loadingIndex, setLoadingIndex] = useState(true);
+  const [loadingSession, setLoadingSession] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState(DEFAULT_CATEGORY);
   const [mode, setMode] = useState<"treino" | "simulado">("treino");
@@ -125,13 +133,11 @@ export default function TreinoPage() {
   const [sessionQuestionIds, setSessionQuestionIds] = useState<string[] | null>(null);
   const [simuladoCategories, setSimuladoCategories] = useState<string[]>([]);
   const [simuladoCount, setSimuladoCount] = useState(MAX_SIMULADO_QUESTIONS);
+  const [createMode, setCreateMode] = useState<"treino" | "simulado">("treino");
 
   const categoryNames = useMemo(
-    () =>
-      Array.from(
-        new Set(questions.map((question) => question.category || DEFAULT_CATEGORY))
-      ),
-    [questions]
+    () => Array.from(new Set(questionIndex.map((question) => question.category))),
+    [questionIndex]
   );
 
   useEffect(() => {
@@ -147,8 +153,8 @@ export default function TreinoPage() {
   }, [categoryNames, simuladoCategories.length]);
 
   useEffect(() => {
-    async function loadQuestions() {
-      setLoading(true);
+    async function loadQuestionIndex() {
+      setLoadingIndex(true);
       setErrorMsg(null);
 
       const supabase = createClient();
@@ -163,27 +169,25 @@ export default function TreinoPage() {
 
       const { data, error } = await supabase
         .from("questions")
-        .select(
-          "id, stem, explanation, topic, difficulty, question_options(id, text, is_correct)"
-        )
+        .select("id, topic")
         .order("created_at", { ascending: true });
 
       if (error || !data || data.length === 0) {
         setErrorMsg("Não foi possível carregar perguntas.");
-        setLoading(false);
+        setLoadingIndex(false);
         return;
       }
 
-      const normalized = (data as QuestionFromDb[]).map((item) => ({
+      const normalized = (data as { id: string; topic: string | null }[]).map((item) => ({
         ...item,
         category: deriveCategory(item.topic),
       }));
 
-      setQuestions(normalized);
-      setLoading(false);
+      setQuestionIndex(normalized);
+      setLoadingIndex(false);
     }
 
-    loadQuestions();
+    loadQuestionIndex();
   }, []);
 
   useEffect(() => {
@@ -210,19 +214,46 @@ export default function TreinoPage() {
 
   const deferredCategoryFilter = useDeferredValue(categoryFilter);
   const categoryQuestions = useMemo(
-    () => questions.filter((question) => question.category === deferredCategoryFilter),
-    [questions, deferredCategoryFilter]
+    () => questionIndex.filter((question) => question.category === deferredCategoryFilter),
+    [questionIndex, deferredCategoryFilter]
   );
 
   const activeQuestions = useMemo(() => {
-    if (view === "session" && sessionQuestionIds && sessionQuestionIds.length > 0) {
-      const byId = new Map(questions.map((q) => [q.id, q]));
-      return sessionQuestionIds
-        .map((id) => byId.get(id))
-        .filter((item): item is QuestionDisplay => Boolean(item));
+    if (view === "session" && sessionQuestions.length > 0) return sessionQuestions;
+    return [];
+  }, [view, sessionQuestions]);
+
+  async function loadSessionQuestions(questionIds: string[]) {
+    setLoadingSession(true);
+    setErrorMsg(null);
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("questions")
+      .select(
+        "id, stem, explanation, topic, difficulty, question_options(id, text, is_correct)"
+      )
+      .in("id", questionIds);
+
+    if (error || !data) {
+      setErrorMsg("Não foi possível carregar as perguntas da sessão.");
+      setLoadingSession(false);
+      return;
     }
-    return categoryQuestions;
-  }, [view, sessionQuestionIds, questions, categoryQuestions]);
+
+    const byId = new Map(
+      (data as QuestionFromDb[]).map((item) => [
+        item.id,
+        { ...item, category: deriveCategory(item.topic) },
+      ])
+    );
+
+    const ordered = questionIds
+      .map((id) => byId.get(id))
+      .filter((item): item is QuestionDisplay => Boolean(item));
+
+    setSessionQuestions(ordered);
+    setLoadingSession(false);
+  }
 
   useEffect(() => {
     setCurrentIndex(0);
@@ -352,6 +383,9 @@ export default function TreinoPage() {
     setSessionAnswers({});
     setTimeLeftSec(null);
     setSessionQuestionIds(questionIds);
+    setSessionQuestions([]);
+
+    await loadSessionQuestions(questionIds);
 
     setSessions((prev) => [data as QuestionSession, ...prev]);
   }
@@ -368,7 +402,7 @@ export default function TreinoPage() {
     }
 
     const categories = simuladoCategories.length > 0 ? simuladoCategories : [categoryFilter];
-    const pool = questions.filter((q) => categories.includes(q.category));
+    const pool = questionIndex.filter((q) => categories.includes(q.category));
 
     if (pool.length === 0) {
       setErrorMsg("Seleciona categorias com perguntas disponíveis.");
@@ -420,6 +454,9 @@ export default function TreinoPage() {
     setSimuladoResumo(null);
     setSessionAnswers({});
     setSessionQuestionIds(questionIds);
+    setSessionQuestions([]);
+
+    await loadSessionQuestions(questionIds);
 
     setSessions((prev) => [data as QuestionSession, ...prev]);
   }
@@ -437,6 +474,11 @@ export default function TreinoPage() {
     setSimuladoResumo(null);
     setSessionAnswers(normalizedAnswers);
     setSessionQuestionIds(session.question_ids ?? null);
+    setSessionQuestions([]);
+
+    if (session.question_ids && session.question_ids.length > 0) {
+      await loadSessionQuestions(session.question_ids);
+    }
 
     await persistSessionProgress("active");
   }
@@ -538,6 +580,8 @@ export default function TreinoPage() {
   const activeSessions = sessions.filter((session) => session.status !== "completed");
   const completedSessions = sessions.filter((session) => session.status === "completed");
 
+  const loading = loadingIndex || loadingSession;
+
   return (
     <main className="relative min-h-[calc(100vh-3.5rem)] app-surface">
       <div className="relative mx-auto w-full max-w-5xl space-y-6 px-4 py-10">
@@ -566,10 +610,10 @@ export default function TreinoPage() {
                 <span>Banco de Perguntas</span>
               </div>
               <h1 className="font-display text-3xl font-semibold text-foreground">
-                Perguntas por categoria
+                Criar sessão
               </h1>
               <p className="text-sm text-muted-foreground">
-                Escolhe uma categoria para iniciar uma sessão de treino ou cria um simulado com categorias aleatórias.
+                Define se queres treino rápido por categoria ou montar um simulado completo.
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-3">
                 <Link
@@ -586,107 +630,138 @@ export default function TreinoPage() {
                 </Link>
               </div>
             </div>
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              {categoryNames.map((name) => {
-                const count = questions.filter((q) => q.category === name).length;
-                const isActive = name === categoryFilter;
-                return (
-                  <button
-                    type="button"
-                    key={name}
-                    onClick={() => setCategoryFilter(name)}
-                    className={cn(
-                      "flex flex-col rounded-2xl border px-4 py-3 transition",
-                      isActive
-                        ? "border-foreground/40 bg-secondary/80 text-foreground shadow-inner"
-                        : "border-border/70 bg-card/60 text-muted-foreground hover:border-foreground/40 hover:bg-secondary/70"
-                    )}
-                  >
-                    <span className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                      {name}
-                    </span>
-                    <p className="text-lg font-semibold text-foreground">{count} questões</p>
-                    <p className="text-xs leading-tight text-muted-foreground mt-1">
-                      {CATEGORY_DETAILS[name] ?? "Conteúdo organizado e preparado."}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="mt-5 flex flex-wrap items-center gap-3">
+            <div className="mt-5 flex flex-wrap items-center gap-3 rounded-full border border-border/70 bg-secondary/40 p-1 text-xs uppercase tracking-[0.3em] text-muted-foreground">
               <button
                 type="button"
-                onClick={iniciarTreino}
-                className="rounded-full bg-primary px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-primary-foreground"
+                onClick={() => setCreateMode("treino")}
+                className={cn(
+                  "rounded-full px-4 py-2 font-semibold transition",
+                  createMode === "treino"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
               >
-                Iniciar sessão de treino
+                Treino por categoria
+              </button>
+              <button
+                type="button"
+                onClick={() => setCreateMode("simulado")}
+                className={cn(
+                  "rounded-full px-4 py-2 font-semibold transition",
+                  createMode === "simulado"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Simulado personalizado
               </button>
             </div>
 
-            <div className="mt-6 rounded-3xl border border-border/70 bg-card/70 p-4 shadow-sm backdrop-blur">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                    Simulado personalizado
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Seleciona categorias e escolhe ate {MAX_SIMULADO_QUESTIONS} perguntas.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={iniciarSimulado}
-                  className="rounded-full border border-border/70 bg-secondary/70 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-foreground hover:border-foreground/40"
-                >
-                  Iniciar simulado
-                </button>
-              </div>
-              <div className="mt-4 grid gap-3 lg:grid-cols-[1.2fr_0.8fr]">
-                <div className="flex flex-wrap gap-2">
-                  {categoryNames.map((category) => {
-                    const isSelected = simuladoCategories.includes(category);
+            {createMode === "treino" ? (
+              <>
+                <div className="mt-5 grid gap-3 md:grid-cols-3">
+                  {categoryNames.map((name) => {
+                    const count = questionIndex.filter((q) => q.category === name).length;
+                    const isActive = name === categoryFilter;
                     return (
                       <button
-                        key={category}
                         type="button"
-                        onClick={() => {
-                          setSimuladoCategories((prev) =>
-                            prev.includes(category)
-                              ? prev.filter((item) => item !== category)
-                              : [...prev, category]
-                          );
-                        }}
+                        key={name}
+                        onClick={() => setCategoryFilter(name)}
                         className={cn(
-                          "rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] transition",
-                          isSelected
-                            ? "bg-primary text-primary-foreground shadow-sm"
-                            : "border border-border/70 bg-secondary/70 text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+                          "flex flex-col rounded-2xl border px-4 py-3 transition",
+                          isActive
+                            ? "border-foreground/40 bg-secondary/80 text-foreground shadow-inner"
+                            : "border-border/70 bg-card/60 text-muted-foreground hover:border-foreground/40 hover:bg-secondary/70"
                         )}
                       >
-                        {category}
+                        <span className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                          {name}
+                        </span>
+                        <p className="text-lg font-semibold text-foreground">{count} questões</p>
+                        <p className="text-xs leading-tight text-muted-foreground mt-1">
+                          {CATEGORY_DETAILS[name] ?? "Conteúdo organizado e preparado."}
+                        </p>
                       </button>
                     );
                   })}
                 </div>
-                <div className="rounded-2xl border border-border/70 bg-secondary/60 px-4 py-3">
-                  <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                    Numero de perguntas
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={MAX_SIMULADO_QUESTIONS}
-                    value={simuladoCount}
-                    onChange={(event) => {
-                      const value = Number(event.target.value);
-                      setSimuladoCount(Number.isFinite(value) ? value : 1);
-                    }}
-                    className="mt-2 w-full rounded-xl border border-border/70 bg-background/70 px-4 py-2 text-sm text-foreground"
-                  />
+
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={iniciarTreino}
+                    className="rounded-full bg-primary px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-primary-foreground"
+                  >
+                    Iniciar sessão de treino
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="mt-5 rounded-3xl border border-border/70 bg-card/70 p-4 shadow-sm backdrop-blur">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                      Simulado personalizado
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Seleciona categorias e escolhe ate {MAX_SIMULADO_QUESTIONS} perguntas.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={iniciarSimulado}
+                    className="rounded-full border border-border/70 bg-secondary/70 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-foreground hover:border-foreground/40"
+                  >
+                    Iniciar simulado
+                  </button>
+                </div>
+                <div className="mt-4 grid gap-3 lg:grid-cols-[1.2fr_0.8fr]">
+                  <div className="flex flex-wrap gap-2">
+                    {categoryNames.map((category) => {
+                      const isSelected = simuladoCategories.includes(category);
+                      return (
+                        <button
+                          key={category}
+                          type="button"
+                          onClick={() => {
+                            setSimuladoCategories((prev) =>
+                              prev.includes(category)
+                                ? prev.filter((item) => item !== category)
+                                : [...prev, category]
+                            );
+                          }}
+                          className={cn(
+                            "rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] transition",
+                            isSelected
+                              ? "bg-primary text-primary-foreground shadow-sm"
+                              : "border border-border/70 bg-secondary/70 text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+                          )}
+                        >
+                          {category}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="rounded-2xl border border-border/70 bg-secondary/60 px-4 py-3">
+                    <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                      Numero de perguntas
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={MAX_SIMULADO_QUESTIONS}
+                      value={simuladoCount}
+                      onChange={(event) => {
+                        const value = Number(event.target.value);
+                        setSimuladoCount(Number.isFinite(value) ? value : 1);
+                      }}
+                      className="mt-2 w-full rounded-xl border border-border/70 bg-background/70 px-4 py-2 text-sm text-foreground"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {activeSessions.length > 0 && (
               <div className="mt-6 rounded-3xl border border-border/70 bg-card/70 p-4 shadow-sm backdrop-blur">

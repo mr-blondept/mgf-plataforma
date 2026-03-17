@@ -526,7 +526,7 @@ export default function CalendarioPage() {
                                 abrirFormulario(day);
                               }}
                               className={cn(
-                                "h-7 w-7 sm:h-8 sm:w-8 rounded-lg border border-border/70 text-[10px] sm:text-[11px] font-medium transition",
+                                "h-7 w-7 sm:h-8 sm:w-8 rounded-none border border-border/70 text-[10px] sm:text-[11px] font-medium transition",
                                 isToday(day) && "border-primary text-primary",
                                 isWeekend(day) && "border-accent/40",
                                 holidayName && "border-primary/60 text-primary",
