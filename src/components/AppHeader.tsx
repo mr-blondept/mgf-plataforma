@@ -2,13 +2,36 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Stethoscope, Menu, X } from "lucide-react";
+import {
+  BarChart3,
+  BookOpenCheck,
+  CalendarDays,
+  LayoutDashboard,
+  Menu,
+  Stethoscope,
+  UserRound,
+  X,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function AppHeader() {
   const [user, setUser] = useState<{ id: string } | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  const primaryLinks = [
+    { href: "/treino", label: "Banco de Perguntas", icon: BookOpenCheck, hint: "Exames e revisão" },
+    { href: "/icpc2", label: "ICPC-2", icon: BookOpenCheck, hint: "Consulta rápida" },
+  ];
+
+  const privateLinks = [
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, hint: "Visão geral" },
+    { href: "/calendario", label: "Calendário", icon: CalendarDays, hint: "Planeamento" },
+    { href: "/estatisticas", label: "Estatísticas", icon: BarChart3, hint: "Progresso" },
+    { href: "/perfil", label: "Perfil", icon: UserRound, hint: "Conta" },
+  ];
 
   useEffect(() => {
     const supabase = createClient();
@@ -27,86 +50,80 @@ export default function AppHeader() {
     window.location.href = "/";
   }
 
+  function isActive(path: string) {
+    if (path === "/") return pathname === "/";
+    return pathname === path || pathname.startsWith(`${path}/`);
+  }
+
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/70 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <Link
           href="/"
           className="flex items-center gap-2 text-base font-semibold tracking-tight text-foreground transition hover:text-primary"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-border/70 bg-secondary/80 text-foreground shadow-sm">
+          <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-border/70 bg-secondary/80 text-foreground shadow-sm">
             <Stethoscope className="h-4 w-4 text-foreground" />
           </span>
-          <span className="hidden sm:inline">Internos MGF</span>
+          <span className="hidden sm:block">
+            <span className="block text-sm font-semibold leading-none">Internos MGF</span>
+            <span className="mt-1 block text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+              Estudo e planeamento
+            </span>
+          </span>
         </Link>
 
-        <nav className="hidden items-center gap-1.5 md:flex">
-          {user && (
+        <nav className="hidden items-center gap-2 rounded-full border border-border/70 bg-card/65 px-2 py-2 shadow-sm md:flex">
+          {user &&
+            privateLinks.slice(0, 1).map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "rounded-full px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] transition-colors",
+                  isActive(link.href)
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-foreground/90 hover:bg-secondary/80"
+                )}
+              >
+                {link.label}
+              </Link>
+            ))}
+          {primaryLinks.map((link) => (
             <Link
-              href="/dashboard"
+              key={link.href}
+              href={link.href}
               className={cn(
-                "rounded-full border border-border/70 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] transition-colors",
-                "text-foreground/90 hover:bg-secondary/80"
+                "rounded-full px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] transition-colors",
+                isActive(link.href)
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-foreground/90 hover:bg-secondary/80"
               )}
             >
-              Dashboard
+              {link.label}
             </Link>
-          )}
-          <Link
-            href="/treino"
-            className={cn(
-              "rounded-full border border-border/70 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] transition-colors",
-              "text-foreground/90 hover:bg-secondary/80"
-            )}
-          >
-            Banco de Perguntas
-          </Link>
-          <Link
-            href="/icpc2"
-            className={cn(
-              "rounded-full border border-border/70 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] transition-colors",
-              "text-foreground/90 hover:bg-secondary/80"
-            )}
-          >
-            ICPC-2
-          </Link>
-          {user && (
-            <>
+          ))}
+          {user &&
+            privateLinks.slice(1).map((link) => (
               <Link
-                href="/calendario"
+                key={link.href}
+                href={link.href}
                 className={cn(
-                  "rounded-full border border-border/70 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] transition-colors",
-                  "text-foreground/90 hover:bg-secondary/80"
+                  "rounded-full px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] transition-colors",
+                  isActive(link.href)
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-foreground/90 hover:bg-secondary/80"
                 )}
               >
-                Calendário
+                {link.label}
               </Link>
-              <Link
-                href="/estatisticas"
-                className={cn(
-                  "rounded-full border border-border/70 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] transition-colors",
-                  "text-foreground/90 hover:bg-secondary/80"
-                )}
-              >
-                Estatísticas
-              </Link>
-              <Link
-                href="/perfil"
-                className={cn(
-                  "rounded-full border border-border/70 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] transition-colors",
-                  "text-foreground/90 hover:bg-secondary/80"
-                )}
-              >
-                Perfil
-              </Link>
-            </>
-          )}
+            ))}
           {user ? (
             <button
               type="button"
               onClick={handleSignOut}
               className={cn(
-                "rounded-full border border-border/70 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] transition-colors",
+                "rounded-full border border-border/70 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] transition-colors",
                 "text-foreground/90 hover:bg-secondary/80"
               )}
             >
@@ -115,7 +132,7 @@ export default function AppHeader() {
           ) : (
             <Link
               href="/auth"
-              className="rounded-full bg-primary px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-primary-foreground transition-all hover:bg-primary/90"
+              className="rounded-full bg-primary px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary-foreground transition-all hover:bg-primary/90"
             >
               Entrar
             </Link>
@@ -124,7 +141,7 @@ export default function AppHeader() {
 
         <button
           type="button"
-          className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border/70 bg-secondary/70 text-foreground"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-border/70 bg-secondary/70 text-foreground shadow-sm md:hidden"
           onClick={() => setMenuOpen(true)}
           aria-label="Abrir menu"
         >
@@ -135,14 +152,22 @@ export default function AppHeader() {
       {menuOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div
-            className="absolute inset-0 bg-black/30"
+            className="absolute inset-0 animate-fade-in bg-black/40 backdrop-blur-[2px]"
             onClick={() => setMenuOpen(false)}
           />
-          <div className="absolute right-0 top-0 h-full w-[84%] max-w-xs border-l border-border/70 bg-background/90 p-5 shadow-xl backdrop-blur">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-foreground">
-                Menu
-              </span>
+          <div className="absolute inset-x-3 top-3 animate-fade-in rounded-[2rem] border border-border/70 bg-background/95 p-4 shadow-2xl backdrop-blur">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-border/70 bg-secondary/80 text-foreground shadow-sm">
+                  <Stethoscope className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Navegação</p>
+                  <p className="text-xs text-muted-foreground">
+                    Acede rapidamente às áreas principais
+                  </p>
+                </div>
+              </div>
               <button
                 type="button"
                 className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border/70 bg-secondary/70"
@@ -152,75 +177,124 @@ export default function AppHeader() {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <div className="mt-6 flex flex-col gap-2">
+
+            <div className="mt-5 space-y-4">
               {user && (
-                <Link
-                  href="/dashboard"
-                  onClick={() => setMenuOpen(false)}
-                  className="rounded-xl border border-border/70 bg-card/70 px-4 py-3 text-sm font-semibold text-foreground"
-                >
-                  Dashboard
-                </Link>
+                <div className="space-y-2">
+                  <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+                    Conta
+                  </p>
+                  {privateLinks.slice(0, 1).map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setMenuOpen(false)}
+                      className={cn(
+                        "flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-semibold transition",
+                        isActive(link.href)
+                          ? "border-primary/40 bg-primary/10 text-foreground"
+                          : "border-border/70 bg-card/70 text-foreground"
+                      )}
+                    >
+                      <span className="flex items-center gap-3">
+                        <link.icon className="h-4 w-4" />
+                        <span>
+                          <span className="block">{link.label}</span>
+                          <span className="mt-0.5 block text-xs font-medium text-muted-foreground">
+                            {link.hint}
+                          </span>
+                        </span>
+                      </span>
+                      <span className="text-xs text-muted-foreground">Abrir</span>
+                    </Link>
+                  ))}
+                </div>
               )}
-              <Link
-                href="/treino"
-                onClick={() => setMenuOpen(false)}
-                className="rounded-xl border border-border/70 bg-card/70 px-4 py-3 text-sm font-semibold text-foreground"
-              >
-                Banco de Perguntas
-              </Link>
-              <Link
-                href="/icpc2"
-                onClick={() => setMenuOpen(false)}
-                className="rounded-xl border border-border/70 bg-card/70 px-4 py-3 text-sm font-semibold text-foreground"
-              >
-                ICPC-2
-              </Link>
+
+              <div className="space-y-2">
+                <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+                  Estudo
+                </p>
+                {primaryLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMenuOpen(false)}
+                    className={cn(
+                      "flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-semibold transition",
+                      isActive(link.href)
+                        ? "border-primary/40 bg-primary/10 text-foreground"
+                        : "border-border/70 bg-card/70 text-foreground"
+                    )}
+                  >
+                    <span className="flex items-center gap-3">
+                      <link.icon className="h-4 w-4" />
+                      <span>
+                        <span className="block">{link.label}</span>
+                        <span className="mt-0.5 block text-xs font-medium text-muted-foreground">
+                          {link.hint}
+                        </span>
+                      </span>
+                    </span>
+                    <span className="text-xs text-muted-foreground">Abrir</span>
+                  </Link>
+                ))}
+              </div>
+
               {user && (
-                <>
-                  <Link
-                    href="/calendario"
-                    onClick={() => setMenuOpen(false)}
-                    className="rounded-xl border border-border/70 bg-card/70 px-4 py-3 text-sm font-semibold text-foreground"
-                  >
-                    Calendário
-                  </Link>
-                  <Link
-                    href="/estatisticas"
-                    onClick={() => setMenuOpen(false)}
-                    className="rounded-xl border border-border/70 bg-card/70 px-4 py-3 text-sm font-semibold text-foreground"
-                  >
-                    Estatísticas
-                  </Link>
-                  <Link
-                    href="/perfil"
-                    onClick={() => setMenuOpen(false)}
-                    className="rounded-xl border border-border/70 bg-card/70 px-4 py-3 text-sm font-semibold text-foreground"
-                  >
-                    Perfil
-                  </Link>
-                </>
+                <div className="space-y-2">
+                  <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+                    Organização
+                  </p>
+                  {privateLinks.slice(1).map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setMenuOpen(false)}
+                      className={cn(
+                        "flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-semibold transition",
+                        isActive(link.href)
+                          ? "border-primary/40 bg-primary/10 text-foreground"
+                          : "border-border/70 bg-card/70 text-foreground"
+                      )}
+                    >
+                      <span className="flex items-center gap-3">
+                        <link.icon className="h-4 w-4" />
+                        <span>
+                          <span className="block">{link.label}</span>
+                          <span className="mt-0.5 block text-xs font-medium text-muted-foreground">
+                            {link.hint}
+                          </span>
+                        </span>
+                      </span>
+                      <span className="text-xs text-muted-foreground">Abrir</span>
+                    </Link>
+                  ))}
+                </div>
               )}
-              {user ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    handleSignOut();
-                  }}
-                  className="rounded-xl border border-border/70 bg-secondary/80 px-4 py-3 text-sm font-semibold text-foreground"
-                >
-                  Sair
-                </button>
-              ) : (
-                <Link
-                  href="/auth"
-                  onClick={() => setMenuOpen(false)}
-                  className="rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"
-                >
-                  Entrar
-                </Link>
-              )}
+
+              <div className="border-t border-border/70 pt-4">
+                {user ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      handleSignOut();
+                    }}
+                    className="w-full rounded-2xl border border-border/70 bg-secondary/80 px-4 py-3 text-sm font-semibold text-foreground"
+                  >
+                    Sair
+                  </button>
+                ) : (
+                  <Link
+                    href="/auth"
+                    onClick={() => setMenuOpen(false)}
+                    className="block rounded-2xl bg-primary px-4 py-3 text-center text-sm font-semibold text-primary-foreground"
+                  >
+                    Entrar
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         </div>
