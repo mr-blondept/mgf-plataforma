@@ -8,6 +8,7 @@ alter table public.question_sessions enable row level security;
 drop policy if exists question_sessions_select_own on public.question_sessions;
 drop policy if exists question_sessions_insert_own on public.question_sessions;
 drop policy if exists question_sessions_update_own on public.question_sessions;
+drop policy if exists question_sessions_delete_own on public.question_sessions;
 
 create policy "question_sessions_select_own"
   on public.question_sessions
@@ -24,3 +25,8 @@ create policy "question_sessions_update_own"
   for update
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
+
+create policy "question_sessions_delete_own"
+  on public.question_sessions
+  for delete
+  using (auth.uid() = user_id);

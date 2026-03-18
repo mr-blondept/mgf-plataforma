@@ -12,44 +12,93 @@ export async function POST() {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const { count: beforeCount, error: beforeError } = await supabase
+  const { count: beforeAnswersCount, error: beforeAnswersError } = await supabase
     .from("user_answers")
     .select("id", { count: "exact", head: true })
     .eq("user_id", user.id);
 
-  if (beforeError) {
+  if (beforeAnswersError) {
     return NextResponse.json(
       {
         message: "Erro ao contar respostas antes do reset",
-        error: beforeError.message,
+        error: beforeAnswersError.message,
       },
       { status: 500 }
     );
   }
 
-  const { error, count } = await supabase
-    .from("user_answers")
-    .delete({ count: "exact" })
+  const { count: beforeSessionsCount, error: beforeSessionsError } = await supabase
+    .from("question_sessions")
+    .select("id", { count: "exact", head: true })
     .eq("user_id", user.id);
 
-  if (error) {
+  if (beforeSessionsError) {
     return NextResponse.json(
-      { message: "Erro ao apagar estatísticas", error: error.message },
+      {
+        message: "Erro ao contar sessões antes do reset",
+        error: beforeSessionsError.message,
+      },
       { status: 500 }
     );
   }
 
-  const { count: remaining, error: remainingError } = await supabase
+  const { error: answersDeleteError, count: deletedAnswersCount } = await supabase
+    .from("user_answers")
+    .delete({ count: "exact" })
+    .eq("user_id", user.id);
+
+  if (answersDeleteError) {
+    return NextResponse.json(
+      { message: "Erro ao apagar estatísticas", error: answersDeleteError.message },
+      { status: 500 }
+    );
+  }
+
+  const { error: sessionsDeleteError, count: deletedSessionsCount } = await supabase
+    .from("question_sessions")
+    .delete({ count: "exact" })
+    .eq("user_id", user.id);
+
+  if (sessionsDeleteError) {
+    return NextResponse.json(
+      {
+        message: "Erro ao apagar o histórico de sessões",
+        error: sessionsDeleteError.message,
+        deletedAnswers: deletedAnswersCount ?? 0,
+      },
+      { status: 500 }
+    );
+  }
+
+  const { count: remainingAnswersCount, error: remainingAnswersError } = await supabase
     .from("user_answers")
     .select("id", { count: "exact", head: true })
     .eq("user_id", user.id);
 
-  if (remainingError) {
+  if (remainingAnswersError) {
     return NextResponse.json(
       {
         message: "Erro ao confirmar o reset das estatísticas",
-        error: remainingError.message,
-        deleted: count ?? 0,
+        error: remainingAnswersError.message,
+        deletedAnswers: deletedAnswersCount ?? 0,
+        deletedSessions: deletedSessionsCount ?? 0,
+      },
+      { status: 500 }
+    );
+  }
+
+  const { count: remainingSessionsCount, error: remainingSessionsError } = await supabase
+    .from("question_sessions")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
+  if (remainingSessionsError) {
+    return NextResponse.json(
+      {
+        message: "Erro ao confirmar a limpeza das sessões",
+        error: remainingSessionsError.message,
+        deletedAnswers: deletedAnswersCount ?? 0,
+        deletedSessions: deletedSessionsCount ?? 0,
       },
       { status: 500 }
     );
@@ -58,9 +107,12 @@ export async function POST() {
   return NextResponse.json(
     {
       userId: user.id,
-      before: beforeCount ?? 0,
-      deleted: count ?? 0,
-      remaining: remaining ?? 0,
+      beforeAnswers: beforeAnswersCount ?? 0,
+      deletedAnswers: deletedAnswersCount ?? 0,
+      remainingAnswers: remainingAnswersCount ?? 0,
+      beforeSessions: beforeSessionsCount ?? 0,
+      deletedSessions: deletedSessionsCount ?? 0,
+      remainingSessions: remainingSessionsCount ?? 0,
     },
     { status: 200 }
   );

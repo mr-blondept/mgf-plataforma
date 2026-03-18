@@ -2,7 +2,6 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import {
   format,
@@ -16,8 +15,6 @@ import {
   isSameMonth,
   isSameDay,
   isToday,
-  startOfDay,
-  endOfDay,
   parseISO,
   isBefore,
   isAfter,
@@ -50,9 +47,10 @@ const EVENT_COLORS = [
   { id: "emerald", label: "Verde", value: "#34d399" },
   { id: "amber", label: "Âmbar", value: "#f59e0b" },
   { id: "rose", label: "Rosa", value: "#f43f5e" },
-  { id: "violet", label: "Violeta", value: "#a78bfa" },
-  { id: "slate", label: "Cinza", value: "#64748b" },
 ];
+const DEFAULT_EVENT_COLOR = EVENT_COLORS[0].value;
+const HOLIDAY_COLOR = "#dc2626";
+const WEEKEND_COLOR = "#eab308";
 
 function hexToRgba(hex: string, alpha: number) {
   const normalized = hex.replace("#", "");
@@ -181,8 +179,7 @@ export default function CalendarioPage() {
   const [formDescription, setFormDescription] = useState("");
   const [formStart, setFormStart] = useState("");
   const [formEnd, setFormEnd] = useState("");
-  const [formColor, setFormColor] = useState(EVENT_COLORS[0].value);
-  const [customColor, setCustomColor] = useState(EVENT_COLORS[0].value);
+  const [formColor, setFormColor] = useState(DEFAULT_EVENT_COLOR);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notificacao, setNotificacao] = useState<{ msg: string; tipo: "success" | "error" } | null>(null);
@@ -192,9 +189,8 @@ export default function CalendarioPage() {
   // Corrige: Não fazer createClient fora do efeito, evita problema com hydration e causa problemas de duplicidade
   // Corrige: Busca user autenticado antes de buscar eventos, senão pega eventos sem filtro por user 
   useEffect(() => {
-    setLoading(true);
-
     const fetchEvents = async () => {
+      setLoading(true);
       const supabase = createClient();
       const { data: authData } = await supabase.auth.getUser();
       const user = authData?.user;
@@ -234,8 +230,7 @@ export default function CalendarioPage() {
     // Por UX, define como início=agora 09:00
     setFormStart(format(novaData, "yyyy-MM-dd'T'09:00"));
     setFormEnd("");
-    setFormColor(EVENT_COLORS[0].value);
-    setCustomColor(EVENT_COLORS[0].value);
+    setFormColor(DEFAULT_EVENT_COLOR);
     setShowForm(true);
     setError(null);
     setTimeout(() => {
@@ -275,16 +270,30 @@ export default function CalendarioPage() {
       return;
     }
 
-    const { error } = await supabase.from("user_events").insert([
-      {
-        user_id: user.id,
-        title: formTitle.trim(),
-        description: formDescription.trim() || null,
-        start_at: new Date(formStart).toISOString(),
-        end_at: formEnd ? new Date(formEnd).toISOString() : null,
-        color: formColor || null,
-      },
-    ]);
+    const eventPayload = {
+      user_id: user.id,
+      title: formTitle.trim(),
+      description: formDescription.trim() || null,
+      start_at: new Date(formStart).toISOString(),
+      end_at: formEnd ? new Date(formEnd).toISOString() : null,
+      color: formColor || null,
+    };
+
+    let { error } = await supabase.from("user_events").insert([eventPayload]);
+
+    // Compatibilidade com bases em que a coluna `color` ainda não foi criada.
+    if (error?.message?.toLowerCase().includes("color")) {
+      const fallback = await supabase.from("user_events").insert([
+        {
+          user_id: user.id,
+          title: formTitle.trim(),
+          description: formDescription.trim() || null,
+          start_at: new Date(formStart).toISOString(),
+          end_at: formEnd ? new Date(formEnd).toISOString() : null,
+        },
+      ]);
+      error = fallback.error;
+    }
 
     setSaving(false);
 
@@ -298,8 +307,7 @@ export default function CalendarioPage() {
       setFormDescription("");
       setFormStart("");
       setFormEnd("");
-      setFormColor(EVENT_COLORS[0].value);
-      setCustomColor(EVENT_COLORS[0].value);
+      setFormColor(DEFAULT_EVENT_COLOR);
       setSelectedDate(null);
       setError(null);
     }
@@ -313,19 +321,6 @@ export default function CalendarioPage() {
       setNotificacao({ msg: "Erro ao eliminar evento", tipo: "error" });
     } else {
       setNotificacao({ msg: "Evento eliminado!", tipo: "success" });
-    }
-  }
-
-  async function handleEditarCorEvento(id: string, color: string) {
-    const supabase = createClient();
-    const { error } = await supabase
-      .from("user_events")
-      .update({ color })
-      .eq("id", id);
-    if (error) {
-      setNotificacao({ msg: "Erro ao atualizar cor", tipo: "error" });
-    } else {
-      setNotificacao({ msg: "Cor atualizada!", tipo: "success" });
     }
   }
 
@@ -351,10 +346,6 @@ export default function CalendarioPage() {
     if (ev.color) map[key].push(ev.color);
     return map;
   }, {});
-
-  const coresEmUso = Array.from(
-    new Set(events.map((ev) => ev.color).filter(Boolean))
-  ) as string[];
 
   const yearMonths = Array.from({ length: 12 }, (_, index) =>
     new Date(currentMonth.getFullYear(), index, 1)
@@ -435,32 +426,30 @@ export default function CalendarioPage() {
             </div>
           </div>
 
-          {coresEmUso.length > 0 && (
-            <div className="mb-4 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              <span className="uppercase tracking-[0.25em]">Legenda</span>
-              {coresEmUso.map((color) => {
-                const label =
-                  EVENT_COLORS.find((item) => item.value === color)?.label ??
-                  "Personalizada";
-                return (
-                  <span
-                    key={color}
-                    className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-3 py-1"
-                  >
-                    <span
-                      className="h-2.5 w-2.5 rounded-[0.2rem]"
-                      style={{ backgroundColor: color }}
-                    />
-                    {label}
-                  </span>
-                );
-              })}
-              <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-3 py-1">
-                <span className="h-2.5 w-2.5 rounded-[0.2rem] border border-primary/60" />
-                Feriado
-              </span>
-            </div>
-          )}
+          <div className="mb-4 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span className="uppercase tracking-[0.25em]">Legenda</span>
+            <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-3 py-1">
+              <span
+                className="h-2.5 w-2.5 rounded-[0.2rem]"
+                style={{ backgroundColor: DEFAULT_EVENT_COLOR }}
+              />
+              Evento
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-3 py-1">
+              <span
+                className="h-2.5 w-2.5 rounded-[0.2rem]"
+                style={{ backgroundColor: HOLIDAY_COLOR }}
+              />
+              Feriado
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-3 py-1">
+              <span
+                className="h-2.5 w-2.5 rounded-[0.2rem]"
+                style={{ backgroundColor: WEEKEND_COLOR }}
+              />
+              Fim de semana
+            </span>
+          </div>
 
           {viewMode === "year" ? (
             loading ? (
@@ -528,16 +517,20 @@ export default function CalendarioPage() {
                               className={cn(
                                 "h-7 w-7 sm:h-8 sm:w-8 rounded-none border border-border/70 text-[10px] sm:text-[11px] font-medium transition",
                                 isToday(day) && "border-primary text-primary",
-                                isWeekend(day) && "border-accent/40",
-                                holidayName && "border-primary/60 text-primary",
+                                isWeekend(day) && "border-yellow-300/70 text-yellow-700",
+                                holidayName && "border-red-300/80 text-red-700",
                                 isSameMonth(day, month)
                                   ? "bg-card/70 hover:bg-secondary/80"
                                   : "bg-muted/60 text-muted-foreground"
                               )}
                               style={
-                                dayColor
-                                  ? { backgroundColor: hexToRgba(dayColor, 0.12) }
-                                  : undefined
+                                holidayName
+                                  ? { backgroundColor: hexToRgba(HOLIDAY_COLOR, 0.16) }
+                                  : isWeekend(day)
+                                    ? { backgroundColor: hexToRgba(WEEKEND_COLOR, 0.14) }
+                                    : dayColor
+                                      ? { backgroundColor: hexToRgba(dayColor, 0.12) }
+                                      : undefined
                               }
                               title={
                                 holidayName
@@ -597,16 +590,20 @@ export default function CalendarioPage() {
                       className={cn(
                         "aspect-square rounded-2xl flex flex-col items-center justify-start py-1 px-0.5 border border-border/70 transition group relative outline-none focus:ring-2 ring-offset-2",
                         isToday(day) && "border-primary ring-2 ring-primary/20",
-                        isWeekend(day) && "border-accent/40",
-                        holidayName && "border-primary/60 text-primary",
+                        isWeekend(day) && "border-yellow-300/70 text-yellow-700",
+                        holidayName && "border-red-300/80 text-red-700",
                         isSameMonth(day, currentMonth)
                           ? "bg-card/70 hover:bg-secondary/80"
                           : "bg-muted/60 text-muted-foreground hover:bg-secondary/80 border-border/70"
                       )}
                       style={
-                        dayColor
-                          ? { backgroundColor: hexToRgba(dayColor, 0.12) }
-                          : undefined
+                        holidayName
+                          ? { backgroundColor: hexToRgba(HOLIDAY_COLOR, 0.16) }
+                          : isWeekend(day)
+                            ? { backgroundColor: hexToRgba(WEEKEND_COLOR, 0.14) }
+                            : dayColor
+                              ? { backgroundColor: hexToRgba(dayColor, 0.12) }
+                              : undefined
                       }
                       aria-label={
                         holidayName
@@ -632,7 +629,7 @@ export default function CalendarioPage() {
                               key={ev.id}
                               className="rounded-full px-2 py-0.5 text-xs truncate w-16 text-white"
                               style={{
-                                backgroundColor: ev.color ?? "var(--primary)",
+                                backgroundColor: ev.color ?? DEFAULT_EVENT_COLOR,
                               }}
                             >
                               {ev.title}
@@ -721,13 +718,6 @@ export default function CalendarioPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={ev.color ?? EVENT_COLORS[0].value}
-                      onChange={(e) => handleEditarCorEvento(ev.id, e.target.value)}
-                      className="h-9 w-10 rounded-lg border border-border/70 bg-card/70 p-1"
-                      aria-label="Alterar cor do evento"
-                    />
                     <button
                       className="p-1 text-destructive hover:bg-destructive/10 rounded-full transition"
                       title="Eliminar evento"
@@ -810,30 +800,6 @@ export default function CalendarioPage() {
                     {color.label}
                   </button>
                 ))}
-              </div>
-              <div className="mt-2 flex items-center gap-3">
-                <input
-                  type="color"
-                  value={customColor}
-                  onChange={(e) => {
-                    setCustomColor(e.target.value);
-                    setFormColor(e.target.value);
-                  }}
-                  className="h-10 w-12 rounded-lg border border-border/70 bg-card/70 p-1"
-                  aria-label="Escolher cor personalizada"
-                />
-                <button
-                  type="button"
-                  onClick={() => setFormColor(customColor)}
-                  className={cn(
-                    "rounded-full border border-border/70 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] transition",
-                    formColor === customColor
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary/70 text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  Cor personalizada
-                </button>
               </div>
             </label>
             <div className="flex gap-2">

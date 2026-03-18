@@ -92,7 +92,7 @@ export default function EstatisticasPage() {
 
   async function handleReset() {
     const confirmed = window.confirm(
-      "Tens a certeza que queres apagar todas as tuas respostas? Esta ação não pode ser desfeita."
+      "Tens a certeza que queres apagar todas as tuas estatísticas e o histórico de sessões de perguntas? Esta ação também remove treinos e simulados em pausa e não pode ser desfeita."
     );
     if (!confirmed) return;
 
@@ -110,24 +110,34 @@ export default function EstatisticasPage() {
     }
 
     const payload = await response.json().catch(() => null);
-    const remaining = typeof payload?.remaining === "number" ? payload.remaining : null;
+    const remainingAnswers =
+      typeof payload?.remainingAnswers === "number" ? payload.remainingAnswers : null;
+    const remainingSessions =
+      typeof payload?.remainingSessions === "number" ? payload.remainingSessions : null;
 
     const refreshed = await loadStats();
     const localRemaining = refreshed?.total ?? null;
 
-    if ((remaining !== null && remaining > 0) || (localRemaining !== null && localRemaining > 0)) {
+    if (
+      (remainingAnswers !== null && remainingAnswers > 0) ||
+      (remainingSessions !== null && remainingSessions > 0) ||
+      (localRemaining !== null && localRemaining > 0)
+    ) {
       const detailParts = [];
-      if (typeof payload?.before === "number") detailParts.push(`antes: ${payload.before}`);
-      if (typeof payload?.deleted === "number") detailParts.push(`apagadas: ${payload.deleted}`);
-      if (typeof payload?.remaining === "number") detailParts.push(`restantes: ${payload.remaining}`);
+      if (typeof payload?.beforeAnswers === "number") detailParts.push(`respostas antes: ${payload.beforeAnswers}`);
+      if (typeof payload?.deletedAnswers === "number") detailParts.push(`respostas apagadas: ${payload.deletedAnswers}`);
+      if (typeof payload?.remainingAnswers === "number") detailParts.push(`respostas restantes: ${payload.remainingAnswers}`);
+      if (typeof payload?.beforeSessions === "number") detailParts.push(`sessoes antes: ${payload.beforeSessions}`);
+      if (typeof payload?.deletedSessions === "number") detailParts.push(`sessoes apagadas: ${payload.deletedSessions}`);
+      if (typeof payload?.remainingSessions === "number") detailParts.push(`sessoes restantes: ${payload.remainingSessions}`);
       if (payload?.userId) detailParts.push(`user: ${payload.userId}`);
       const detail = detailParts.length > 0 ? ` (${detailParts.join(", ")})` : "";
-      setErrorMsg(`Nem todas as respostas foram apagadas. Tenta novamente.${detail}`);
+      setErrorMsg(`A limpeza não ficou completa. Tenta novamente.${detail}`);
       setResetting(false);
       return;
     }
 
-    setSuccessMsg("Estatísticas apagadas com sucesso.");
+    setSuccessMsg("Estatísticas e histórico de sessões apagados com sucesso.");
     setShowToast(true);
     setResetting(false);
   }

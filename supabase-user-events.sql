@@ -8,6 +8,7 @@ create table if not exists public.user_events (
   description text,
   start_at timestamptz not null,
   end_at timestamptz,
+  color text,
   created_at timestamptz default now()
 );
 

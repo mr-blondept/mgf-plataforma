@@ -133,11 +133,28 @@ export default function TreinoPage() {
   const [sessionQuestionIds, setSessionQuestionIds] = useState<string[] | null>(null);
   const [simuladoCategories, setSimuladoCategories] = useState<string[]>([]);
   const [simuladoCount, setSimuladoCount] = useState(MAX_SIMULADO_QUESTIONS);
-  const [createMode, setCreateMode] = useState<"treino" | "simulado">("treino");
 
   const categoryNames = useMemo(
     () => Array.from(new Set(questionIndex.map((question) => question.category))),
     [questionIndex]
+  );
+  const categoryCounts = useMemo(
+    () =>
+      Object.fromEntries(
+        categoryNames.map((name) => [
+          name,
+          questionIndex.filter((question) => question.category === name).length,
+        ])
+      ),
+    [categoryNames, questionIndex]
+  );
+  const simuladoSelectedCount = useMemo(
+    () =>
+      simuladoCategories.reduce(
+        (total, category) => total + (categoryCounts[category] ?? 0),
+        0
+      ),
+    [categoryCounts, simuladoCategories]
   );
 
   useEffect(() => {
@@ -334,62 +351,6 @@ export default function TreinoPage() {
       .eq("id", activeSessionId);
   }
 
-  async function iniciarTreino() {
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      window.location.href = "/auth";
-      return;
-    }
-
-    const questionIds = categoryQuestions.map((q) => q.id);
-
-    const { data, error } = await supabase
-      .from("question_sessions")
-      .insert({
-        user_id: user.id,
-        category: categoryFilter,
-        categories: [categoryFilter],
-        question_ids: questionIds,
-        mode: "treino",
-        status: "active",
-        duration_sec: null,
-        time_left_sec: null,
-        current_index: 0,
-        total_questions: questionIds.length,
-        answers: {},
-      })
-      .select(
-        "id, category, categories, question_ids, mode, status, time_left_sec, current_index, total_questions, answers, updated_at"
-      )
-      .single();
-
-    if (error || !data) {
-      setErrorMsg("Não foi possível iniciar a sessão.");
-      return;
-    }
-
-    setMode("treino");
-    setView("session");
-    setActiveSessionId(data.id);
-    setCurrentIndex(0);
-    setSelectedOptionId(null);
-    setFeedback(null);
-    setSimuladoFinalizado(false);
-    setSimuladoResumo(null);
-    setSessionAnswers({});
-    setTimeLeftSec(null);
-    setSessionQuestionIds(questionIds);
-    setSessionQuestions([]);
-
-    await loadSessionQuestions(questionIds);
-
-    setSessions((prev) => [data as QuestionSession, ...prev]);
-  }
-
   async function iniciarSimulado() {
     const supabase = createClient();
     const {
@@ -422,7 +383,7 @@ export default function TreinoPage() {
       .from("question_sessions")
       .insert({
         user_id: user.id,
-        category: "Simulado personalizado",
+        category: "Exame personalizado",
         categories,
         question_ids: questionIds,
         mode: "simulado",
@@ -613,7 +574,7 @@ export default function TreinoPage() {
                 Criar sessão
               </h1>
               <p className="text-sm text-muted-foreground">
-                Define se queres treino rápido por categoria ou montar um simulado completo.
+                Seleciona as categorias e define quantas perguntas queres incluir no exame.
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-3">
                 <Link
@@ -630,94 +591,27 @@ export default function TreinoPage() {
                 </Link>
               </div>
             </div>
-            <div className="mt-5 flex flex-wrap items-center gap-3 rounded-full border border-border/70 bg-secondary/40 p-1 text-xs uppercase tracking-[0.3em] text-muted-foreground">
-              <button
-                type="button"
-                onClick={() => setCreateMode("treino")}
-                className={cn(
-                  "rounded-full px-4 py-2 font-semibold transition",
-                  createMode === "treino"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                Treino por categoria
-              </button>
-              <button
-                type="button"
-                onClick={() => setCreateMode("simulado")}
-                className={cn(
-                  "rounded-full px-4 py-2 font-semibold transition",
-                  createMode === "simulado"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                Simulado personalizado
-              </button>
-            </div>
-
-            {createMode === "treino" ? (
-              <>
-                <div className="mt-5 grid gap-3 md:grid-cols-3">
-                  {categoryNames.map((name) => {
-                    const count = questionIndex.filter((q) => q.category === name).length;
-                    const isActive = name === categoryFilter;
-                    return (
-                      <button
-                        type="button"
-                        key={name}
-                        onClick={() => setCategoryFilter(name)}
-                        className={cn(
-                          "flex flex-col rounded-2xl border px-4 py-3 transition",
-                          isActive
-                            ? "border-foreground/40 bg-secondary/80 text-foreground shadow-inner"
-                            : "border-border/70 bg-card/60 text-muted-foreground hover:border-foreground/40 hover:bg-secondary/70"
-                        )}
-                      >
-                        <span className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                          {name}
-                        </span>
-                        <p className="text-lg font-semibold text-foreground">{count} questões</p>
-                        <p className="text-xs leading-tight text-muted-foreground mt-1">
-                          {CATEGORY_DETAILS[name] ?? "Conteúdo organizado e preparado."}
-                        </p>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="mt-5 flex flex-wrap items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={iniciarTreino}
-                    className="rounded-full bg-primary px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-primary-foreground"
-                  >
-                    Iniciar sessão de treino
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="mt-5 rounded-3xl border border-border/70 bg-card/70 p-4 shadow-sm backdrop-blur">
-                <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="mt-6 rounded-3xl border border-border/70 bg-gradient-to-b from-card to-card/80 p-4 shadow-sm">
+              <div className="mt-4 rounded-3xl border border-border/70 bg-card/70 p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                      Simulado personalizado
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Seleciona categorias e escolhe ate {MAX_SIMULADO_QUESTIONS} perguntas.
+                    <h2 className="font-display text-2xl font-semibold text-foreground">
+                      Criar exame
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {`Seleciona as categorias e define o número de perguntas até ${MAX_SIMULADO_QUESTIONS}.`}
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={iniciarSimulado}
-                    className="rounded-full border border-border/70 bg-secondary/70 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-foreground hover:border-foreground/40"
-                  >
-                    Iniciar simulado
-                  </button>
+                  <div className="rounded-2xl border border-border/70 bg-background/70 px-4 py-3">
+                    <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                      Banco de perguntas
+                    </p>
+                    <p className="mt-1 text-2xl font-semibold text-foreground">{questionIndex.length}</p>
+                  </div>
                 </div>
-                <div className="mt-4 grid gap-3 lg:grid-cols-[1.2fr_0.8fr]">
-                  <div className="flex flex-wrap gap-2">
+
+                <div className="mt-5 space-y-4">
+                  <div className="grid gap-3 sm:grid-cols-2">
                     {categoryNames.map((category) => {
                       const isSelected = simuladoCategories.includes(category);
                       return (
@@ -732,20 +626,36 @@ export default function TreinoPage() {
                             );
                           }}
                           className={cn(
-                            "rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] transition",
+                            "flex items-center justify-between gap-3 rounded-2xl border px-4 py-4 text-left transition",
                             isSelected
-                              ? "bg-primary text-primary-foreground shadow-sm"
-                              : "border border-border/70 bg-secondary/70 text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+                              ? "border-primary/40 bg-primary/10 shadow-sm"
+                              : "border-border/70 bg-background/60 hover:border-foreground/30 hover:bg-secondary/40"
                           )}
                         >
-                          {category}
+                          <div>
+                            <p className="text-sm font-semibold text-foreground">{category}</p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              {categoryCounts[category] ?? 0} questões disponíveis
+                            </p>
+                          </div>
+                          <span
+                            className={cn(
+                              "rounded-full px-3 py-1 text-xs font-semibold",
+                              isSelected
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-secondary/70 text-muted-foreground"
+                            )}
+                          >
+                            {isSelected ? "Selecionada" : "Selecionar"}
+                          </span>
                         </button>
                       );
                     })}
                   </div>
-                  <div className="rounded-2xl border border-border/70 bg-secondary/60 px-4 py-3">
-                    <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                      Numero de perguntas
+
+                  <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+                    <label className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                      Número de perguntas
                     </label>
                     <input
                       type="number"
@@ -756,12 +666,33 @@ export default function TreinoPage() {
                         const value = Number(event.target.value);
                         setSimuladoCount(Number.isFinite(value) ? value : 1);
                       }}
-                      className="mt-2 w-full rounded-xl border border-border/70 bg-background/70 px-4 py-2 text-sm text-foreground"
+                      className="mt-3 w-full rounded-xl border border-border/70 bg-card px-4 py-3 text-base text-foreground"
                     />
                   </div>
                 </div>
+
+                <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-border/70 bg-background/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                      Resumo do exame
+                    </p>
+                    <p className="mt-1 text-base font-semibold text-foreground">
+                      {`${simuladoCategories.length} categorias · ${simuladoCount} perguntas`}
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {`${simuladoSelectedCount} questões disponíveis nas categorias escolhidas.`}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={iniciarSimulado}
+                    className="rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground sm:min-w-52"
+                  >
+                    Iniciar exame
+                  </button>
+                </div>
               </div>
-            )}
+            </div>
 
             {activeSessions.length > 0 && (
               <div className="mt-6 rounded-3xl border border-border/70 bg-card/70 p-4 shadow-sm backdrop-blur">
@@ -781,7 +712,7 @@ export default function TreinoPage() {
                       >
                         <div>
                           <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                            {session.mode === "simulado" ? "Simulado" : "Treino"} · {session.status}
+                            {session.mode === "simulado" ? "Exame" : "Treino"} · {session.status}
                           </p>
                           <p className="text-sm font-semibold text-foreground">
                             {sessionLabel}
@@ -824,7 +755,7 @@ export default function TreinoPage() {
                       >
                         <div>
                           <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                            {session.mode === "simulado" ? "Simulado" : "Treino"} · concluída
+                            {session.mode === "simulado" ? "Exame" : "Treino"} · concluída
                           </p>
                           <p className="text-sm font-semibold text-foreground">
                             {sessionLabel}
@@ -962,7 +893,7 @@ export default function TreinoPage() {
                     </p>
                   )}
 
-                  {question.explanation && selectedOptionId && mode === "treino" && (
+                  {question.explanation && selectedOptionId && (
                     <div className="rounded-2xl border border-border/70 bg-muted/60 p-4">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="text-sm font-semibold text-foreground">Explicação</p>
@@ -978,15 +909,6 @@ export default function TreinoPage() {
                     </div>
                   )}
 
-                  {selectedOptionId && mode === "treino" && (
-                    <button
-                      type="button"
-                      onClick={goToNextQuestion}
-                      className="w-full rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary/90"
-                    >
-                      Próxima pergunta →
-                    </button>
-                  )}
                   {mode === "simulado" && (
                     <div className="flex flex-wrap gap-3">
                       <button
@@ -1001,7 +923,7 @@ export default function TreinoPage() {
                         onClick={finalizarSimulado}
                         className="rounded-2xl border border-foreground/30 bg-secondary/80 px-5 py-3 text-sm font-semibold text-foreground hover:bg-secondary"
                       >
-                        Terminar simulado
+                        Terminar exame
                       </button>
                     </div>
                   )}
@@ -1012,13 +934,13 @@ export default function TreinoPage() {
             {simuladoFinalizado && simuladoResumo && (
               <div className="mt-6 rounded-3xl border border-border/70 bg-card/80 p-6 shadow-sm backdrop-blur">
                 <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                  Simulado concluído
+                  Exame concluído
                 </p>
                 <h3 className="mt-2 text-2xl font-semibold text-foreground">
                   Resultado: {simuladoResumo.corretas} / {simuladoResumo.total}
                 </h3>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Revê as questões no modo treino para ver explicações detalhadas.
+                  As explicações estão disponíveis em cada pergunta respondida.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-3">
                   <button
@@ -1033,7 +955,7 @@ export default function TreinoPage() {
                     onClick={iniciarSimulado}
                     className="rounded-2xl border border-border/70 bg-card/70 px-5 py-3 text-sm font-semibold text-foreground hover:border-foreground/40"
                   >
-                    Fazer novo simulado
+                    Fazer novo exame
                   </button>
                 </div>
               </div>
