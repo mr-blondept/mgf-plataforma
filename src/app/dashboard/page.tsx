@@ -122,7 +122,7 @@ export default function DashboardPage() {
         return;
       }
 
-      setStats(computeStats((answersResult.data ?? []) as AnswerWithQuestion[]));
+      setStats(computeStats((answersResult.data ?? []) as unknown as AnswerWithQuestion[]));
       setMonthEvents((eventsResult.data ?? []) as UserEvent[]);
       setSessions((sessionsResult.data ?? []) as QuestionSession[]);
       setLoading(false);
