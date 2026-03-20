@@ -469,101 +469,56 @@ export default function VacinacaoPage() {
       <div className="absolute inset-0 hero-surface" />
       <div className="absolute inset-0 soft-grain opacity-30" />
 
-      <div className="relative mx-auto w-full max-w-7xl px-4 py-10">
-        <section className="overflow-hidden rounded-3xl border border-border/70 bg-card/80 shadow-md backdrop-blur">
-          <div className="relative p-6 sm:p-8">
-            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/20 to-transparent" />
-            <div className="relative grid gap-6 lg:grid-cols-[1.12fr_0.88fr] lg:items-end">
-              <div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="rounded-full border border-border/70 bg-secondary/70 px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.35em] text-muted-foreground">
-                    PNV 2020
-                  </span>
-                  <span className="rounded-full border border-border/70 bg-card/70 px-3 py-1 text-xs font-semibold text-foreground">
-                    Norma DGS 018/2020
-                  </span>
-                </div>
-                <h1 className="font-display mt-4 text-3xl font-semibold text-foreground sm:text-4xl">
-                  Mapa interativo das vacinas
-                </h1>
-                <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-                  Clica em qualquer vacina ou dose no mapa para veres o esquema
-                  correspondente e os pontos-chave dessa vacina, de acordo com a
-                  norma da DGS que enviaste.
-                </p>
-              </div>
-
-              <div className="rounded-3xl border border-border/70 bg-secondary/40 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                  Como usar
-                </p>
-                <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                  <li className="flex gap-2">
-                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary" />
-                    <span>
-                      Clica numa célula para abrir o detalhe da dose e da
-                      vacina.
-                    </span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary" />
-                    <span>
-                      As colunas seguem a idade e as linhas mostram cada
-                      vacina/doença.
-                    </span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary" />
-                    <span>
-                      Para decisões clínicas, confirma sempre o documento
-                      oficial da DGS.
-                    </span>
-                  </li>
-                </ul>
-                <a
-                  href={SOURCE_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary underline-offset-4 hover:underline"
-                >
-                  <FileText className="h-4 w-4" />
-                  Abrir documento oficial da DGS
-                </a>
-              </div>
-            </div>
+      <div className="relative mx-auto w-full max-w-[1800px] px-4 py-8 xl:px-6">
+        <section className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-border/70 bg-card/75 px-5 py-4 shadow-sm backdrop-blur">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="rounded-full border border-border/70 bg-secondary/70 px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.35em] text-muted-foreground">
+              PNV 2020
+            </span>
+            <span className="rounded-full border border-border/70 bg-card/70 px-3 py-1 text-xs font-semibold text-foreground">
+              Norma DGS 018/2020
+            </span>
+            <span className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+              Seleciona uma dose no mapa para ver detalhe imediato
+            </span>
           </div>
+          <a
+            href={SOURCE_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/80 px-4 py-2 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:text-primary"
+          >
+            <FileText className="h-4 w-4" />
+            Abrir documento oficial da DGS
+          </a>
         </section>
 
-        <section className="mt-6 space-y-6">
-          <div className="overflow-hidden rounded-3xl border border-border/70 bg-card/80 shadow-sm backdrop-blur">
-            <div className="border-b border-border/70 bg-secondary/35 px-4 py-4 sm:px-6">
+        <section className="grid gap-5 xl:grid-cols-[minmax(0,1.8fr)_minmax(420px,1fr)] 2xl:grid-cols-[minmax(0,1.95fr)_minmax(460px,0.95fr)]">
+          <div className="overflow-hidden rounded-3xl border border-border/70 bg-card/85 shadow-sm backdrop-blur">
+            <div className="border-b border-border/70 bg-secondary/35 px-5 py-4">
               <div className="flex items-center gap-2">
                 <CalendarClock className="h-5 w-5 text-primary" />
                 <h2 className="text-lg font-semibold text-foreground">
                   Mapa vacinal por idade
                 </h2>
               </div>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Grelha inspirada no esquema visual do PNV, com células clicáveis
-                para abrir detalhe contextual.
-              </p>
             </div>
 
             <div className="overflow-x-auto">
-              <div className="min-w-[1120px]">
+              <div className="min-w-[1260px]">
                 <div
                   className="grid border-b border-border/70 bg-secondary/20"
                   style={{
-                    gridTemplateColumns: "260px repeat(13, minmax(64px, 1fr))",
+                    gridTemplateColumns: "300px repeat(13, minmax(72px, 1fr))",
                   }}
                 >
-                  <div className="border-r border-border/70 px-4 py-3 text-sm font-semibold text-foreground">
+                  <div className="border-r border-border/70 px-5 py-4 text-sm font-semibold text-foreground">
                     Vacina | Doença
                   </div>
                   {AGE_COLUMNS.map((column) => (
                     <div
                       key={column.id}
-                      className="flex min-h-[68px] items-center justify-center border-r border-border/70 px-2 py-3 text-center text-[11px] font-semibold uppercase leading-tight tracking-[0.2em] text-muted-foreground whitespace-pre-line last:border-r-0"
+                      className="flex min-h-[72px] items-center justify-center border-r border-border/70 px-2 py-3 text-center text-[11px] font-semibold uppercase leading-tight tracking-[0.2em] text-muted-foreground whitespace-pre-line last:border-r-0"
                     >
                       {column.shortLabel}
                     </div>
@@ -576,7 +531,7 @@ export default function VacinacaoPage() {
                     className="grid border-b border-border/70 last:border-b-0"
                     style={{
                       gridTemplateColumns:
-                        "260px repeat(13, minmax(64px, 1fr))",
+                        "300px repeat(13, minmax(72px, 1fr))",
                     }}
                   >
                     <button
@@ -588,7 +543,7 @@ export default function VacinacaoPage() {
                         );
                       }}
                       className={cn(
-                        "border-r border-border/70 px-4 py-4 text-left transition hover:bg-secondary/20",
+                        "border-r border-border/70 px-5 py-4 text-left transition hover:bg-secondary/20",
                         selectedVaccine.id === vaccine.id && "bg-primary/5",
                       )}
                     >
@@ -609,7 +564,7 @@ export default function VacinacaoPage() {
                       return (
                         <div
                           key={`${vaccine.id}-${column.id}`}
-                          className="flex min-h-[72px] items-center justify-center border-r border-border/70 px-1 py-2 last:border-r-0"
+                          className="flex min-h-[78px] items-center justify-center border-r border-border/70 px-1.5 py-2 last:border-r-0"
                         >
                           {cell ? (
                             <button
@@ -619,7 +574,7 @@ export default function VacinacaoPage() {
                                 setSelectedAgeId(column.id);
                               }}
                               className={cn(
-                                "min-h-[42px] rounded-lg border px-2 py-1 text-center text-[11px] font-semibold shadow-sm transition hover:-translate-y-0.5 hover:shadow",
+                                "min-h-[46px] min-w-[58px] rounded-xl border px-2.5 py-1.5 text-center text-[11px] font-semibold shadow-sm transition hover:-translate-y-0.5 hover:shadow-md",
                                 vaccine.colorClass,
                                 isSelected &&
                                   "ring-2 ring-primary ring-offset-2 ring-offset-background",
@@ -638,8 +593,8 @@ export default function VacinacaoPage() {
             </div>
           </div>
 
-          <section className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-            <section className="rounded-3xl border border-border/70 bg-card/80 p-5 shadow-sm backdrop-blur">
+          <aside className="space-y-4 xl:sticky xl:top-20 xl:self-start">
+            <section className="rounded-3xl border border-border/70 bg-card/85 p-5 shadow-sm backdrop-blur">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
@@ -679,7 +634,7 @@ export default function VacinacaoPage() {
               </div>
             </section>
 
-            <section className="rounded-3xl border border-border/70 bg-card/80 p-5 shadow-sm backdrop-blur lg:col-span-2">
+            <section className="rounded-3xl border border-border/70 bg-card/85 p-5 shadow-sm backdrop-blur">
               <div className="flex items-center gap-2">
                 <Info className="h-4 w-4 text-primary" />
                 <h3 className="text-base font-semibold text-foreground">
@@ -690,7 +645,7 @@ export default function VacinacaoPage() {
                 {selectedVaccine.overview}
               </p>
 
-              <div className="mt-5 grid gap-4 lg:grid-cols-2">
+              <div className="mt-5 space-y-4">
                 <div className="rounded-2xl border border-border/70 bg-secondary/30 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
                     Esquema resumido
@@ -747,7 +702,7 @@ export default function VacinacaoPage() {
                   </ul>
                 </div>
 
-                <div className="rounded-2xl border border-border/70 bg-card/70 p-4 lg:col-span-2">
+                <div className="rounded-2xl border border-border/70 bg-card/70 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
                     Pontos-chave da norma
                   </p>
@@ -761,7 +716,7 @@ export default function VacinacaoPage() {
                   </ul>
                 </div>
 
-                <div className="rounded-2xl border border-amber-300/70 bg-amber-50/80 p-4 lg:col-span-2">
+                <div className="rounded-2xl border border-amber-300/70 bg-amber-50/80 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-900">
                     Nota clínica
                   </p>
@@ -777,7 +732,7 @@ export default function VacinacaoPage() {
                 </div>
               </div>
             </section>
-          </section>
+          </aside>
         </section>
       </div>
     </main>
