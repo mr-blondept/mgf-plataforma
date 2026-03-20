@@ -13,6 +13,7 @@ import {
   Stethoscope,
   UserRound,
   X,
+  Syringe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +25,7 @@ export default function AppHeader() {
   const primaryLinks = [
     { href: "/treino", label: "Banco de Perguntas", icon: BookOpenCheck, hint: "Exames e revisão" },
     { href: "/icpc2", label: "ICPC-2", icon: BookOpenCheck, hint: "Consulta rápida" },
+    { href: "/vacinacao", label: "Vacinação", icon: Syringe, hint: "PNV interativo" },
   ];
 
   const privateLinks = [
