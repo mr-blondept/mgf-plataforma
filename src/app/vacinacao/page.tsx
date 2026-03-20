@@ -1,12 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  CalendarClock,
-  FileText,
-  Info,
-  ShieldCheck,
-} from "lucide-react";
+import { CalendarClock, FileText, Info, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type VaccineKey =
@@ -43,6 +38,9 @@ type VaccineInfo = {
   colorClass: string;
   overview: string;
   scheduleSummary: string[];
+  commercialNames: string[];
+  administration: string[];
+  sideEffects: string[];
   keyPoints: string[];
   placements: DosePlacement[];
 };
@@ -77,6 +75,19 @@ const VACCINES: VaccineInfo[] = [
     overview:
       "Integra o esquema infantil inicial do PNV e inclui dose neonatal e doses subsequentes na primovacinação.",
     scheduleSummary: ["Nascimento", "2 meses", "6 meses"],
+    commercialNames: [
+      "Exemplos usuais: Engerix B, HBVaxPro, vacinas hexavalentes com VHB",
+    ],
+    administration: [
+      "Via intramuscular",
+      "No lactente, preferencialmente na face ântero-lateral da coxa",
+      "A dose neonatal deve ser administrada o mais cedo possível",
+    ],
+    sideEffects: [
+      "Dor, rubor ou edema no local de injeção",
+      "Irritabilidade ou febre baixa",
+      "Mal-estar transitório",
+    ],
     keyPoints: [
       "A dose ao nascimento deve ser administrada o mais precocemente possível no período neonatal.",
       "Mantém-se no esquema geral recomendado da infância no PNV 2020.",
@@ -97,6 +108,19 @@ const VACCINES: VaccineInfo[] = [
     overview:
       "Vacina da primovacinação com reforço posterior na primeira infância, de acordo com o esquema recomendado da DGS.",
     scheduleSummary: ["2 meses", "4 meses", "6 meses", "18 meses"],
+    commercialNames: [
+      "Exemplos usuais: Act-HIB, Hiberix, vacinas combinadas hexavalentes",
+    ],
+    administration: [
+      "Via intramuscular",
+      "Habitualmente administrada em combinação com outras vacinas do PNV",
+      "No lactente, preferencialmente na coxa",
+    ],
+    sideEffects: [
+      "Dor e vermelhidão no local",
+      "Febre",
+      "Irritabilidade ou sonolência transitória",
+    ],
     keyPoints: [
       "Nos esquemas em atraso, o número de doses depende da idade de início.",
       "É particularmente relevante na prevenção de doença invasiva em idade pediátrica.",
@@ -118,6 +142,19 @@ const VACCINES: VaccineInfo[] = [
     overview:
       "Protege contra três doenças preveníveis relevantes e mantém reforços na infância conforme a norma da DGS.",
     scheduleSummary: ["2 meses", "4 meses", "6 meses", "18 meses", "5 anos"],
+    commercialNames: [
+      "Exemplos usuais: Infanrix hexa, Hexyon, Vaxelis, Infanrix-IPV",
+    ],
+    administration: [
+      "Via intramuscular",
+      "Na infância, geralmente em formulações combinadas",
+      "Coxa no lactente; deltoide em crianças maiores, conforme idade e massa muscular",
+    ],
+    sideEffects: [
+      "Dor, edema e rubor local",
+      "Febre",
+      "Irritabilidade, choro persistente ou diminuição do apetite",
+    ],
     keyPoints: [
       "Após doença por tosse convulsa, a criança deve iniciar ou completar a vacinação depois da cura.",
       "No PNV 2020, a DTPa também surge como referência na gravidez através da Tdpa.",
@@ -141,6 +178,19 @@ const VACCINES: VaccineInfo[] = [
     overview:
       "Mantém proteção estruturada durante a infância com primovacinação e reforço antes da idade escolar.",
     scheduleSummary: ["2 meses", "4 meses", "6 meses", "18 meses", "5 anos"],
+    commercialNames: [
+      "Exemplos usuais: Imovax Polio, vacinas combinadas hexavalentes ou tetravalentes com VIP",
+    ],
+    administration: [
+      "Via intramuscular",
+      "Frequentemente administrada em vacinas combinadas do PNV",
+      "Coxa no lactente; deltoide em crianças maiores, conforme idade e massa muscular",
+    ],
+    sideEffects: [
+      "Dor, edema ou rubor local",
+      "Febre baixa",
+      "Irritabilidade ou mal-estar transitório",
+    ],
     keyPoints: [
       "Faz parte do esquema geral recomendado para a população infantil.",
       "Os esquemas tardios devem ser avaliados segundo idade e histórico vacinal prévio.",
@@ -163,6 +213,17 @@ const VACCINES: VaccineInfo[] = [
     overview:
       "A vacina pneumocócica conjugada integra o esquema pediátrico recomendado no PNV 2020.",
     scheduleSummary: ["2 meses", "4 meses", "12 meses"],
+    commercialNames: ["Exemplo usual: Prevenar 13"],
+    administration: [
+      "Via intramuscular",
+      "Administração preferencial na coxa em lactentes",
+      "Pode ser coadministrada com outras vacinas do PNV em locais anatómicos distintos",
+    ],
+    sideEffects: [
+      "Dor, edema e rubor local",
+      "Febre",
+      "Irritabilidade ou sonolência",
+    ],
     keyPoints: [
       "Se a 1.ª dose for antes dos 6 meses, a 3.ª dose pode ser administrada a partir dos 11 meses.",
       "Após doença invasiva pneumocócica, pode ser necessário iniciar ou completar o esquema consoante a idade.",
@@ -183,6 +244,17 @@ const VACCINES: VaccineInfo[] = [
     overview:
       "No PNV 2020 a vacinação MenB passou a abranger universalmente as crianças nas idades recomendadas.",
     scheduleSummary: ["2 meses", "4 meses", "12 meses"],
+    commercialNames: ["Exemplo usual: Bexsero"],
+    administration: [
+      "Via intramuscular",
+      "No lactente, geralmente na coxa",
+      "Pode ser administrada com outras vacinas, idealmente em local diferente",
+    ],
+    sideEffects: [
+      "Dor e sensibilidade local",
+      "Febre",
+      "Irritabilidade, sonolência ou recusa alimentar transitória",
+    ],
     keyPoints: [
       "Crianças nascidas a partir de 2019 podem completar o esquema no PNV antes dos 5 anos, de acordo com a idade.",
       "A norma descreve ainda esquemas de recuperação dependentes da idade de início.",
@@ -203,6 +275,17 @@ const VACCINES: VaccineInfo[] = [
     overview:
       "É administrada como dose única no esquema geral recomendado da infância, conforme o PNV 2020.",
     scheduleSummary: ["12 meses"],
+    commercialNames: ["Exemplos usuais: NeisVac-C, Menjugate"],
+    administration: [
+      "Via intramuscular",
+      "Habitualmente administrada na coxa ou deltoide, conforme idade",
+      "Pode ser coadministrada com outras vacinas em locais distintos",
+    ],
+    sideEffects: [
+      "Dor ou rubor local",
+      "Febre baixa",
+      "Cefaleia ou irritabilidade",
+    ],
     keyPoints: [
       "A necessidade de recuperação depende da idade e do histórico vacinal prévio.",
       "Mantém relevância na prevenção de doença invasiva meningocócica.",
@@ -222,6 +305,17 @@ const VACCINES: VaccineInfo[] = [
     overview:
       "No esquema infantil surgem duas doses; em adultos a indicação depende do ano de nascimento e do risco ocupacional.",
     scheduleSummary: ["12 meses", "5 anos"],
+    commercialNames: ["Exemplos usuais: Priorix, M-M-RVAXPRO"],
+    administration: [
+      "Via subcutânea ou intramuscular, conforme RCM e contexto clínico",
+      "Habitualmente no braço ou coxa, segundo idade",
+      "Evitar em situações de contraindicação a vacinas vivas atenuadas",
+    ],
+    sideEffects: [
+      "Dor ou vermelhidão local",
+      "Febre",
+      "Exantema transitório ou tumefação parotídea rara",
+    ],
     keyPoints: [
       "Adultos nascidos a partir de 1970 sem história credível de sarampo devem receber 1 dose.",
       "Profissionais de saúde com contacto próximo com doentes devem ter 2 doses, independentemente do ano de nascimento.",
@@ -242,6 +336,17 @@ const VACCINES: VaccineInfo[] = [
     overview:
       "Em 2020 o PNV passou a contemplar também o sexo masculino elegível, com esquema em 2 doses aos 10 anos.",
     scheduleSummary: ["10 anos", "2 doses: 0 e 6 meses"],
+    commercialNames: ["Exemplo usual: Gardasil 9"],
+    administration: [
+      "Via intramuscular",
+      "Preferencialmente no deltoide",
+      "Seguir o intervalo recomendado entre as 2 doses",
+    ],
+    sideEffects: [
+      "Dor e edema no local",
+      "Cefaleia",
+      "Tonturas ou mal-estar breve após a administração",
+    ],
     keyPoints: [
       "Abrange rapazes e raparigas elegíveis no PNV 2020, segundo o ano de nascimento definido na norma.",
       "Quem iniciou vacinação por prescrição médica pode completar o esquema no PNV até antes dos 27 anos, em situações previstas.",
@@ -265,6 +370,17 @@ const VACCINES: VaccineInfo[] = [
     overview:
       "A Tdpa na gravidez tem como objetivo reforçar a proteção passiva do recém-nascido contra a tosse convulsa.",
     scheduleSummary: ["Cada gravidez", "Idealmente entre 20 e 36 semanas"],
+    commercialNames: ["Exemplos usuais: Boostrix, Adacel"],
+    administration: [
+      "Via intramuscular",
+      "Preferencialmente no deltoide",
+      "Administrar em cada gravidez, idealmente após a ecografia morfológica",
+    ],
+    sideEffects: [
+      "Dor e tumefação local",
+      "Cansaço ou cefaleia",
+      "Febre baixa ou mal-estar transitório",
+    ],
     keyPoints: [
       "A norma refere administração após a ecografia morfológica e idealmente até às 32 semanas.",
       "Mesmo após as 36 semanas pode haver benefício indireto pela prevenção da doença na mãe.",
@@ -292,6 +408,19 @@ const VACCINES: VaccineInfo[] = [
       "45 anos",
       "65 anos",
       "Depois dos 65 anos: de 10 em 10 anos",
+    ],
+    commercialNames: [
+      "A marca comercial pode variar consoante disponibilidade institucional",
+    ],
+    administration: [
+      "Via intramuscular",
+      "Preferencialmente no deltoide em adolescentes e adultos",
+      "Usada para reforços programados ao longo da vida",
+    ],
+    sideEffects: [
+      "Dor no local de injeção",
+      "Rubor ou edema local",
+      "Febre baixa, mal-estar ou mialgias transitórias",
     ],
     keyPoints: [
       "Se a última dose tiver ocorrido entre os 18 e os 44 anos, a seguinte é recomendada 20 anos depois.",
@@ -405,7 +534,7 @@ export default function VacinacaoPage() {
           </div>
         </section>
 
-        <section className="mt-6 grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
+        <section className="mt-6 space-y-6">
           <div className="overflow-hidden rounded-3xl border border-border/70 bg-card/80 shadow-sm backdrop-blur">
             <div className="border-b border-border/70 bg-secondary/35 px-4 py-4 sm:px-6">
               <div className="flex items-center gap-2">
@@ -509,7 +638,7 @@ export default function VacinacaoPage() {
             </div>
           </div>
 
-          <aside className="space-y-4">
+          <section className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
             <section className="rounded-3xl border border-border/70 bg-card/80 p-5 shadow-sm backdrop-blur">
               <div className="flex items-center justify-between gap-3">
                 <div>
@@ -550,18 +679,18 @@ export default function VacinacaoPage() {
               </div>
             </section>
 
-            <section className="rounded-3xl border border-border/70 bg-card/80 p-5 shadow-sm backdrop-blur">
+            <section className="rounded-3xl border border-border/70 bg-card/80 p-5 shadow-sm backdrop-blur lg:col-span-2">
               <div className="flex items-center gap-2">
                 <Info className="h-4 w-4 text-primary" />
                 <h3 className="text-base font-semibold text-foreground">
-                  Informação da vacina
+                  Informação detalhada da vacina
                 </h3>
               </div>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                 {selectedVaccine.overview}
               </p>
 
-              <div className="mt-5 grid gap-4">
+              <div className="mt-5 grid gap-4 lg:grid-cols-2">
                 <div className="rounded-2xl border border-border/70 bg-secondary/30 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
                     Esquema resumido
@@ -578,6 +707,48 @@ export default function VacinacaoPage() {
 
                 <div className="rounded-2xl border border-border/70 bg-card/70 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                    Nomes comerciais usuais
+                  </p>
+                  <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                    {selectedVaccine.commercialNames.map((item) => (
+                      <li key={item} className="flex gap-2">
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="rounded-2xl border border-border/70 bg-card/70 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                    Como administrar
+                  </p>
+                  <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                    {selectedVaccine.administration.map((item) => (
+                      <li key={item} className="flex gap-2">
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="rounded-2xl border border-border/70 bg-card/70 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                    Efeitos secundários frequentes
+                  </p>
+                  <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                    {selectedVaccine.sideEffects.map((item) => (
+                      <li key={item} className="flex gap-2">
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="rounded-2xl border border-border/70 bg-card/70 p-4 lg:col-span-2">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
                     Pontos-chave da norma
                   </p>
                   <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
@@ -589,21 +760,24 @@ export default function VacinacaoPage() {
                     ))}
                   </ul>
                 </div>
+
+                <div className="rounded-2xl border border-amber-300/70 bg-amber-50/80 p-4 lg:col-span-2">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-900">
+                    Nota clínica
+                  </p>
+                  <p className="mt-3 text-sm leading-relaxed text-amber-950/80">
+                    Os nomes comerciais apresentados são exemplos usuais e podem
+                    variar conforme aquisição institucional, formulação
+                    disponível e atualização regulamentar. Esta visualização
+                    resume o esquema vacinal geral e não substitui a consulta
+                    dos RCM, esquemas de atraso, grupos de risco,
+                    contraindicações, vacinas extra-PNV ou atualizações
+                    posteriores da DGS.
+                  </p>
+                </div>
               </div>
             </section>
-
-            <section className="rounded-3xl border border-border/70 bg-card/80 p-5 shadow-sm backdrop-blur">
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                Nota clínica
-              </p>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                Esta visualização resume o esquema vacinal geral e não substitui
-                a consulta dos esquemas de atraso, grupos de risco,
-                contraindicações, vacinas extra-PNV ou atualizações posteriores
-                da DGS.
-              </p>
-            </section>
-          </aside>
+          </section>
         </section>
       </div>
     </main>
