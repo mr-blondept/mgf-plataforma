@@ -61,7 +61,6 @@ const AGE_COLUMNS: AgeColumn[] = [
   { id: "45y", label: "45 anos", shortLabel: "45\nanos" },
   { id: "65y", label: "65 anos", shortLabel: "65\nanos" },
   { id: "65plus", label: "10/10 anos", shortLabel: "10/10\nanos" },
-  { id: "pregnancy", label: "Gravidez", shortLabel: "Grá-\nvidas" },
 ];
 
 const VACCINES: VaccineInfo[] = [
@@ -360,41 +359,6 @@ const VACCINES: VaccineInfo[] = [
     ],
   },
   {
-    id: "Tdpa",
-    shortName: "Tdpa",
-    disease: "Tétano, difteria e tosse convulsa",
-    summary:
-      "Vacinação recomendada em cada gravidez para proteção materna e do recém-nascido.",
-    category: "gravidez",
-    colorClass: "bg-fuchsia-100 border-fuchsia-300 text-fuchsia-900",
-    overview:
-      "A Tdpa na gravidez tem como objetivo reforçar a proteção passiva do recém-nascido contra a tosse convulsa.",
-    scheduleSummary: ["Cada gravidez", "Idealmente entre 20 e 36 semanas"],
-    commercialNames: ["Exemplos usuais: Boostrix, Adacel"],
-    administration: [
-      "Via intramuscular",
-      "Preferencialmente no deltoide",
-      "Administrar em cada gravidez, idealmente após a ecografia morfológica",
-    ],
-    sideEffects: [
-      "Dor e tumefação local",
-      "Cansaço ou cefaleia",
-      "Febre baixa ou mal-estar transitório",
-    ],
-    keyPoints: [
-      "A norma refere administração após a ecografia morfológica e idealmente até às 32 semanas.",
-      "Mesmo após as 36 semanas pode haver benefício indireto pela prevenção da doença na mãe.",
-    ],
-    placements: [
-      {
-        ageId: "pregnancy",
-        doseLabel: "Tdpa · grávidas",
-        detail:
-          "Dose recomendada em cada gravidez, idealmente entre as 20 e as 36 semanas.",
-      },
-    ],
-  },
-  {
     id: "Td",
     shortName: "Td",
     disease: "Tétano e difteria",
@@ -439,7 +403,7 @@ const VACCINES: VaccineInfo[] = [
   },
 ];
 
-const CATEGORY_LABELS = {
+const CATEGORY_LABELS: Record<VaccineInfo["category"], string> = {
   infancia: "Infância",
   adolescencia: "Adolescência",
   adultos: "Adultos",
@@ -478,9 +442,6 @@ export default function VacinacaoPage() {
             <span className="rounded-full border border-border/70 bg-card/70 px-3 py-1 text-xs font-semibold text-foreground">
               Norma DGS 018/2020
             </span>
-            <span className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
-              Seleciona uma dose no mapa para ver detalhe imediato
-            </span>
           </div>
           <a
             href={SOURCE_URL}
@@ -493,7 +454,7 @@ export default function VacinacaoPage() {
           </a>
         </section>
 
-        <section className="grid gap-5 xl:grid-cols-[minmax(0,1.8fr)_minmax(420px,1fr)] 2xl:grid-cols-[minmax(0,1.95fr)_minmax(460px,0.95fr)]">
+        <section className="grid gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(400px,0.95fr)] 2xl:grid-cols-[minmax(0,1.8fr)_minmax(440px,0.9fr)]">
           <div className="overflow-hidden rounded-3xl border border-border/70 bg-card/85 shadow-sm backdrop-blur">
             <div className="border-b border-border/70 bg-secondary/35 px-5 py-4">
               <div className="flex items-center gap-2">
@@ -505,11 +466,11 @@ export default function VacinacaoPage() {
             </div>
 
             <div className="overflow-x-auto">
-              <div className="min-w-[1260px]">
+              <div className="min-w-[1160px]">
                 <div
                   className="grid border-b border-border/70 bg-secondary/20"
                   style={{
-                    gridTemplateColumns: "300px repeat(13, minmax(72px, 1fr))",
+                    gridTemplateColumns: "280px repeat(12, minmax(68px, 1fr))",
                   }}
                 >
                   <div className="border-r border-border/70 px-5 py-4 text-sm font-semibold text-foreground">
@@ -531,7 +492,7 @@ export default function VacinacaoPage() {
                     className="grid border-b border-border/70 last:border-b-0"
                     style={{
                       gridTemplateColumns:
-                        "300px repeat(13, minmax(72px, 1fr))",
+                        "280px repeat(12, minmax(68px, 1fr))",
                     }}
                   >
                     <button

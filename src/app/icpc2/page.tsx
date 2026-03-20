@@ -22,6 +22,7 @@ const COMPONENTS = [
   { id: "6", label: "6 · Encaminhamentos/outros (63–69)" },
   { id: "7", label: "7 · Diagnósticos/doenças (70–99)" },
 ];
+const PAGE_SIZES = [12, 24, 48];
 
 function normalizeText(value: string) {
   return value
@@ -55,6 +56,8 @@ export default function ICPC2Page() {
   const [query, setQuery] = useState("");
   const [chapterFilter, setChapterFilter] = useState("Todos");
   const [componentFilter, setComponentFilter] = useState("Todos");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
   const deferredQuery = useDeferredValue(query);
 
   const chapters = useMemo(() => {
@@ -107,6 +110,16 @@ export default function ICPC2Page() {
     });
   }, [chapterFilter, componentFilter, indexedItems, queryTerms]);
 
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pageStart = filtered.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const pageEnd = Math.min(currentPage * pageSize, filtered.length);
+  const paginatedItems = useMemo(
+    () => filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [currentPage, filtered, pageSize]
+  );
+
   return (
     <main className="relative min-h-[calc(100vh-3.5rem)] app-surface">
       <div className="absolute inset-0 hero-surface" />
@@ -129,9 +142,10 @@ export default function ICPC2Page() {
               </h1>
               <p className="max-w-2xl text-sm text-muted-foreground">
                 Pesquisa inteligente por código, capítulo, componente e texto
-                clínico. Ideal para revisão rápida e navegação estruturada.
+                clínico. Agora com paginação para rever os resultados de forma mais
+                confortável.
               </p>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-4">
                 <div className="rounded-2xl border border-border/70 bg-card/80 px-4 py-3 shadow-sm backdrop-blur">
                   <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
                     Total
@@ -146,6 +160,14 @@ export default function ICPC2Page() {
                   </p>
                   <p className="text-xl font-semibold text-foreground">
                     {filtered.length}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-border/70 bg-card/80 px-4 py-3 shadow-sm backdrop-blur">
+                  <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                    Página atual
+                  </p>
+                  <p className="text-xl font-semibold text-foreground">
+                    {currentPage}/{totalPages}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-border/70 bg-card/80 px-4 py-3 shadow-sm backdrop-blur">
@@ -167,12 +189,12 @@ export default function ICPC2Page() {
                 </label>
                 <input
                   value={query}
-                  onChange={(event) => setQuery(event.target.value)}
+                  onChange={(event) => { setQuery(event.target.value); setPage(1); }}
                   placeholder="Ex: P73, depressao, cefaleia, ansiedade..."
                   className="mt-2 w-full rounded-2xl border border-border/70 bg-background/80 px-5 py-3 text-base text-foreground shadow-sm transition focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
-              <div className="grid gap-2 lg:grid-cols-2">
+              <div className="grid gap-2 xl:grid-cols-[1fr_1fr_220px]">
                 <div className="rounded-2xl border border-border/70 bg-card/70 px-3 py-2 shadow-sm backdrop-blur">
                   <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
                     Capítulo
@@ -184,7 +206,7 @@ export default function ICPC2Page() {
                         <button
                           key={chapter}
                           type="button"
-                          onClick={() => setChapterFilter(chapter)}
+                          onClick={() => { setChapterFilter(chapter); setPage(1); }}
                           className={cn(
                             "rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.22em] transition",
                             isActive
@@ -209,7 +231,7 @@ export default function ICPC2Page() {
                         <button
                           key={component.id}
                           type="button"
-                          onClick={() => setComponentFilter(component.id)}
+                          onClick={() => { setComponentFilter(component.id); setPage(1); }}
                           className={cn(
                             "rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.22em] transition",
                             isActive
@@ -223,54 +245,120 @@ export default function ICPC2Page() {
                     })}
                   </div>
                 </div>
+                <div className="rounded-2xl border border-border/70 bg-card/70 px-4 py-3 shadow-sm backdrop-blur">
+                  <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                    Itens por página
+                  </label>
+                  <div className="mt-2 flex gap-2">
+                    {PAGE_SIZES.map((size) => {
+                      const isActive = size === pageSize;
+                      return (
+                        <button
+                          key={size}
+                          type="button"
+                          onClick={() => { setPageSize(size); setPage(1); }}
+                          className={cn(
+                            "flex-1 rounded-2xl px-3 py-2 text-sm font-semibold transition",
+                            isActive
+                              ? "bg-primary text-primary-foreground shadow-sm"
+                              : "border border-border/70 bg-background/80 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                          )}
+                        >
+                          {size}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-card/70 px-4 py-3 shadow-sm backdrop-blur">
               <p className="text-sm text-muted-foreground">
-                {filtered.length} resultado{filtered.length === 1 ? "" : "s"}
+                A mostrar <span className="font-semibold text-foreground">{pageStart}</span>
+                {pageEnd > 0 ? `–${pageEnd}` : ""} de <span className="font-semibold text-foreground">{filtered.length}</span> resultado{filtered.length === 1 ? "" : "s"}
               </p>
-              {(query ||
-                chapterFilter !== "Todos" ||
-                componentFilter !== "Todos") && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setQuery("");
-                    setChapterFilter("Todos");
-                    setComponentFilter("Todos");
-                  }}
-                  className="text-sm font-semibold text-primary underline-offset-4 hover:underline"
-                >
-                  Limpar filtros
-                </button>
-              )}
+              <div className="flex flex-wrap items-center gap-3">
+                {(query ||
+                  chapterFilter !== "Todos" ||
+                  componentFilter !== "Todos") && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuery("");
+                      setChapterFilter("Todos");
+                      setComponentFilter("Todos");
+                      setPage(1);
+                    }}
+                    className="text-sm font-semibold text-primary underline-offset-4 hover:underline"
+                  >
+                    Limpar filtros
+                  </button>
+                )}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPage((value) => Math.max(1, value - 1))}
+                    disabled={currentPage === 1}
+                    className="rounded-full border border-border/70 bg-background/80 px-4 py-2 text-sm font-semibold text-foreground transition disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Anterior
+                  </button>
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Página {currentPage} de {totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+                    disabled={currentPage === totalPages}
+                    className="rounded-full border border-border/70 bg-background/80 px-4 py-2 text-sm font-semibold text-foreground transition disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Seguinte
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="mt-6 grid gap-4 lg:grid-cols-2">
-          {filtered.map((item, index) => (
+        <section className="mt-6 grid gap-4 xl:grid-cols-2">
+          {paginatedItems.map((item, index) => (
             <article
               key={`${item.code}-${item.title}-${index}`}
-              className="group rounded-3xl border border-border/70 bg-card/80 p-5 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:border-foreground/40 hover:shadow-md"
+              className="group rounded-3xl border border-border/70 bg-card/85 p-5 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:border-foreground/40 hover:shadow-md"
             >
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="rounded-full border border-border/70 bg-secondary/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                  {item.code}
-                </span>
-                <h2 className="text-lg font-semibold text-foreground">
-                  {item.title}
-                </h2>
-                {item.is_standard_procedure && (
-                  <span className="rounded-full border border-border/70 bg-card/70 px-3 py-1 text-xs font-semibold text-foreground">
-                    Procedimento padrão
-                  </span>
-                )}
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full border border-border/70 bg-secondary/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                      {item.code}
+                    </span>
+                    <span className="rounded-full border border-border/70 bg-card/70 px-3 py-1 text-xs font-medium text-muted-foreground">
+                      Capítulo {item.chapter}
+                    </span>
+                    {item.component && (
+                      <span className="rounded-full border border-border/70 bg-card/70 px-3 py-1 text-xs font-medium text-muted-foreground">
+                        Componente {item.component}
+                      </span>
+                    )}
+                    {item.is_standard_procedure && (
+                      <span className="rounded-full border border-border/70 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                        Procedimento padrão
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="mt-3 text-lg font-semibold leading-tight text-foreground">
+                    {item.title}
+                  </h2>
+                </div>
               </div>
-              {item.details && (
-                <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+              {item.details ? (
+                <p className="mt-4 line-clamp-6 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
                   {item.details}
+                </p>
+              ) : (
+                <p className="mt-4 text-sm italic text-muted-foreground">
+                  Sem detalhe adicional disponível neste código.
                 </p>
               )}
             </article>
