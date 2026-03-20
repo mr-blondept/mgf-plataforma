@@ -9,6 +9,7 @@ import {
   ArrowRight,
   Sparkles,
   CheckCircle,
+  Syringe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -196,6 +197,11 @@ export default function HomePage() {
               icon={<BarChart3 className="h-5 w-5" />}
               title="Estatisticas e Progresso"
               description="Acompanha evolucao, pontos fortes e areas a reforcar."
+            />
+            <FeatureCard
+              icon={<Syringe className="h-5 w-5" />}
+              title="Plano de Vacinacao"
+              description="Consulta interativa do PNV 2020 com esquema por idade e resumo das vacinas."
             />
           </div>
         </div>
