@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -13,112 +12,7 @@ import {
   Syringe,
 } from "lucide-react";
 
-function lerp(start: number, end: number, factor: number) {
-  return start + (end - start) * factor;
-}
-
-function createSegment(
-  fromX: number,
-  fromY: number,
-  toX: number,
-  toY: number,
-  steps: number,
-) {
-  return Array.from({ length: steps }, (_, index) => {
-    const progress = steps === 1 ? 0 : index / (steps - 1);
-    return {
-      x: lerp(fromX, toX, progress),
-      y: lerp(fromY, toY, progress),
-    };
-  });
-}
-
-function createArc(
-  centerX: number,
-  centerY: number,
-  radiusX: number,
-  radiusY: number,
-  startAngle: number,
-  endAngle: number,
-  steps: number,
-) {
-  return Array.from({ length: steps }, (_, index) => {
-    const progress = steps === 1 ? 0 : index / (steps - 1);
-    const angle = lerp(startAngle, endAngle, progress);
-    return {
-      x: centerX + Math.cos(angle) * radiusX,
-      y: centerY + Math.sin(angle) * radiusY,
-    };
-  });
-}
-
-function uniquePoints(points: Array<{ x: number; y: number }>) {
-  const map = new Map<string, { x: number; y: number }>();
-
-  for (const point of points) {
-    const x = Math.round(point.x * 10) / 10;
-    const y = Math.round(point.y * 10) / 10;
-    map.set(`${x}:${y}`, { x, y });
-  }
-
-  return Array.from(map.values());
-}
-
-function buildStethoscopeModel() {
-  const earTips = uniquePoints([
-    ...createArc(-8.6, -14.3, 1.15, 0.85, Math.PI * 0.1, Math.PI * 1.9, 6),
-    ...createArc(-5.9, -14.3, 1.15, 0.85, Math.PI * 0.1, Math.PI * 1.9, 6),
-  ]).map((point, index) => ({
-    id: `accent-${index}`,
-    ...point,
-    size: 8,
-    color: "accent" as const,
-    phase: index * 0.22,
-  }));
-
-  const metal = uniquePoints([
-    ...createArc(-7.25, -7.6, 2.35, 7.9, Math.PI * 1.06, Math.PI * 1.82, 18),
-    ...createArc(-7.25, -7.6, 2.9, 8.45, Math.PI * 1.05, Math.PI * 1.82, 18),
-    ...createArc(-7.25, -7.6, 3.45, 8.95, Math.PI * 1.05, Math.PI * 1.82, 18),
-  ]).map((point, index) => ({
-    id: `metal-${index}`,
-    ...point,
-    size: 6,
-    color: "metal" as const,
-    phase: 0.3 + index * 0.17,
-  }));
-
-  const tube = uniquePoints([
-    ...createSegment(-5.1, -0.1, -2.6, 2.3, 7),
-    ...createSegment(-2.6, 2.3, -2.1, 8.4, 10),
-    ...createArc(2.8, 8.6, 8.2, 12.6, Math.PI * 0.96, Math.PI * 2.05, 28),
-    ...createArc(2.8, 8.6, 8.9, 13.3, Math.PI * 0.96, Math.PI * 2.05, 28),
-    ...createArc(2.8, 8.6, 9.6, 14, Math.PI * 0.96, Math.PI * 2.05, 28),
-    ...createSegment(7.2, -0.7, 10.9, 3.8, 12),
-  ]).map((point, index) => ({
-    id: `tube-${index}`,
-    ...point,
-    size: 7,
-    color: "tube" as const,
-    phase: 0.15 + index * 0.11,
-  }));
-
-  const chest = uniquePoints([
-    ...createArc(11.9, -0.4, 2.15, 2.15, 0, Math.PI * 2, 16),
-    ...createArc(11.9, -0.4, 1.45, 1.45, 0, Math.PI * 2, 12),
-    { x: 11.9, y: -0.4 },
-  ]).map((point, index) => ({
-    id: `chest-${index}`,
-    ...point,
-    size: index === uniquePoints([{ x: 11.9, y: -0.4 }]).length - 1 ? 8 : 6,
-    color: "metal" as const,
-    phase: 0.5 + index * 0.14,
-  }));
-
-  return [...earTips, ...metal, ...tube, ...chest];
-}
-
-const STETHOSCOPE_CUBES = buildStethoscopeModel();
+import StethoscopeCubes from "@/components/StethoscopeCubes";
 
 const FEATURES = [
   {
@@ -159,120 +53,16 @@ const FEATURES = [
   },
 ];
 
-function InteractiveStethoscope() {
-  const [time, setTime] = useState(0);
-  const [pointer, setPointer] = useState<{ x: number; y: number } | null>(null);
-  const frameRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    const start = performance.now();
-
-    const animate = (now: number) => {
-      setTime((now - start) / 1000);
-      frameRef.current = window.requestAnimationFrame(animate);
-    };
-
-    frameRef.current = window.requestAnimationFrame(animate);
-
-    return () => {
-      if (frameRef.current !== null) {
-        window.cancelAnimationFrame(frameRef.current);
-      }
-    };
-  }, []);
-
-  const renderedCubes = useMemo(() => {
-    return STETHOSCOPE_CUBES.map((cube) => {
-      const baseX = cube.x * 18;
-      const baseY = cube.y * 18;
-
-      let shiftX = Math.sin(time * 0.85 + cube.phase) * 1.8;
-      let shiftY = Math.cos(time * 0.8 + cube.phase) * 1.6;
-
-      if (pointer) {
-        const dx = baseX - pointer.x;
-        const dy = baseY - pointer.y;
-        const distance = Math.hypot(dx, dy);
-        const radius = 150;
-
-        if (distance < radius) {
-          const force = ((radius - distance) / radius) ** 2 * 18;
-          const angle = Math.atan2(dy, dx);
-          shiftX += Math.cos(angle) * force;
-          shiftY += Math.sin(angle) * force;
-        }
-      }
-
-      return {
-        ...cube,
-        x: baseX + shiftX,
-        y: baseY + shiftY,
-      };
-    });
-  }, [pointer, time]);
-
-  return (
-    <div
-      className="relative mx-auto aspect-square w-full max-w-[560px] overflow-hidden rounded-[2rem] border border-border/70 bg-[radial-gradient(circle_at_30%_20%,rgba(14,165,233,0.14),transparent_28%),radial-gradient(circle_at_70%_80%,rgba(20,184,166,0.12),transparent_26%),linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.78))] shadow-[0_28px_80px_rgba(15,23,42,0.12)]"
-      onPointerMove={(event) => {
-        const rect = event.currentTarget.getBoundingClientRect();
-        setPointer({
-          x: event.clientX - rect.left - rect.width / 2,
-          y: event.clientY - rect.top - rect.height / 2,
-        });
-      }}
-      onPointerLeave={() => setPointer(null)}
-    >
-      <div className="absolute inset-0 soft-grain opacity-20" />
-
-      {renderedCubes.map((cube) => {
-        const styles =
-          cube.color === "tube"
-            ? {
-                background:
-                  "linear-gradient(145deg, rgba(211,47,47,0.96), rgba(180,27,27,0.88))",
-                borderColor: "rgba(185,28,28,0.34)",
-                boxShadow: "0 8px 18px rgba(185,28,28,0.18)",
-              }
-            : cube.color === "accent"
-              ? {
-                  background:
-                    "linear-gradient(145deg, rgba(148,163,184,0.95), rgba(113,128,150,0.9))",
-                  borderColor: "rgba(100,116,139,0.35)",
-                  boxShadow: "0 8px 16px rgba(100,116,139,0.14)",
-                }
-              : {
-                  background:
-                    "linear-gradient(145deg, rgba(241,245,249,0.98), rgba(148,163,184,0.92))",
-                  borderColor: "rgba(148,163,184,0.36)",
-                  boxShadow: "0 8px 18px rgba(148,163,184,0.18)",
-                };
-
-        return (
-          <div
-            key={cube.id}
-            className="absolute left-1/2 top-1/2 rounded-[3px] border transition-transform duration-300 ease-out"
-            style={{
-              width: `${cube.size}px`,
-              height: `${cube.size}px`,
-              transform: `translate(${cube.x}px, ${cube.y}px)`,
-              ...styles,
-            }}
-          />
-        );
-      })}
-    </div>
-  );
-}
-
 export default function HomePage() {
   return (
     <main className="min-h-[calc(100vh-3.5rem)] app-surface">
-      <section className="relative px-4 py-10 sm:py-14 lg:py-20">
+      <section className="relative overflow-hidden px-4 pb-10 pt-10 sm:pb-14 sm:pt-14 lg:pb-20 lg:pt-20">
         <div className="absolute inset-0 hero-surface opacity-90" />
         <div className="absolute inset-0 soft-grain opacity-30" />
+        <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-white/50 to-transparent" />
+        <div className="absolute left-1/2 top-20 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
 
-        <div className="relative mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.88fr_1.12fr] lg:items-center">
+        <div className="relative mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.86fr_1.14fr] lg:items-center">
           <div className="space-y-6 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-secondary/70 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.35em] text-muted-foreground shadow-sm backdrop-blur">
               <Sparkles className="h-3.5 w-3.5" />
@@ -284,7 +74,7 @@ export default function HomePage() {
             </h1>
 
             <p className="max-w-xl text-base leading-8 text-muted-foreground sm:text-lg">
-              Um espaço único para estudar, consultar ferramentas clínicas e organizar o internato.
+              Um espaco unico para estudar, consultar ferramentas clinicas e organizar o internato.
             </p>
 
             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
@@ -304,7 +94,12 @@ export default function HomePage() {
             </div>
           </div>
 
-          <InteractiveStethoscope />
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-x-8 top-12 h-24 rounded-full bg-white/40 blur-3xl" />
+            <div className="relative scale-[0.92] sm:scale-100">
+              <StethoscopeCubes />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -347,7 +142,7 @@ export default function HomePage() {
               href="/auth"
               className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-primary-foreground shadow-md transition-all hover:bg-primary/90"
             >
-              Começar
+              Comecar
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
