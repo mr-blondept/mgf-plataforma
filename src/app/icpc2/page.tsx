@@ -124,7 +124,7 @@ export default function ICPC2Page() {
     <main className="relative min-h-[calc(100vh-3.5rem)] app-surface">
       <div className="absolute inset-0 hero-surface" />
       <div className="absolute inset-0 soft-grain opacity-30" />
-      <div className="relative mx-auto w-full max-w-6xl px-4 py-10">
+      <div className="relative mx-auto w-full max-w-7xl px-4 py-8">
         <section className="overflow-hidden rounded-3xl border border-border/70 bg-card/80 shadow-md backdrop-blur">
           <div className="relative p-6">
             <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/20 to-transparent" />
@@ -142,10 +142,10 @@ export default function ICPC2Page() {
               </h1>
               <p className="max-w-2xl text-sm text-muted-foreground">
                 Pesquisa inteligente por código, capítulo, componente e texto
-                clínico. Agora com paginação para rever os resultados de forma mais
-                confortável.
+                clínico. A navegação foi reorganizada para manter filtros e
+                resultados lado a lado.
               </p>
-              <div className="grid gap-3 sm:grid-cols-4">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <div className="rounded-2xl border border-border/70 bg-card/80 px-4 py-3 shadow-sm backdrop-blur">
                   <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
                     Total
@@ -181,121 +181,156 @@ export default function ICPC2Page() {
               </div>
             </div>
           </div>
-          <div className="border-t border-border/70 bg-secondary/40 p-6">
-            <div className="space-y-4">
-              <div className="rounded-2xl border border-border/70 bg-card/80 px-4 py-3 shadow-sm backdrop-blur">
-                <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                  Pesquisa
-                </label>
-                <input
-                  value={query}
-                  onChange={(event) => { setQuery(event.target.value); setPage(1); }}
-                  placeholder="Ex: P73, depressao, cefaleia, ansiedade..."
-                  className="mt-2 w-full rounded-2xl border border-border/70 bg-background/80 px-5 py-3 text-base text-foreground shadow-sm transition focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/20"
-                />
+        </section>
+
+        <section className="mt-6 grid gap-6 xl:grid-cols-[380px_minmax(0,1fr)]">
+          <aside className="rounded-3xl border border-border/70 bg-card/80 p-5 shadow-sm backdrop-blur xl:sticky xl:top-24 xl:self-start">
+            <div className="space-y-5">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                  Filtros
+                </p>
+                <h2 className="mt-2 text-xl font-semibold text-foreground">
+                  Pesquisa e navegação
+                </h2>
               </div>
-              <div className="grid gap-2 xl:grid-cols-[1fr_1fr_220px]">
-                <div className="rounded-2xl border border-border/70 bg-card/70 px-3 py-2 shadow-sm backdrop-blur">
-                  <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                    Capítulo
-                  </label>
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {chapters.map((chapter) => {
-                      const isActive = chapter === chapterFilter;
-                      return (
-                        <button
-                          key={chapter}
-                          type="button"
-                          onClick={() => { setChapterFilter(chapter); setPage(1); }}
-                          className={cn(
-                            "rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.22em] transition",
-                            isActive
-                              ? "bg-primary text-primary-foreground shadow-sm"
-                              : "border border-border/70 bg-secondary/70 text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                          )}
-                        >
-                          {chapter}
-                        </button>
-                      );
-                    })}
+
+              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+                  <div className="xl:col-span-2">
+                    <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                      Pesquisa
+                    </label>
+                    <input
+                      value={query}
+                      onChange={(event) => {
+                        setQuery(event.target.value);
+                        setPage(1);
+                      }}
+                      placeholder="Ex: P73, depressao, cefaleia, ansiedade..."
+                      className="mt-3 w-full rounded-2xl border border-border/70 bg-background/90 px-4 py-3 text-base text-foreground shadow-sm transition focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                      Capítulo
+                    </label>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {chapters.map((chapter) => {
+                        const isActive = chapter === chapterFilter;
+                        return (
+                          <button
+                            key={chapter}
+                            type="button"
+                            onClick={() => {
+                              setChapterFilter(chapter);
+                              setPage(1);
+                            }}
+                            className={cn(
+                              "rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] transition",
+                              isActive
+                                ? "bg-primary text-primary-foreground shadow-sm"
+                                : "border border-border/70 bg-secondary/70 text-muted-foreground hover:border-primary/40 hover:text-foreground",
+                            )}
+                          >
+                            {chapter}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                      Componente
+                    </label>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {COMPONENTS.map((component) => {
+                        const isActive = component.id === componentFilter;
+                        return (
+                          <button
+                            key={component.id}
+                            type="button"
+                            onClick={() => {
+                              setComponentFilter(component.id);
+                              setPage(1);
+                            }}
+                            className={cn(
+                              "rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] transition",
+                              isActive
+                                ? "bg-primary text-primary-foreground shadow-sm"
+                                : "border border-border/70 bg-secondary/70 text-muted-foreground hover:border-primary/40 hover:text-foreground",
+                            )}
+                          >
+                            {component.id === "Todos" ? component.label : component.id}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
-                <div className="rounded-2xl border border-border/70 bg-card/70 px-3 py-2 shadow-sm backdrop-blur">
-                  <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                    Componente
-                  </label>
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {COMPONENTS.map((component) => {
-                      const isActive = component.id === componentFilter;
-                      return (
-                        <button
-                          key={component.id}
-                          type="button"
-                          onClick={() => { setComponentFilter(component.id); setPage(1); }}
-                          className={cn(
-                            "rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.22em] transition",
-                            isActive
-                              ? "bg-primary text-primary-foreground shadow-sm"
-                              : "border border-border/70 bg-secondary/70 text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                          )}
-                        >
-                          {component.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-                <div className="rounded-2xl border border-border/70 bg-card/70 px-4 py-3 shadow-sm backdrop-blur">
+              </div>
+
+              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                <div className="flex items-center justify-between gap-3">
                   <label className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
                     Itens por página
                   </label>
-                  <div className="mt-2 flex gap-2">
-                    {PAGE_SIZES.map((size) => {
-                      const isActive = size === pageSize;
-                      return (
-                        <button
-                          key={size}
-                          type="button"
-                          onClick={() => { setPageSize(size); setPage(1); }}
-                          className={cn(
-                            "flex-1 rounded-2xl px-3 py-2 text-sm font-semibold transition",
-                            isActive
-                              ? "bg-primary text-primary-foreground shadow-sm"
-                              : "border border-border/70 bg-background/80 text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                          )}
-                        >
-                          {size}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  {(query ||
+                    chapterFilter !== "Todos" ||
+                    componentFilter !== "Todos") && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuery("");
+                        setChapterFilter("Todos");
+                        setComponentFilter("Todos");
+                        setPage(1);
+                      }}
+                      className="text-xs font-semibold text-primary underline-offset-4 hover:underline"
+                    >
+                      Limpar
+                    </button>
+                  )}
+                </div>
+                <div className="mt-3 flex gap-2">
+                  {PAGE_SIZES.map((size) => {
+                    const isActive = size === pageSize;
+                    return (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => {
+                          setPageSize(size);
+                          setPage(1);
+                        }}
+                        className={cn(
+                          "flex-1 rounded-2xl px-3 py-2 text-sm font-semibold transition",
+                          isActive
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "border border-border/70 bg-background/80 text-muted-foreground hover:border-primary/40 hover:text-foreground",
+                        )}
+                      >
+                        {size}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
+          </aside>
 
-            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-card/70 px-4 py-3 shadow-sm backdrop-blur">
-              <p className="text-sm text-muted-foreground">
-                A mostrar <span className="font-semibold text-foreground">{pageStart}</span>
-                {pageEnd > 0 ? `–${pageEnd}` : ""} de <span className="font-semibold text-foreground">{filtered.length}</span> resultado{filtered.length === 1 ? "" : "s"}
-              </p>
-              <div className="flex flex-wrap items-center gap-3">
-                {(query ||
-                  chapterFilter !== "Todos" ||
-                  componentFilter !== "Todos") && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setQuery("");
-                      setChapterFilter("Todos");
-                      setComponentFilter("Todos");
-                      setPage(1);
-                    }}
-                    className="text-sm font-semibold text-primary underline-offset-4 hover:underline"
-                  >
-                    Limpar filtros
-                  </button>
-                )}
-                <div className="flex items-center gap-2">
+          <div className="min-w-0">
+            <div className="rounded-3xl border border-border/70 bg-card/80 p-4 shadow-sm backdrop-blur">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <p className="text-sm text-muted-foreground">
+                  A mostrar <span className="font-semibold text-foreground">{pageStart}</span>
+                  {pageEnd > 0 ? `–${pageEnd}` : ""} de{" "}
+                  <span className="font-semibold text-foreground">{filtered.length}</span>{" "}
+                  resultado{filtered.length === 1 ? "" : "s"}
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setPage((value) => Math.max(1, value - 1))}
@@ -318,57 +353,57 @@ export default function ICPC2Page() {
                 </div>
               </div>
             </div>
-          </div>
-        </section>
 
-        <section className="mt-6 grid gap-4 xl:grid-cols-2">
-          {paginatedItems.map((item, index) => (
-            <article
-              key={`${item.code}-${item.title}-${index}`}
-              className="group rounded-3xl border border-border/70 bg-card/85 p-5 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:border-foreground/40 hover:shadow-md"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border border-border/70 bg-secondary/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                      {item.code}
-                    </span>
-                    <span className="rounded-full border border-border/70 bg-card/70 px-3 py-1 text-xs font-medium text-muted-foreground">
-                      Capítulo {item.chapter}
-                    </span>
-                    {item.component && (
-                      <span className="rounded-full border border-border/70 bg-card/70 px-3 py-1 text-xs font-medium text-muted-foreground">
-                        Componente {item.component}
-                      </span>
-                    )}
-                    {item.is_standard_procedure && (
-                      <span className="rounded-full border border-border/70 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                        Procedimento padrão
-                      </span>
-                    )}
+            <div className="mt-4 grid gap-4 xl:grid-cols-2">
+              {paginatedItems.map((item, index) => (
+                <article
+                  key={`${item.code}-${item.title}-${index}`}
+                  className="group rounded-3xl border border-border/70 bg-card/85 p-5 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:border-foreground/40 hover:shadow-md"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="rounded-full border border-border/70 bg-secondary/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                          {item.code}
+                        </span>
+                        <span className="rounded-full border border-border/70 bg-card/70 px-3 py-1 text-xs font-medium text-muted-foreground">
+                          Capítulo {item.chapter}
+                        </span>
+                        {item.component && (
+                          <span className="rounded-full border border-border/70 bg-card/70 px-3 py-1 text-xs font-medium text-muted-foreground">
+                            Componente {item.component}
+                          </span>
+                        )}
+                        {item.is_standard_procedure && (
+                          <span className="rounded-full border border-border/70 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                            Procedimento padrão
+                          </span>
+                        )}
+                      </div>
+                      <h2 className="mt-3 text-lg font-semibold leading-tight text-foreground">
+                        {item.title}
+                      </h2>
+                    </div>
                   </div>
-                  <h2 className="mt-3 text-lg font-semibold leading-tight text-foreground">
-                    {item.title}
-                  </h2>
-                </div>
-              </div>
-              {item.details ? (
-                <p className="mt-4 line-clamp-6 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-                  {item.details}
-                </p>
-              ) : (
-                <p className="mt-4 text-sm italic text-muted-foreground">
-                  Sem detalhe adicional disponível neste código.
-                </p>
-              )}
-            </article>
-          ))}
+                  {item.details ? (
+                    <p className="mt-4 line-clamp-6 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                      {item.details}
+                    </p>
+                  ) : (
+                    <p className="mt-4 text-sm italic text-muted-foreground">
+                      Sem detalhe adicional disponível neste código.
+                    </p>
+                  )}
+                </article>
+              ))}
 
-          {filtered.length === 0 && (
-            <div className="col-span-full rounded-3xl border border-border/70 bg-card/80 p-6 text-center text-sm text-muted-foreground">
-              Nenhum código encontrado. Experimente outro termo de pesquisa.
+              {filtered.length === 0 && (
+                <div className="col-span-full rounded-3xl border border-border/70 bg-card/80 p-6 text-center text-sm text-muted-foreground">
+                  Nenhum código encontrado. Experimente outro termo de pesquisa.
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </section>
       </div>
     </main>

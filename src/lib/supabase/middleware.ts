@@ -31,9 +31,12 @@ export async function updateSession(request: NextRequest) {
 
   if (
     (request.nextUrl.pathname.startsWith("/treino") ||
+      request.nextUrl.pathname.startsWith("/icpc2") ||
+      request.nextUrl.pathname.startsWith("/vacinacao") ||
       request.nextUrl.pathname.startsWith("/estatisticas") ||
       request.nextUrl.pathname.startsWith("/calendario") ||
-      request.nextUrl.pathname.startsWith("/dashboard")) &&
+      request.nextUrl.pathname.startsWith("/dashboard") ||
+      request.nextUrl.pathname.startsWith("/perfil")) &&
     !user
   ) {
     const url = request.nextUrl.clone();

@@ -9,17 +9,14 @@ import {
   BookOpenCheck,
   CalendarDays,
   Clock3,
-  Target,
+  Search,
+  Stethoscope,
+  Syringe,
+  UserRound,
 } from "lucide-react";
-import { format, parseISO, startOfMonth, endOfMonth, isSameMonth } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
-
-type AnswerWithQuestion = {
-  is_correct: boolean;
-  questions: {
-    topic: string | null;
-  } | null;
-};
+import { cn } from "@/lib/utils";
 
 type UserEvent = {
   id: string;
@@ -37,45 +34,85 @@ type QuestionSession = {
   updated_at: string | null;
 };
 
-type DashboardStats = {
-  total: number;
-  correct: number;
-  topTopic: string | null;
-};
+const FEATURE_CARDS = [
+  {
+    href: "/treino",
+    title: "Banco de Perguntas",
+    description: "Criar treino, lançar simulados e retomar sessões.",
+    icon: BookOpenCheck,
+    accent: "from-amber-500/20 to-orange-500/5",
+  },
+  {
+    href: "/icpc2",
+    title: "ICPC-2",
+    description: "Pesquisar códigos e descrições de forma rápida.",
+    icon: Search,
+    accent: "from-sky-500/20 to-cyan-500/5",
+  },
+  {
+    href: "/vacinacao",
+    title: "Vacinação",
+    description: "Abrir o mapa vacinal e rever o PNV por idade.",
+    icon: Syringe,
+    accent: "from-emerald-500/20 to-lime-500/5",
+  },
+  {
+    href: "/calendario",
+    title: "Calendário",
+    description: "Organizar estudo, consultas e eventos importantes.",
+    icon: CalendarDays,
+    accent: "from-fuchsia-500/20 to-rose-500/5",
+  },
+  {
+    href: "/estatisticas",
+    title: "Estatísticas",
+    description: "Consultar progresso quando precisares de detalhe.",
+    icon: BarChart3,
+    accent: "from-indigo-500/20 to-violet-500/5",
+  },
+  {
+    href: "/perfil",
+    title: "Perfil",
+    description: "Gerir dados pessoais e definições da conta.",
+    icon: UserRound,
+    accent: "from-slate-500/20 to-zinc-500/5",
+  },
+];
 
-function computeStats(rows: AnswerWithQuestion[]): DashboardStats {
-  const byTopic = new Map<string, { total: number; correct: number }>();
-  let total = 0;
-  let correct = 0;
-
-  for (const row of rows) {
-    total += 1;
-    if (row.is_correct) correct += 1;
-
-    const topic = row.questions?.topic ?? "Sem tópico";
-    const current = byTopic.get(topic) ?? { total: 0, correct: 0 };
-    current.total += 1;
-    if (row.is_correct) current.correct += 1;
-    byTopic.set(topic, current);
-  }
-
-  let topTopic: string | null = null;
-  let topTopicTotal = -1;
-  for (const [topic, values] of byTopic.entries()) {
-    if (values.total > topTopicTotal) {
-      topTopic = topic;
-      topTopicTotal = values.total;
-    }
-  }
-
-  return { total, correct, topTopic };
+function FeatureCard({
+  href,
+  title,
+  description,
+  icon: Icon,
+  accent,
+}: (typeof FEATURE_CARDS)[number]) {
+  return (
+    <Link
+      href={href}
+      className="group relative overflow-hidden rounded-[1.75rem] border border-border/70 bg-card/80 p-5 shadow-sm transition hover:-translate-y-1 hover:border-foreground/30 hover:bg-card"
+    >
+      <div className={cn("absolute inset-0 bg-gradient-to-br opacity-80", accent)} />
+      <div className="absolute inset-0 soft-grain opacity-20" />
+      <div className="relative flex items-start justify-between gap-4">
+        <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-border/70 bg-background/75 shadow-sm">
+          <Icon className="h-5 w-5 text-foreground" />
+        </span>
+        <ArrowUpRight className="h-4 w-4 text-muted-foreground transition group-hover:text-foreground" />
+      </div>
+      <div className="relative mt-5">
+        <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          {description}
+        </p>
+      </div>
+    </Link>
+  );
 }
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [stats, setStats] = useState<DashboardStats>({ total: 0, correct: 0, topTopic: null });
-  const [monthEvents, setMonthEvents] = useState<UserEvent[]>([]);
+  const [nextEvents, setNextEvents] = useState<UserEvent[]>([]);
   const [sessions, setSessions] = useState<QuestionSession[]>([]);
 
   useEffect(() => {
@@ -93,22 +130,16 @@ export default function DashboardPage() {
         return;
       }
 
-      const now = new Date();
-      const monthStart = startOfMonth(now).toISOString();
-      const monthEnd = endOfMonth(now).toISOString();
+      const now = new Date().toISOString();
 
-      const [answersResult, eventsResult, sessionsResult] = await Promise.all([
-        supabase
-          .from("user_answers")
-          .select("is_correct, questions(topic)")
-          .eq("user_id", user.id),
+      const [eventsResult, sessionsResult] = await Promise.all([
         supabase
           .from("user_events")
           .select("id, title, start_at")
           .eq("user_id", user.id)
-          .gte("start_at", monthStart)
-          .lte("start_at", monthEnd)
-          .order("start_at", { ascending: true }),
+          .gte("start_at", now)
+          .order("start_at", { ascending: true })
+          .limit(4),
         supabase
           .from("question_sessions")
           .select("id, mode, status, category, categories, total_questions, updated_at")
@@ -116,14 +147,13 @@ export default function DashboardPage() {
           .order("updated_at", { ascending: false }),
       ]);
 
-      if (answersResult.error || eventsResult.error || sessionsResult.error) {
+      if (eventsResult.error || sessionsResult.error) {
         setErrorMsg("Não foi possível carregar o dashboard.");
         setLoading(false);
         return;
       }
 
-      setStats(computeStats((answersResult.data ?? []) as unknown as AnswerWithQuestion[]));
-      setMonthEvents((eventsResult.data ?? []) as UserEvent[]);
+      setNextEvents((eventsResult.data ?? []) as UserEvent[]);
       setSessions((sessionsResult.data ?? []) as QuestionSession[]);
       setLoading(false);
     }
@@ -131,129 +161,54 @@ export default function DashboardPage() {
     loadDashboard();
   }, []);
 
-  const accuracy = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
-  const currentMonthLabel = format(new Date(), "MMMM", { locale: pt });
-  const activeSessions = sessions.filter((session) => session.status !== "completed");
-  const completedSessions = sessions.filter((session) => session.status === "completed");
-  const nextEvents = monthEvents.slice(0, 4);
-
-  const headline = useMemo(() => {
-    if (stats.total === 0 && monthEvents.length === 0) {
-      return "Ainda sem atividade registada";
-    }
-    if (activeSessions.length > 0) {
-      return `${activeSessions.length} sessão${activeSessions.length > 1 ? "ões" : ""} pronta${activeSessions.length > 1 ? "s" : ""} para retomar`;
-    }
-    if (monthEvents.length > 0) {
-      return `${monthEvents.length} evento${monthEvents.length > 1 ? "s" : ""} este mês`;
-    }
-    return `${stats.total} respostas registadas`;
-  }, [activeSessions.length, monthEvents.length, stats.total]);
+  const activeSessions = useMemo(
+    () => sessions.filter((session) => session.status !== "completed").slice(0, 3),
+    [sessions],
+  );
 
   return (
     <main className="relative min-h-[calc(100vh-3.5rem)] app-surface">
-      <div className="relative mx-auto w-full max-w-6xl px-4 py-10">
-        <section className="relative overflow-hidden rounded-[2rem] border border-border/70 bg-card/85 p-6 shadow-md backdrop-blur sm:p-8">
-          <div className="absolute inset-0 hero-surface opacity-80" />
-          <div className="absolute inset-0 soft-grain opacity-20" />
-          <div className="relative grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                Painel principal
-              </p>
-              <h1 className="mt-3 font-display text-3xl font-semibold text-foreground sm:text-4xl">
-                {headline}
-              </h1>
-              <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
-                Tens aqui uma leitura rápida do progresso, do calendário deste mês e do que ficou pendente.
-              </p>
+      <div className="absolute inset-0 hero-surface opacity-70" />
+      <div className="absolute inset-0 soft-grain opacity-25" />
 
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-3xl border border-border/70 bg-background/65 p-4">
-                  <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Precisão</p>
-                  <p className="mt-2 text-3xl font-semibold text-foreground">{accuracy}%</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{stats.correct} certas em {stats.total} respostas</p>
-                </div>
-                <div className="rounded-3xl border border-border/70 bg-background/65 p-4">
-                  <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Sessões ativas</p>
-                  <p className="mt-2 text-3xl font-semibold text-foreground">{activeSessions.length}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">Exames ou treinos em curso e em pausa</p>
-                </div>
-                <div className="rounded-3xl border border-border/70 bg-background/65 p-4">
-                  <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Mês atual</p>
-                  <p className="mt-2 text-3xl font-semibold capitalize text-foreground">{currentMonthLabel}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{monthEvents.length} evento{monthEvents.length === 1 ? "" : "s"} planeado{monthEvents.length === 1 ? "" : "s"}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-[1.75rem] border border-border/70 bg-background/65 p-5">
-              <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Acesso rápido</p>
-              <div className="mt-4 grid gap-3">
-                <Link
-                  href="/treino"
-                  className="group flex items-center justify-between rounded-2xl border border-border/70 bg-card/80 px-4 py-4 transition hover:border-foreground/40 hover:bg-secondary/60"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border/70 bg-secondary/80">
-                      <Target className="h-5 w-5 text-foreground" />
-                    </span>
-                    <div>
-                      <p className="font-semibold text-foreground">Banco de perguntas</p>
-                      <p className="text-sm text-muted-foreground">Criar exame e retomar sessões</p>
-                    </div>
-                  </div>
-                  <ArrowUpRight className="h-4 w-4 text-muted-foreground transition group-hover:text-foreground" />
-                </Link>
-                <Link
-                  href="/calendario"
-                  className="group flex items-center justify-between rounded-2xl border border-border/70 bg-card/80 px-4 py-4 transition hover:border-foreground/40 hover:bg-secondary/60"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border/70 bg-secondary/80">
-                      <CalendarDays className="h-5 w-5 text-foreground" />
-                    </span>
-                    <div>
-                      <p className="font-semibold text-foreground">Calendário</p>
-                      <p className="text-sm text-muted-foreground">Ver eventos e planeamento do mês</p>
-                    </div>
-                  </div>
-                  <ArrowUpRight className="h-4 w-4 text-muted-foreground transition group-hover:text-foreground" />
-                </Link>
-                <Link
-                  href="/estatisticas"
-                  className="group flex items-center justify-between rounded-2xl border border-border/70 bg-card/80 px-4 py-4 transition hover:border-foreground/40 hover:bg-secondary/60"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border/70 bg-secondary/80">
-                      <BarChart3 className="h-5 w-5 text-foreground" />
-                    </span>
-                    <div>
-                      <p className="font-semibold text-foreground">Estatísticas</p>
-                      <p className="text-sm text-muted-foreground">Analisar resultados por respostas</p>
-                    </div>
-                  </div>
-                  <ArrowUpRight className="h-4 w-4 text-muted-foreground transition group-hover:text-foreground" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {errorMsg && (
+      <div className="relative mx-auto w-full max-w-7xl px-4 py-8">
+        {errorMsg ? (
           <div className="mt-6 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             {errorMsg}
           </div>
-        )}
+        ) : null}
 
-        <section className="mt-8 grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-          <div className="rounded-[2rem] border border-border/70 bg-card/75 p-6 shadow-sm backdrop-blur">
+        <section className="mt-8">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                Funcionalidades
+              </p>
+              <h2 className="mt-2 font-display text-2xl font-semibold text-foreground">
+                Tudo acessível a partir daqui
+              </h2>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {FEATURE_CARDS.map((card) => (
+              <FeatureCard key={card.href} {...card} />
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-8 grid gap-6 xl:grid-cols-2">
+          <div className="rounded-[2rem] border border-border/70 bg-card/80 p-6 shadow-sm backdrop-blur">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Pré-visualização</p>
-                <h2 className="mt-2 font-display text-2xl font-semibold text-foreground">Estatísticas rápidas</h2>
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                  Continuar
+                </p>
+                <h2 className="mt-2 font-display text-2xl font-semibold text-foreground">
+                  Sessões pendentes
+                </h2>
               </div>
-              <BarChart3 className="h-5 w-5 text-muted-foreground" />
+              <BookOpenCheck className="h-5 w-5 text-muted-foreground" />
             </div>
 
             {loading ? (
@@ -262,83 +217,91 @@ export default function DashboardPage() {
                   <div key={item} className="h-20 animate-pulse rounded-2xl bg-secondary/50" />
                 ))}
               </div>
+            ) : activeSessions.length === 0 ? (
+              <div className="mt-6 rounded-[1.5rem] border border-dashed border-border/70 bg-background/55 p-5 text-sm text-muted-foreground">
+                Não tens sessões ativas ou em pausa. Se quiseres, começa um novo
+                treino ou um novo simulado.
+              </div>
             ) : (
-              <div className="mt-6 space-y-4">
-                <div className="rounded-3xl border border-border/70 bg-background/60 p-4">
-                  <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Rendimento global</p>
-                  <div className="mt-3 h-3 overflow-hidden rounded-full bg-secondary/70">
+              <div className="mt-6 space-y-3">
+                {activeSessions.map((session) => {
+                  const label = session.categories?.length
+                    ? session.categories.join(" · ")
+                    : session.category;
+
+                  return (
                     <div
-                      className="h-full rounded-full bg-primary transition-all"
-                      style={{ width: `${Math.max(accuracy, stats.total > 0 ? 8 : 0)}%` }}
-                    />
-                  </div>
-                  <p className="mt-3 text-sm text-muted-foreground">
-                    {stats.total > 0
-                      ? `${accuracy}% de acerto nas respostas registadas.`
-                      : "Ainda não tens respostas suficientes para calcular desempenho."}
-                  </p>
-                </div>
-
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-3xl border border-border/70 bg-background/60 p-4">
-                    <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Tema mais praticado</p>
-                    <p className="mt-2 text-lg font-semibold text-foreground">
-                      {stats.topTopic ?? "Sem dados"}
-                    </p>
-                    <p className="mt-1 text-sm text-muted-foreground">Baseado nas respostas já registadas.</p>
-                  </div>
-                  <div className="rounded-3xl border border-border/70 bg-background/60 p-4">
-                    <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Sessões concluídas</p>
-                    <p className="mt-2 text-lg font-semibold text-foreground">{completedSessions.length}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">Histórico disponível para revisão.</p>
-                  </div>
-                </div>
-
-                <Link
-                  href="/estatisticas"
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-primary underline-offset-4 hover:underline"
-                >
-                  Abrir estatísticas completas
-                  <ArrowUpRight className="h-4 w-4" />
-                </Link>
+                      key={session.id}
+                      className="rounded-[1.5rem] border border-border/70 bg-background/60 p-4"
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+                        {session.mode === "simulado" ? "Simulado" : "Treino"} · {session.status}
+                      </p>
+                      <p className="mt-2 font-semibold text-foreground">{label}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {session.total_questions ?? 0} questões
+                        {session.updated_at
+                          ? ` · atualizado a ${format(parseISO(session.updated_at), "d MMM, HH:mm", {
+                              locale: pt,
+                            })}`
+                          : ""}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             )}
+
+            <Link
+              href="/treino"
+              className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary underline-offset-4 hover:underline"
+            >
+              Abrir banco de perguntas
+              <ArrowUpRight className="h-4 w-4" />
+            </Link>
           </div>
 
-          <div className="rounded-[2rem] border border-border/70 bg-card/75 p-6 shadow-sm backdrop-blur">
+          <div className="rounded-[2rem] border border-border/70 bg-card/80 p-6 shadow-sm backdrop-blur">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Pré-visualização</p>
-                <h2 className="mt-2 font-display text-2xl font-semibold text-foreground">Calendário do mês</h2>
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                  Agenda
+                </p>
+                <h2 className="mt-2 font-display text-2xl font-semibold text-foreground">
+                  Próximos eventos
+                </h2>
               </div>
               <CalendarDays className="h-5 w-5 text-muted-foreground" />
             </div>
 
             {loading ? (
               <div className="mt-6 space-y-3">
-                {[0, 1, 2, 3].map((item) => (
-                  <div key={item} className="h-16 animate-pulse rounded-2xl bg-secondary/50" />
+                {[0, 1, 2].map((item) => (
+                  <div key={item} className="h-20 animate-pulse rounded-2xl bg-secondary/50" />
                 ))}
               </div>
             ) : nextEvents.length === 0 ? (
-              <div className="mt-6 rounded-3xl border border-dashed border-border/70 bg-background/50 p-6 text-sm text-muted-foreground">
-                Ainda não tens eventos marcados para este mês.
+              <div className="mt-6 rounded-[1.5rem] border border-dashed border-border/70 bg-background/55 p-5 text-sm text-muted-foreground">
+                Ainda não tens eventos futuros registados no calendário.
               </div>
             ) : (
               <div className="mt-6 space-y-3">
                 {nextEvents.map((event) => {
                   const eventDate = parseISO(event.start_at);
+
                   return (
                     <div
                       key={event.id}
-                      className="flex items-center justify-between gap-4 rounded-3xl border border-border/70 bg-background/60 px-4 py-4"
+                      className="flex items-center justify-between gap-4 rounded-[1.5rem] border border-border/70 bg-background/60 px-4 py-4"
                     >
                       <div className="flex items-center gap-4">
                         <div className="rounded-2xl border border-border/70 bg-card/80 px-3 py-2 text-center">
                           <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
                             {format(eventDate, "MMM", { locale: pt })}
                           </p>
-                          <p className="text-xl font-semibold text-foreground">{format(eventDate, "d")}</p>
+                          <p className="text-xl font-semibold text-foreground">
+                            {format(eventDate, "d")}
+                          </p>
                         </div>
                         <div>
                           <p className="font-semibold text-foreground">{event.title}</p>
@@ -351,115 +314,38 @@ export default function DashboardPage() {
                     </div>
                   );
                 })}
-
-                <Link
-                  href="/calendario"
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-primary underline-offset-4 hover:underline"
-                >
-                  Abrir calendário completo
-                  <ArrowUpRight className="h-4 w-4" />
-                </Link>
               </div>
             )}
-          </div>
-        </section>
-
-        <section className="mt-8 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="rounded-[2rem] border border-border/70 bg-card/75 p-6 shadow-sm backdrop-blur">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Sessões</p>
-                <h2 className="mt-2 font-display text-2xl font-semibold text-foreground">Por retomar</h2>
-              </div>
-              <Target className="h-5 w-5 text-muted-foreground" />
-            </div>
-
-            <div className="mt-6 space-y-3">
-              {loading ? (
-                [0, 1, 2].map((item) => (
-                  <div key={item} className="h-20 animate-pulse rounded-2xl bg-secondary/50" />
-                ))
-              ) : activeSessions.length === 0 ? (
-                <div className="rounded-3xl border border-dashed border-border/70 bg-background/50 p-6 text-sm text-muted-foreground">
-                  Não tens sessões ativas ou em pausa neste momento.
-                </div>
-              ) : (
-                activeSessions.slice(0, 3).map((session) => {
-                  const label = session.categories?.length
-                    ? session.categories.join(" · ")
-                    : session.category;
-                  return (
-                    <div
-                      key={session.id}
-                      className="rounded-3xl border border-border/70 bg-background/60 p-4"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                            {session.mode === "simulado" ? "Exame" : "Treino"} · {session.status}
-                          </p>
-                          <p className="mt-1 font-semibold text-foreground">{label}</p>
-                        </div>
-                        <BookOpenCheck className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        {session.total_questions ?? 0} questões · última atualização{" "}
-                        {session.updated_at
-                          ? format(parseISO(session.updated_at), "d MMM, HH:mm", { locale: pt })
-                          : "sem registo"}
-                      </p>
-                    </div>
-                  );
-                })
-              )}
-            </div>
 
             <Link
-              href="/treino"
+              href="/calendario"
               className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary underline-offset-4 hover:underline"
             >
-              Abrir banco de perguntas
+              Abrir calendário completo
               <ArrowUpRight className="h-4 w-4" />
             </Link>
           </div>
+        </section>
 
-          <div className="rounded-[2rem] border border-border/70 bg-card/75 p-6 shadow-sm backdrop-blur">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Visão geral</p>
-                <h2 className="mt-2 font-display text-2xl font-semibold text-foreground">Este mês</h2>
-              </div>
-              <CalendarDays className="h-5 w-5 text-muted-foreground" />
-            </div>
-
-            <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-3xl border border-border/70 bg-background/60 p-4">
-                <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Eventos do mês</p>
-                <p className="mt-2 text-3xl font-semibold text-foreground">{monthEvents.length}</p>
-                <p className="mt-1 text-sm text-muted-foreground">Compromissos registados no calendário.</p>
-              </div>
-              <div className="rounded-3xl border border-border/70 bg-background/60 p-4">
-                <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Respostas recentes</p>
-                <p className="mt-2 text-3xl font-semibold text-foreground">
-                  {sessions.filter((session) => session.updated_at && isSameMonth(parseISO(session.updated_at), new Date())).length}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">Sessões atualizadas durante este mês.</p>
-              </div>
-            </div>
-
-            <div className="mt-4 rounded-3xl border border-border/70 bg-background/60 p-4">
-              <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Leitura rápida</p>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {stats.total > 0
-                  ? `Já tens ${stats.total} respostas registadas e ${completedSessions.length} sessões concluídas. ${
-                      monthEvents.length > 0
-                        ? `Há ${monthEvents.length} evento${monthEvents.length > 1 ? "s" : ""} planeado${monthEvents.length > 1 ? "s" : ""} para ${currentMonthLabel}.`
-                        : `Ainda não tens eventos marcados para ${currentMonthLabel}.`
-                    }`
-                  : `Ainda estás no início. O próximo passo natural é criar um exame no banco de perguntas e marcar os momentos de estudo no calendário.`}
+        <section className="mt-8 rounded-[2rem] border border-border/70 bg-card/80 p-6 shadow-sm backdrop-blur">
+          <div className="flex items-center gap-3">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-border/70 bg-secondary/70">
+              <Stethoscope className="h-5 w-5 text-foreground" />
+            </span>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                Nota
               </p>
+              <h2 className="mt-1 text-xl font-semibold text-foreground">
+                Menos ruído, mais acesso direto
+              </h2>
             </div>
           </div>
+          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+            As estatísticas continuam disponíveis, mas o dashboard deixa de ser um
+            painel de métricas e passa a funcionar como uma base simples para abrir
+            rapidamente cada área da plataforma.
+          </p>
         </section>
       </div>
     </main>

@@ -1,7 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { CalendarClock, FileText, Info, ShieldCheck } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  CalendarClock,
+  FileText,
+  Info,
+  X,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type VaccineKey =
@@ -417,24 +422,56 @@ function getCell(vaccine: VaccineInfo, ageId: string) {
 }
 
 export default function VacinacaoPage() {
-  const [selectedVaccineId, setSelectedVaccineId] = useState<VaccineKey>("VHB");
-  const [selectedAgeId, setSelectedAgeId] = useState<string>("birth");
+  const [selectedVaccineId, setSelectedVaccineId] = useState<VaccineKey | null>(
+    null,
+  );
+  const [selectedAgeId, setSelectedAgeId] = useState<string | null>(null);
 
-  const selectedVaccine =
-    VACCINES.find((vaccine) => vaccine.id === selectedVaccineId) ?? VACCINES[0];
+  const selectedVaccine = selectedVaccineId
+    ? VACCINES.find((vaccine) => vaccine.id === selectedVaccineId) ?? null
+    : null;
 
   const selectedPlacement =
-    getCell(selectedVaccine, selectedAgeId) ?? selectedVaccine.placements[0];
+    selectedVaccine && selectedAgeId
+      ? getCell(selectedVaccine, selectedAgeId) ?? selectedVaccine.placements[0]
+      : selectedVaccine?.placements[0] ?? null;
 
   const vaccineRows = useMemo(() => VACCINES, []);
+  const isOverlayOpen = Boolean(selectedVaccine);
+
+  useEffect(() => {
+    if (!isOverlayOpen) {
+      return;
+    }
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSelectedVaccineId(null);
+        setSelectedAgeId(null);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isOverlayOpen]);
+
+  function openVaccine(vaccine: VaccineInfo, ageId?: string) {
+    setSelectedVaccineId(vaccine.id);
+    setSelectedAgeId(ageId ?? vaccine.placements[0]?.ageId ?? null);
+  }
+
+  function closeOverlay() {
+    setSelectedVaccineId(null);
+    setSelectedAgeId(null);
+  }
 
   return (
-    <main className="relative min-h-[calc(100vh-3.5rem)] app-surface">
+    <main className="relative h-[calc(100vh-3.5rem)] overflow-hidden app-surface">
       <div className="absolute inset-0 hero-surface" />
       <div className="absolute inset-0 soft-grain opacity-30" />
 
-      <div className="relative mx-auto w-full max-w-[1800px] px-4 py-8 xl:px-6">
-        <section className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-border/70 bg-card/75 px-5 py-4 shadow-sm backdrop-blur">
+      <div className="relative flex h-full flex-col px-4 py-4 xl:px-6">
+        <section className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-border/70 bg-card/75 px-5 py-4 shadow-sm backdrop-blur">
           <div className="flex flex-wrap items-center gap-3">
             <span className="rounded-full border border-border/70 bg-secondary/70 px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.35em] text-muted-foreground">
               PNV 2020
@@ -454,230 +491,269 @@ export default function VacinacaoPage() {
           </a>
         </section>
 
-        <section className="grid gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(400px,0.95fr)] 2xl:grid-cols-[minmax(0,1.8fr)_minmax(440px,0.9fr)]">
-          <div className="overflow-hidden rounded-3xl border border-border/70 bg-card/85 shadow-sm backdrop-blur">
-            <div className="border-b border-border/70 bg-secondary/35 px-5 py-4">
+        <section className="relative mt-4 min-h-0 flex-1 overflow-hidden rounded-[2rem] border border-border/70 bg-card/85 shadow-sm backdrop-blur">
+          <div className="border-b border-border/70 bg-secondary/35 px-5 py-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <CalendarClock className="h-5 w-5 text-primary" />
                 <h2 className="text-lg font-semibold text-foreground">
                   Mapa vacinal por idade
                 </h2>
               </div>
+              <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                Carrega numa vacina para abrir o detalhe
+              </p>
             </div>
+          </div>
 
-            <div className="overflow-x-auto">
-              <div className="min-w-[1160px]">
+          <div className="relative h-[calc(100%-73px)] overflow-auto">
+            <div className="min-h-full min-w-[1160px]">
+              <div
+                className="sticky top-0 z-10 grid border-b border-border/70 bg-secondary/20 backdrop-blur"
+                style={{
+                  gridTemplateColumns: "280px repeat(12, minmax(68px, 1fr))",
+                }}
+              >
+                <div className="border-r border-border/70 px-5 py-4 text-sm font-semibold text-foreground">
+                  Vacina | Doença
+                </div>
+                {AGE_COLUMNS.map((column) => (
+                  <div
+                    key={column.id}
+                    className="flex min-h-[72px] items-center justify-center border-r border-border/70 px-2 py-3 text-center text-[11px] font-semibold uppercase leading-tight tracking-[0.2em] text-muted-foreground whitespace-pre-line last:border-r-0"
+                  >
+                    {column.shortLabel}
+                  </div>
+                ))}
+              </div>
+
+              {vaccineRows.map((vaccine) => (
                 <div
-                  className="grid border-b border-border/70 bg-secondary/20"
+                  key={vaccine.id}
+                  className="grid border-b border-border/70 last:border-b-0"
                   style={{
                     gridTemplateColumns: "280px repeat(12, minmax(68px, 1fr))",
                   }}
                 >
-                  <div className="border-r border-border/70 px-5 py-4 text-sm font-semibold text-foreground">
-                    Vacina | Doença
-                  </div>
-                  {AGE_COLUMNS.map((column) => (
-                    <div
-                      key={column.id}
-                      className="flex min-h-[72px] items-center justify-center border-r border-border/70 px-2 py-3 text-center text-[11px] font-semibold uppercase leading-tight tracking-[0.2em] text-muted-foreground whitespace-pre-line last:border-r-0"
-                    >
-                      {column.shortLabel}
-                    </div>
-                  ))}
-                </div>
-
-                {vaccineRows.map((vaccine) => (
-                  <div
-                    key={vaccine.id}
-                    className="grid border-b border-border/70 last:border-b-0"
-                    style={{
-                      gridTemplateColumns:
-                        "280px repeat(12, minmax(68px, 1fr))",
-                    }}
+                  <button
+                    type="button"
+                    onClick={() => openVaccine(vaccine)}
+                    className={cn(
+                      "border-r border-border/70 px-5 py-4 text-left transition hover:bg-secondary/20",
+                      selectedVaccine?.id === vaccine.id && "bg-primary/5",
+                    )}
                   >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedVaccineId(vaccine.id);
-                        setSelectedAgeId(
-                          vaccine.placements[0]?.ageId ?? "birth",
-                        );
-                      }}
-                      className={cn(
-                        "border-r border-border/70 px-5 py-4 text-left transition hover:bg-secondary/20",
-                        selectedVaccine.id === vaccine.id && "bg-primary/5",
-                      )}
-                    >
-                      <p className="text-sm font-semibold italic text-foreground">
-                        {vaccine.disease}
-                      </p>
-                      <p className="mt-1 text-xs uppercase tracking-[0.24em] text-muted-foreground">
-                        {vaccine.shortName}
-                      </p>
-                    </button>
+                    <p className="text-sm font-semibold italic text-foreground">
+                      {vaccine.disease}
+                    </p>
+                    <p className="mt-1 text-xs uppercase tracking-[0.24em] text-muted-foreground">
+                      {vaccine.shortName}
+                    </p>
+                  </button>
 
-                    {AGE_COLUMNS.map((column) => {
-                      const cell = getCell(vaccine, column.id);
-                      const isSelected =
-                        selectedVaccine.id === vaccine.id &&
-                        selectedPlacement?.ageId === column.id;
+                  {AGE_COLUMNS.map((column) => {
+                    const cell = getCell(vaccine, column.id);
+                    const isSelected =
+                      selectedVaccine?.id === vaccine.id &&
+                      selectedPlacement?.ageId === column.id;
 
-                      return (
-                        <div
-                          key={`${vaccine.id}-${column.id}`}
-                          className="flex min-h-[78px] items-center justify-center border-r border-border/70 px-1.5 py-2 last:border-r-0"
-                        >
-                          {cell ? (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedVaccineId(vaccine.id);
-                                setSelectedAgeId(column.id);
-                              }}
-                              className={cn(
-                                "min-h-[46px] min-w-[58px] rounded-xl border px-2.5 py-1.5 text-center text-[11px] font-semibold shadow-sm transition hover:-translate-y-0.5 hover:shadow-md",
-                                vaccine.colorClass,
-                                isSelected &&
-                                  "ring-2 ring-primary ring-offset-2 ring-offset-background",
-                              )}
-                              title={`${vaccine.shortName} · ${column.label}`}
-                            >
-                              {cell.doseLabel}
-                            </button>
-                          ) : null}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ))}
-              </div>
+                    return (
+                      <div
+                        key={`${vaccine.id}-${column.id}`}
+                        className="flex min-h-[78px] items-center justify-center border-r border-border/70 px-1.5 py-2 last:border-r-0"
+                      >
+                        {cell ? (
+                          <button
+                            type="button"
+                            onClick={() => openVaccine(vaccine, column.id)}
+                            className={cn(
+                              "min-h-[46px] min-w-[58px] rounded-xl border px-2.5 py-1.5 text-center text-[11px] font-semibold shadow-sm transition hover:-translate-y-0.5 hover:shadow-md",
+                              vaccine.colorClass,
+                              isSelected &&
+                                "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                            )}
+                            title={`${vaccine.shortName} · ${column.label}`}
+                          >
+                            {cell.doseLabel}
+                          </button>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
           </div>
 
-          <aside className="space-y-4 xl:sticky xl:top-20 xl:self-start">
-            <section className="rounded-3xl border border-border/70 bg-card/85 p-5 shadow-sm backdrop-blur">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+          <button
+            type="button"
+            aria-hidden={!isOverlayOpen}
+            tabIndex={isOverlayOpen ? 0 : -1}
+            className={cn(
+              "absolute inset-0 z-20 transition",
+              isOverlayOpen
+                ? "pointer-events-auto bg-background/35 backdrop-blur-[2px]"
+                : "pointer-events-none bg-transparent",
+            )}
+            onClick={closeOverlay}
+          />
+
+          <aside
+            className={cn(
+              "absolute inset-y-0 right-0 z-30 flex w-full max-w-[820px] flex-col border-l border-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,248,246,0.94))] shadow-[0_30px_80px_rgba(15,23,42,0.22)] backdrop-blur-xl transition-transform duration-300 ease-out",
+              isOverlayOpen
+                ? "pointer-events-auto translate-x-0"
+                : "pointer-events-none translate-x-full",
+            )}
+          >
+            <div className="border-b border-border/70 bg-background/70 px-6 py-5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-[0.35em] text-muted-foreground">
                     Vacina selecionada
                   </p>
-                  <h2 className="mt-2 text-2xl font-semibold text-foreground">
-                    {selectedVaccine.shortName}
+                  <h2 className="mt-2 truncate text-3xl font-semibold tracking-tight text-foreground">
+                    {selectedVaccine?.shortName}
                   </h2>
+                  <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
+                    {selectedVaccine?.disease}
+                  </p>
                 </div>
-                <span
-                  className={cn(
-                    "rounded-full border px-3 py-1 text-xs font-semibold",
-                    selectedVaccine.colorClass,
-                  )}
+
+                <button
+                  type="button"
+                  onClick={closeOverlay}
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/70 bg-background/90 text-muted-foreground transition hover:-translate-y-0.5 hover:text-foreground hover:shadow-md"
+                  aria-label="Fechar detalhe da vacina"
                 >
-                  {CATEGORY_LABELS[selectedVaccine.category]}
-                </span>
+                  <X className="h-4 w-4" />
+                </button>
               </div>
 
-              <p className="mt-3 text-lg font-semibold text-foreground">
-                {selectedVaccine.disease}
-              </p>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {selectedVaccine.summary}
-              </p>
-
-              <div className="mt-5 rounded-2xl border border-border/70 bg-secondary/35 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                  Dose / momento ativo
-                </p>
-                <p className="mt-2 text-sm font-semibold text-foreground">
-                  {selectedPlacement?.doseLabel}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {selectedPlacement?.detail}
-                </p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border border-border/70 bg-card/80 p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                    Categoria
+                  </p>
+                  <p
+                    className={cn(
+                      "mt-2 inline-flex rounded-full border px-3 py-1 text-xs font-semibold",
+                      selectedVaccine?.colorClass,
+                    )}
+                  >
+                    {selectedVaccine ? CATEGORY_LABELS[selectedVaccine.category] : ""}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-border/70 bg-card/80 p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                    Dose ativa
+                  </p>
+                  <p className="mt-2 text-sm font-semibold text-foreground">
+                    {selectedPlacement?.doseLabel}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-border/70 bg-card/80 p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                    Momento
+                  </p>
+                  <p className="mt-2 text-sm font-semibold text-foreground">
+                    {selectedPlacement?.ageId
+                      ? AGE_COLUMNS.find((column) => column.id === selectedPlacement.ageId)?.label
+                      : "Sem seleção"}
+                  </p>
+                </div>
               </div>
-            </section>
+            </div>
 
-            <section className="rounded-3xl border border-border/70 bg-card/85 p-5 shadow-sm backdrop-blur">
-              <div className="flex items-center gap-2">
-                <Info className="h-4 w-4 text-primary" />
-                <h3 className="text-base font-semibold text-foreground">
-                  Informação detalhada da vacina
-                </h3>
-              </div>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                {selectedVaccine.overview}
-              </p>
-
-              <div className="mt-5 space-y-4">
-                <div className="rounded-2xl border border-border/70 bg-secondary/30 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                    Esquema resumido
+            <section className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+              <div className="grid gap-4">
+                <div className="rounded-[1.75rem] border border-border/70 bg-card/85 p-5 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <Info className="h-4 w-4 text-primary" />
+                    <h3 className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                      Visão geral
+                    </h3>
+                  </div>
+                  <p className="mt-3 text-sm leading-relaxed text-foreground/90">
+                    {selectedVaccine?.overview}
                   </p>
-                  <ul className="mt-3 space-y-2 text-sm text-foreground">
-                    {selectedVaccine.scheduleSummary.map((item) => (
-                      <li key={item} className="flex items-start gap-2">
-                        <ShieldCheck className="mt-0.5 h-4 w-4 text-primary" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
                 </div>
 
-                <div className="rounded-2xl border border-border/70 bg-card/70 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                    Nomes comerciais usuais
-                  </p>
-                  <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                    {selectedVaccine.commercialNames.map((item) => (
-                      <li key={item} className="flex gap-2">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="rounded-[1.75rem] border border-border/70 bg-secondary/30 p-5">
+                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                      Esquema resumido
+                    </p>
+                    <ul className="mt-4 space-y-3">
+                      {selectedVaccine?.scheduleSummary.map((item) => (
+                        <li key={item} className="flex items-start gap-3 text-sm text-foreground">
+                          <span className="mt-1.5 h-2 w-2 rounded-full bg-primary" />
+                          <span>{item}</span>
+                        </li>
+                      )) ?? null}
+                    </ul>
+                  </div>
+
+                  <div className="rounded-[1.75rem] border border-border/70 bg-card/80 p-5">
+                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                      Como administrar
+                    </p>
+                    <ul className="mt-4 space-y-3">
+                      {selectedVaccine?.administration.map((item) => (
+                        <li key={item} className="flex items-start gap-3 text-sm text-muted-foreground">
+                          <span className="mt-1.5 h-2 w-2 rounded-full bg-primary" />
+                          <span>{item}</span>
+                        </li>
+                      )) ?? null}
+                    </ul>
+                  </div>
                 </div>
 
-                <div className="rounded-2xl border border-border/70 bg-card/70 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                    Como administrar
-                  </p>
-                  <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                    {selectedVaccine.administration.map((item) => (
-                      <li key={item} className="flex gap-2">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="rounded-[1.75rem] border border-border/70 bg-card/80 p-5">
+                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                      Nomes comerciais usuais
+                    </p>
+                    <ul className="mt-4 space-y-3">
+                      {selectedVaccine?.commercialNames.map((item) => (
+                        <li key={item} className="flex items-start gap-3 text-sm text-muted-foreground">
+                          <span className="mt-1.5 h-2 w-2 rounded-full bg-primary" />
+                          <span>{item}</span>
+                        </li>
+                      )) ?? null}
+                    </ul>
+                  </div>
+
+                  <div className="rounded-[1.75rem] border border-border/70 bg-card/80 p-5">
+                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                      Efeitos secundários
+                    </p>
+                    <ul className="mt-4 space-y-3">
+                      {selectedVaccine?.sideEffects.map((item) => (
+                        <li key={item} className="flex items-start gap-3 text-sm text-muted-foreground">
+                          <span className="mt-1.5 h-2 w-2 rounded-full bg-primary" />
+                          <span>{item}</span>
+                        </li>
+                      )) ?? null}
+                    </ul>
+                  </div>
                 </div>
 
-                <div className="rounded-2xl border border-border/70 bg-card/70 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                    Efeitos secundários frequentes
-                  </p>
-                  <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                    {selectedVaccine.sideEffects.map((item) => (
-                      <li key={item} className="flex gap-2">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="rounded-2xl border border-border/70 bg-card/70 p-4">
+                <div className="rounded-[1.75rem] border border-border/70 bg-card/80 p-5">
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
                     Pontos-chave da norma
                   </p>
-                  <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                    {selectedVaccine.keyPoints.map((point) => (
-                      <li key={point} className="flex gap-2">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary" />
+                  <ul className="mt-4 space-y-3">
+                    {selectedVaccine?.keyPoints.map((point) => (
+                      <li key={point} className="flex items-start gap-3 text-sm leading-relaxed text-muted-foreground">
+                        <span className="mt-1.5 h-2 w-2 rounded-full bg-primary" />
                         <span>{point}</span>
                       </li>
-                    ))}
+                    )) ?? null}
                   </ul>
                 </div>
 
-                <div className="rounded-2xl border border-amber-300/70 bg-amber-50/80 p-4">
+                <div className="rounded-[1.75rem] border border-amber-300/70 bg-amber-50/80 p-5">
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-900">
                     Nota clínica
                   </p>

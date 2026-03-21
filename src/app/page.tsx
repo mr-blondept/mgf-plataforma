@@ -1,315 +1,358 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
-  Stethoscope,
-  BookOpen,
-  Search,
-  Calculator,
-  Calendar,
-  BarChart3,
   ArrowRight,
+  BarChart3,
+  BookOpen,
+  Calendar,
+  Calculator,
+  Search,
   Sparkles,
-  CheckCircle,
   Syringe,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
-function FeatureCard({
-  icon,
-  title,
-  description,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "group relative overflow-hidden rounded-2xl border border-border/70 bg-card/80 p-6 shadow-sm backdrop-blur",
-        "transition-all duration-200 hover:-translate-y-1 hover:border-foreground/40"
-      )}
-    >
-      <div className="pointer-events-none absolute -right-8 -top-8 h-20 w-20 rounded-full bg-primary/10 blur-3xl" />
-      <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl border border-border/70 bg-secondary/80 text-primary transition-transform duration-200 group-hover:scale-105">
-        {icon}
-      </div>
-      <h3 className="mb-2 text-base font-semibold text-foreground">{title}</h3>
-      <p className="text-sm leading-relaxed text-muted-foreground">
-        {description}
-      </p>
-    </div>
-  );
+function lerp(start: number, end: number, factor: number) {
+  return start + (end - start) * factor;
 }
 
-function BenefitRow({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
+function createSegment(
+  fromX: number,
+  fromY: number,
+  toX: number,
+  toY: number,
+  steps: number,
+) {
+  return Array.from({ length: steps }, (_, index) => {
+    const progress = steps === 1 ? 0 : index / (steps - 1);
+    return {
+      x: lerp(fromX, toX, progress),
+      y: lerp(fromY, toY, progress),
+    };
+  });
+}
+
+function createArc(
+  centerX: number,
+  centerY: number,
+  radiusX: number,
+  radiusY: number,
+  startAngle: number,
+  endAngle: number,
+  steps: number,
+) {
+  return Array.from({ length: steps }, (_, index) => {
+    const progress = steps === 1 ? 0 : index / (steps - 1);
+    const angle = lerp(startAngle, endAngle, progress);
+    return {
+      x: centerX + Math.cos(angle) * radiusX,
+      y: centerY + Math.sin(angle) * radiusY,
+    };
+  });
+}
+
+function uniquePoints(points: Array<{ x: number; y: number }>) {
+  const map = new Map<string, { x: number; y: number }>();
+
+  for (const point of points) {
+    const x = Math.round(point.x * 10) / 10;
+    const y = Math.round(point.y * 10) / 10;
+    map.set(`${x}:${y}`, { x, y });
+  }
+
+  return Array.from(map.values());
+}
+
+function buildStethoscopeModel() {
+  const earTips = uniquePoints([
+    ...createArc(-8.6, -14.3, 1.15, 0.85, Math.PI * 0.1, Math.PI * 1.9, 6),
+    ...createArc(-5.9, -14.3, 1.15, 0.85, Math.PI * 0.1, Math.PI * 1.9, 6),
+  ]).map((point, index) => ({
+    id: `accent-${index}`,
+    ...point,
+    size: 8,
+    color: "accent" as const,
+    phase: index * 0.22,
+  }));
+
+  const metal = uniquePoints([
+    ...createArc(-7.25, -7.6, 2.35, 7.9, Math.PI * 1.06, Math.PI * 1.82, 18),
+    ...createArc(-7.25, -7.6, 2.9, 8.45, Math.PI * 1.05, Math.PI * 1.82, 18),
+    ...createArc(-7.25, -7.6, 3.45, 8.95, Math.PI * 1.05, Math.PI * 1.82, 18),
+  ]).map((point, index) => ({
+    id: `metal-${index}`,
+    ...point,
+    size: 6,
+    color: "metal" as const,
+    phase: 0.3 + index * 0.17,
+  }));
+
+  const tube = uniquePoints([
+    ...createSegment(-5.1, -0.1, -2.6, 2.3, 7),
+    ...createSegment(-2.6, 2.3, -2.1, 8.4, 10),
+    ...createArc(2.8, 8.6, 8.2, 12.6, Math.PI * 0.96, Math.PI * 2.05, 28),
+    ...createArc(2.8, 8.6, 8.9, 13.3, Math.PI * 0.96, Math.PI * 2.05, 28),
+    ...createArc(2.8, 8.6, 9.6, 14, Math.PI * 0.96, Math.PI * 2.05, 28),
+    ...createSegment(7.2, -0.7, 10.9, 3.8, 12),
+  ]).map((point, index) => ({
+    id: `tube-${index}`,
+    ...point,
+    size: 7,
+    color: "tube" as const,
+    phase: 0.15 + index * 0.11,
+  }));
+
+  const chest = uniquePoints([
+    ...createArc(11.9, -0.4, 2.15, 2.15, 0, Math.PI * 2, 16),
+    ...createArc(11.9, -0.4, 1.45, 1.45, 0, Math.PI * 2, 12),
+    { x: 11.9, y: -0.4 },
+  ]).map((point, index) => ({
+    id: `chest-${index}`,
+    ...point,
+    size: index === uniquePoints([{ x: 11.9, y: -0.4 }]).length - 1 ? 8 : 6,
+    color: "metal" as const,
+    phase: 0.5 + index * 0.14,
+  }));
+
+  return [...earTips, ...metal, ...tube, ...chest];
+}
+
+const STETHOSCOPE_CUBES = buildStethoscopeModel();
+
+const FEATURES = [
+  {
+    title: "Banco de Perguntas",
+    description:
+      "Treino para o exame com perguntas focadas em MGF e feedback imediato.",
+    icon: BookOpen,
+  },
+  {
+    title: "Explorador ICPC-2",
+    description:
+      "Pesquisa rapida de codigos e descricoes clinicas durante a consulta.",
+    icon: Search,
+  },
+  {
+    title: "Calculadoras Medicas",
+    description:
+      "Ferramentas clinicas essenciais reunidas num unico painel.",
+    icon: Calculator,
+  },
+  {
+    title: "Calendario Clinico",
+    description:
+      "Planeamento de atividades, guardas e objetivos de estudo.",
+    icon: Calendar,
+  },
+  {
+    title: "Estatisticas e Progresso",
+    description:
+      "Acompanha evolucao, pontos fortes e areas a reforcar.",
+    icon: BarChart3,
+  },
+  {
+    title: "Plano de Vacinacao",
+    description:
+      "Consulta interativa do PNV 2020 com esquema por idade e resumo das vacinas.",
+    icon: Syringe,
+  },
+];
+
+function InteractiveStethoscope() {
+  const [time, setTime] = useState(0);
+  const [pointer, setPointer] = useState<{ x: number; y: number } | null>(null);
+  const frameRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const start = performance.now();
+
+    const animate = (now: number) => {
+      setTime((now - start) / 1000);
+      frameRef.current = window.requestAnimationFrame(animate);
+    };
+
+    frameRef.current = window.requestAnimationFrame(animate);
+
+    return () => {
+      if (frameRef.current !== null) {
+        window.cancelAnimationFrame(frameRef.current);
+      }
+    };
+  }, []);
+
+  const renderedCubes = useMemo(() => {
+    return STETHOSCOPE_CUBES.map((cube) => {
+      const baseX = cube.x * 18;
+      const baseY = cube.y * 18;
+
+      let shiftX = Math.sin(time * 0.85 + cube.phase) * 1.8;
+      let shiftY = Math.cos(time * 0.8 + cube.phase) * 1.6;
+
+      if (pointer) {
+        const dx = baseX - pointer.x;
+        const dy = baseY - pointer.y;
+        const distance = Math.hypot(dx, dy);
+        const radius = 150;
+
+        if (distance < radius) {
+          const force = ((radius - distance) / radius) ** 2 * 18;
+          const angle = Math.atan2(dy, dx);
+          shiftX += Math.cos(angle) * force;
+          shiftY += Math.sin(angle) * force;
+        }
+      }
+
+      return {
+        ...cube,
+        x: baseX + shiftX,
+        y: baseY + shiftY,
+      };
+    });
+  }, [pointer, time]);
+
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-border/70 bg-card/70 p-4">
-      <span className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-        <CheckCircle className="h-4 w-4" />
-      </span>
-      <div>
-        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-      </div>
+    <div
+      className="relative mx-auto aspect-square w-full max-w-[560px] overflow-hidden rounded-[2rem] border border-border/70 bg-[radial-gradient(circle_at_30%_20%,rgba(14,165,233,0.14),transparent_28%),radial-gradient(circle_at_70%_80%,rgba(20,184,166,0.12),transparent_26%),linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.78))] shadow-[0_28px_80px_rgba(15,23,42,0.12)]"
+      onPointerMove={(event) => {
+        const rect = event.currentTarget.getBoundingClientRect();
+        setPointer({
+          x: event.clientX - rect.left - rect.width / 2,
+          y: event.clientY - rect.top - rect.height / 2,
+        });
+      }}
+      onPointerLeave={() => setPointer(null)}
+    >
+      <div className="absolute inset-0 soft-grain opacity-20" />
+
+      {renderedCubes.map((cube) => {
+        const styles =
+          cube.color === "tube"
+            ? {
+                background:
+                  "linear-gradient(145deg, rgba(211,47,47,0.96), rgba(180,27,27,0.88))",
+                borderColor: "rgba(185,28,28,0.34)",
+                boxShadow: "0 8px 18px rgba(185,28,28,0.18)",
+              }
+            : cube.color === "accent"
+              ? {
+                  background:
+                    "linear-gradient(145deg, rgba(148,163,184,0.95), rgba(113,128,150,0.9))",
+                  borderColor: "rgba(100,116,139,0.35)",
+                  boxShadow: "0 8px 16px rgba(100,116,139,0.14)",
+                }
+              : {
+                  background:
+                    "linear-gradient(145deg, rgba(241,245,249,0.98), rgba(148,163,184,0.92))",
+                  borderColor: "rgba(148,163,184,0.36)",
+                  boxShadow: "0 8px 18px rgba(148,163,184,0.18)",
+                };
+
+        return (
+          <div
+            key={cube.id}
+            className="absolute left-1/2 top-1/2 rounded-[3px] border transition-transform duration-300 ease-out"
+            style={{
+              width: `${cube.size}px`,
+              height: `${cube.size}px`,
+              transform: `translate(${cube.x}px, ${cube.y}px)`,
+              ...styles,
+            }}
+          />
+        );
+      })}
     </div>
   );
 }
 
 export default function HomePage() {
   return (
-    <div className="flex min-h-[calc(100vh-3.5rem)] flex-col app-surface">
-      {/* Hero */}
-      <section className="relative flex flex-1 flex-col justify-center px-4 py-16 lg:py-20">
-        <div className="absolute inset-0 hero-surface" />
+    <main className="min-h-[calc(100vh-3.5rem)] app-surface">
+      <section className="relative px-4 py-10 sm:py-14 lg:py-20">
+        <div className="absolute inset-0 hero-surface opacity-90" />
         <div className="absolute inset-0 soft-grain opacity-30" />
-        <div className="relative mx-auto grid w-full max-w-6xl items-center gap-12 lg:grid-cols-[1.15fr_0.85fr]">
+
+        <div className="relative mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.88fr_1.12fr] lg:items-center">
           <div className="space-y-6 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-secondary/70 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.35em] text-muted-foreground shadow-sm backdrop-blur">
-              <Sparkles className="h-3.5 w-3.5 text-foreground" />
-              Ferramentas essenciais para internos MGF
+              <Sparkles className="h-3.5 w-3.5" />
+              Internato MGF
             </div>
+
             <h1 className="font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-              Uma plataforma clínica completa para o internato de Medicina Geral
-              e Familiar.
+              Plataforma para acompanhar o MGF.
             </h1>
-            <p className="text-lg text-muted-foreground">
-              Reúne banco de perguntas, ICPC-2, calculadoras, calendário e
-              estatísticas num só lugar para apoiar a prática diária e a
-              preparação do exame da especialidade.
+
+            <p className="max-w-xl text-base leading-8 text-muted-foreground sm:text-lg">
+              Um espaço único para estudar, consultar ferramentas clínicas e organizar o internato.
             </p>
+
             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
               <Link
                 href="/auth"
-                className={cn(
-                  "inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-primary-foreground shadow-md transition-all hover:bg-primary/90"
-                )}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-primary-foreground shadow-md transition-all hover:bg-primary/90"
               >
-                Começar a usar a plataforma
+                Entrar na plataforma
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="#funcionalidades"
-                className={cn(
-                  "inline-flex items-center justify-center rounded-full border border-border/70 bg-secondary/70 px-6 py-3 text-xs font-semibold uppercase tracking-[0.3em] shadow-sm transition-all hover:bg-secondary"
-                )}
+                className="inline-flex items-center justify-center rounded-full border border-border/70 bg-secondary/70 px-6 py-3 text-xs font-semibold uppercase tracking-[0.3em] shadow-sm transition-all hover:bg-secondary"
               >
                 Ver funcionalidades
               </Link>
             </div>
           </div>
 
-          <div className="mx-auto w-full max-w-md">
-            <div className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/80 p-6 shadow-md backdrop-blur">
-              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary/70 via-primary/30 to-transparent" />
-              <div className="relative space-y-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                      Visao geral
-                    </p>
-                    <p className="text-xl font-semibold text-foreground">
-                      Painel do interno
-                    </p>
-                  </div>
-                  <div className="rounded-full border border-border/70 bg-secondary/80 px-3 py-1 text-xs font-semibold text-foreground">
-                    Atualizado
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  {[
-                    { label: "Perguntas feitas", value: "42" },
-                    { label: "ICPC-2 pesquisado", value: "Hoje" },
-                    { label: "Progresso", value: "78%" },
-                  ].map((item) => (
-                    <div
-                      key={item.label}
-                      className="flex items-center justify-between rounded-xl border border-border/70 bg-secondary/70 px-4 py-3"
-                    >
-                      <span className="text-sm text-muted-foreground">
-                        {item.label}
-                      </span>
-                      <span className="text-sm font-semibold text-foreground">
-                        {item.value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <div className="rounded-xl border border-border/70 bg-muted/80 p-4">
-                  <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                    Proximo passo
-                  </p>
-                  <p className="text-sm font-medium text-foreground">
-                    Organizar estudo da semana e rever notas clinicas.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <InteractiveStethoscope />
         </div>
       </section>
 
-      {/* Features */}
       <section
         id="funcionalidades"
-        className="border-t border-border/70 bg-secondary/40 px-4 py-16"
+        className="border-t border-border/70 bg-card/30 px-4 py-14 sm:py-16"
       >
-        <div className="mx-auto max-w-6xl">
-          <div className="mx-auto mb-10 max-w-2xl text-center">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-10 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
               Funcionalidades
             </p>
-            <h2 className="font-display mt-3 text-3xl font-semibold text-foreground">
-              Ferramentas essenciais para o teu dia-a-dia clinico
-            </h2>
-            <p className="mt-2 text-muted-foreground">
-              Tudo organizado em cartoes claros para aceder rapidamente ao que
-              precisas durante o internato.
-            </p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <FeatureCard
-              icon={<BookOpen className="h-5 w-5" />}
-              title="Banco de Perguntas"
-              description="Treino para o exame com perguntas focadas em MGF e feedback imediato."
-            />
-            <FeatureCard
-              icon={<Search className="h-5 w-5" />}
-              title="Explorador ICPC-2"
-              description="Pesquisa rapida de codigos e descricoes clinicas durante a consulta."
-            />
-            <FeatureCard
-              icon={<Calculator className="h-5 w-5" />}
-              title="Calculadoras Medicas"
-              description="Ferramentas clinicas essenciais reunidas num unico painel."
-            />
-            <FeatureCard
-              icon={<Calendar className="h-5 w-5" />}
-              title="Calendario Clinico"
-              description="Planeamento de atividades, guardas e objetivos de estudo."
-            />
-            <FeatureCard
-              icon={<BarChart3 className="h-5 w-5" />}
-              title="Estatisticas e Progresso"
-              description="Acompanha evolucao, pontos fortes e areas a reforcar."
-            />
-            <FeatureCard
-              icon={<Syringe className="h-5 w-5" />}
-              title="Plano de Vacinacao"
-              description="Consulta interativa do PNV 2020 com esquema por idade e resumo das vacinas."
-            />
-          </div>
-        </div>
-      </section>
 
-      {/* Benefits */}
-      <section className="border-t border-border/70 px-4 py-16">
-        <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-              Beneficios
-            </p>
-            <h2 className="font-display mt-3 text-3xl font-semibold text-foreground">
-              Mais foco, menos ruido.
-            </h2>
-            <p className="mt-3 text-muted-foreground">
-              A plataforma foi desenhada para simplificar o internato e manter a
-              evolucao visivel, com tudo a poucos cliques.
-            </p>
-          </div>
-          <div className="space-y-3">
-            <BenefitRow
-              title="Poupar tempo na pratica clinica"
-              description="Acesso rapido a codigos, calculos e planeamento sem perder tempo a procurar." 
-            />
-            <BenefitRow
-              title="Preparar exames com eficiencia"
-              description="Perguntas e estatisticas para treinar com consistencia e medir resultados." 
-            />
-            <BenefitRow
-              title="Organizar estudo e atividade clinica"
-              description="Calendario e ferramentas integradas para manter tudo no mesmo local." 
-            />
-            <BenefitRow
-              title="Acompanhar o progresso de aprendizagem"
-              description="Visao clara do desempenho para ajustar prioridades de estudo." 
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="border-t border-border/70 px-4 py-16">
-        <div className="mx-auto max-w-4xl">
-          <div className="relative overflow-hidden rounded-2xl border border-border/70 bg-card/80 px-6 py-10 text-center shadow-md backdrop-blur sm:px-10">
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary/70 via-primary/30 to-transparent" />
-            <div className="relative">
-              <h2 className="font-display mb-2 text-2xl font-semibold text-foreground sm:text-3xl">
-                Comeca hoje a usar a plataforma
-              </h2>
-              <p className="mb-6 text-muted-foreground">
-                Centraliza as tuas ferramentas de MGF e ganha ritmo no internato.
-              </p>
-              <Link
-                href="/auth"
-                className={cn(
-                  "inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-primary-foreground shadow-md transition-all hover:bg-primary/90"
-                )}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {FEATURES.map((feature) => (
+              <article
+                key={feature.title}
+                className="rounded-2xl border border-border/70 bg-card/85 p-5 shadow-sm backdrop-blur"
               >
-                Criar conta gratuita
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
+                <div className="flex items-start gap-4">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-secondary/80 text-primary">
+                    <feature.icon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-semibold text-foreground">
+                      {feature.title}
+                    </h2>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="mt-10 flex justify-center">
+            <Link
+              href="/auth"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-primary-foreground shadow-md transition-all hover:bg-primary/90"
+            >
+              Começar
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t border-border/70 px-4 py-10">
-        <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1.2fr_1fr_1fr]">
-          <div>
-            <Link
-              href="/"
-              className="flex items-center gap-2 font-semibold text-foreground hover:text-primary"
-            >
-              <Stethoscope className="h-5 w-5" />
-              Internos MGF
-            </Link>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Plataforma de ferramentas essenciais para internos de Medicina
-              Geral e Familiar.
-            </p>
-          </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-              Sobre a plataforma
-            </p>
-            <ul className="mt-3 space-y-2 text-sm text-foreground">
-              <li>Ferramentas clinicas e de estudo</li>
-              <li>Foco no internato MGF</li>
-              <li>Atualizacoes continuas</li>
-            </ul>
-          </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-              Contacto
-            </p>
-            <ul className="mt-3 space-y-2 text-sm text-foreground">
-              <li>contacto@internosmgf.pt</li>
-              <li>
-                <a className="text-primary hover:underline" href="#">
-                  Privacidade / Termos
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </footer>
-    </div>
+    </main>
   );
 }

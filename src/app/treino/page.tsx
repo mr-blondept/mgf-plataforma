@@ -164,12 +164,6 @@ export default function TreinoPage() {
   }, [categoryNames, categoryFilter]);
 
   useEffect(() => {
-    if (categoryNames.length > 0 && simuladoCategories.length === 0) {
-      setSimuladoCategories(categoryNames.slice(0, 3));
-    }
-  }, [categoryNames, simuladoCategories.length]);
-
-  useEffect(() => {
     async function loadQuestionIndex() {
       setLoadingIndex(true);
       setErrorMsg(null);
@@ -230,15 +224,39 @@ export default function TreinoPage() {
   }, []);
 
   const deferredCategoryFilter = useDeferredValue(categoryFilter);
-  const categoryQuestions = useMemo(
-    () => questionIndex.filter((question) => question.category === deferredCategoryFilter),
-    [questionIndex, deferredCategoryFilter]
-  );
 
   const activeQuestions = useMemo(() => {
     if (view === "session" && sessionQuestions.length > 0) return sessionQuestions;
     return [];
   }, [view, sessionQuestions]);
+
+  async function persistSessionProgress(status: QuestionSession["status"]) {
+    if (!activeSessionId) return;
+    const supabase = createClient();
+    await supabase
+      .from("question_sessions")
+      .update({
+        status,
+        time_left_sec: timeLeftSec,
+        current_index: currentIndex,
+        answers: sessionAnswers,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", activeSessionId);
+  }
+
+  async function finalizarSimulado() {
+    const total = activeQuestions.length;
+    const corretas = Object.values(sessionAnswers).filter((entry) => entry.is_correct).length;
+    setSimuladoResumo({ total, corretas });
+    setSimuladoFinalizado(true);
+    setSelectedOptionId(null);
+    setFeedback(null);
+
+    if (activeSessionId) {
+      await persistSessionProgress("completed");
+    }
+  }
 
   async function loadSessionQuestions(questionIds: string[]) {
     setLoadingSession(true);
@@ -335,21 +353,6 @@ export default function TreinoPage() {
       setFeedback(null);
     }
   }, [view, activeSessionId, currentIndex, activeQuestions, sessionAnswers]);
-
-  async function persistSessionProgress(status: QuestionSession["status"]) {
-    if (!activeSessionId) return;
-    const supabase = createClient();
-    await supabase
-      .from("question_sessions")
-      .update({
-        status,
-        time_left_sec: timeLeftSec,
-        current_index: currentIndex,
-        answers: sessionAnswers,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", activeSessionId);
-  }
 
   async function iniciarSimulado() {
     const supabase = createClient();
@@ -449,19 +452,6 @@ export default function TreinoPage() {
       await persistSessionProgress("paused");
     }
     setView("categories");
-  }
-
-  async function finalizarSimulado() {
-    const total = activeQuestions.length;
-    const corretas = Object.values(sessionAnswers).filter((entry) => entry.is_correct).length;
-    setSimuladoResumo({ total, corretas });
-    setSimuladoFinalizado(true);
-    setSelectedOptionId(null);
-    setFeedback(null);
-
-    if (activeSessionId) {
-      await persistSessionProgress("completed");
-    }
   }
 
   const question = activeQuestions[currentIndex] ?? null;
