@@ -8,11 +8,8 @@ import {
   Calendar,
   Calculator,
   Search,
-  Sparkles,
   Syringe,
 } from "lucide-react";
-
-import StethoscopeCubes from "@/components/StethoscopeCubes";
 
 const FEATURES = [
   {
@@ -56,43 +53,27 @@ const FEATURES = [
 export default function HomePage() {
   return (
     <main className="min-h-[calc(100vh-3.5rem)] app-surface">
-      <section className="relative overflow-hidden px-4 pb-10 pt-6 sm:pb-14 sm:pt-10 lg:pb-20 lg:pt-16">
-        <div className="absolute inset-0 hero-surface opacity-90" />
+      <section className="relative overflow-hidden px-4 pb-10 pt-12 sm:pb-14 sm:pt-16">
+        <div className="absolute inset-0 hero-surface opacity-70" />
         <div className="absolute inset-0 soft-grain opacity-30" />
-        <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-white/50 to-transparent" />
-        <div className="absolute left-1/2 top-20 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
 
-        <div className="relative mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.86fr_1.14fr] lg:items-center">
-          <div className="space-y-6 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-secondary/70 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.35em] text-muted-foreground shadow-sm backdrop-blur">
-              <Sparkles className="h-3.5 w-3.5" />
-              Internato MGF
-            </div>
+        <div className="relative mx-auto max-w-4xl space-y-6 text-center">
+          <h1 className="font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+            Plataforma para acompanhar o MGF.
+          </h1>
 
-            <h1 className="font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-              Plataforma para acompanhar o MGF.
-            </h1>
+          <p className="mx-auto max-w-xl text-base leading-8 text-muted-foreground sm:text-lg">
+            Um espaco único para estudar, consultar ferramentas clínicas e organizar o percurso.
+          </p>
 
-            <p className="max-w-xl text-base leading-8 text-muted-foreground sm:text-lg">
-              Um espaco unico para estudar, consultar ferramentas clinicas e organizar o internato.
-            </p>
-
-            <div className="flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
-              <Link
-                href="/auth"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-primary-foreground shadow-md transition-all hover:bg-primary/90"
-              >
-                Entrar
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
-
-          <div className="relative">
-            <div className="pointer-events-none absolute inset-x-8 top-12 h-24 rounded-full bg-white/40 blur-3xl" />
-            <div className="relative scale-[0.92] sm:scale-100">
-              <StethoscopeCubes />
-            </div>
+          <div className="flex items-center justify-center">
+            <Link
+              href="/auth"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-primary-foreground shadow-md transition-all hover:bg-primary/90"
+            >
+              Entrar
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </section>
@@ -131,15 +112,6 @@ export default function HomePage() {
             ))}
           </div>
 
-          <div className="mt-10 flex justify-center">
-            <Link
-              href="/auth"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-primary-foreground shadow-md transition-all hover:bg-primary/90"
-            >
-              Comecar
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
         </div>
       </section>
     </main>

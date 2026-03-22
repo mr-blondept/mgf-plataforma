@@ -68,7 +68,7 @@ export default function AppHeader() {
             <Stethoscope className="h-4 w-4" />
           </span>
           <span className="hidden sm:block">
-            <span className="block text-sm font-semibold leading-none">Internos MGF</span>
+            <span className="block text-sm font-semibold leading-none">MediFam</span>
           </span>
         </Link>
 

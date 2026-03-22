@@ -132,15 +132,15 @@ function AuthPageContent() {
           )}
         >
           <div className="mb-6 flex flex-col items-center gap-2">
-            <Link
-              href="/"
-              className="flex items-center gap-2 font-semibold text-foreground"
-            >
-              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <Stethoscope className="h-5 w-5" />
-              </span>
-              Internos MGF
-            </Link>
+              <Link
+                href="/"
+                className="flex items-center gap-2 font-semibold text-foreground"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                  <Stethoscope className="h-5 w-5" />
+                </span>
+                MediFam
+              </Link>
             <p className="text-sm text-muted-foreground">
               Internato de Medicina Geral e Familiar
             </p>

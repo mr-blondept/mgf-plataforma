@@ -15,9 +15,9 @@ const sora = Sora({
 });
 
 export const metadata: Metadata = {
-  title: "Internos MGF - Plataforma de estudo",
+  title: "MediFam - Plataforma de estudo",
   description:
-    "Internos MGF reúne banco de perguntas, estatísticas e ferramentas do Internato de Medicina Geral e Familiar.",
+    "MediFam reúne banco de perguntas, estatísticas e ferramentas para Medicina Geral e Familiar.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
@@ -33,7 +33,7 @@ export default function RootLayout({
   return (
     <html lang="pt">
       <head>
-        <title>Internos MGF</title>
+        <title>MediFam</title>
         <link rel="icon" href="/favicon.svg" />
         <link rel="apple-touch-icon" href="/favicon.svg" />
       </head>
