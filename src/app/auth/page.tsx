@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Stethoscope } from "lucide-react";
@@ -8,6 +8,24 @@ import { cn } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 
 export default function AuthPage() {
+  return (
+    <Suspense fallback={<AuthPageFallback />}>
+      <AuthPageContent />
+    </Suspense>
+  );
+}
+
+function AuthPageFallback() {
+  return (
+    <main className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground shadow-md sm:p-8">
+        A carregar autenticação...
+      </div>
+    </main>
+  );
+}
+
+function AuthPageContent() {
   const searchParams = useSearchParams();
   const modeParam = searchParams.get("mode");
   const normalizedMode = modeParam === "signup" ? "signup" : "login";
