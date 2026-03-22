@@ -31,6 +31,7 @@ export async function updateSession(request: NextRequest) {
 
   if (
     (request.nextUrl.pathname.startsWith("/treino") ||
+      request.nextUrl.pathname.startsWith("/internato") ||
       request.nextUrl.pathname.startsWith("/icpc2") ||
       request.nextUrl.pathname.startsWith("/vacinacao") ||
       request.nextUrl.pathname.startsWith("/estatisticas") ||

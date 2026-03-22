@@ -9,6 +9,7 @@ import {
   BookOpenCheck,
   CalendarDays,
   Clock3,
+  GraduationCap,
   Search,
   Syringe,
   UserRound,
@@ -61,6 +62,13 @@ const FEATURE_CARDS = [
     description: "Organizar estudo, consultas e eventos importantes.",
     icon: CalendarDays,
     accent: "from-fuchsia-500/20 to-rose-500/5",
+  },
+  {
+    href: "/internato",
+    title: "Internato MGF",
+    description: "Acompanha o progresso do internato com uma grelha completa e guardada por utilizador.",
+    icon: GraduationCap,
+    accent: "from-sky-500/20 to-blue-500/5",
   },
   {
     href: "/estatisticas",

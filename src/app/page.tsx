@@ -7,9 +7,11 @@ import {
   BookOpen,
   Calendar,
   Calculator,
+  GraduationCap,
   Search,
   Syringe,
 } from "lucide-react";
+import StethoscopeCubes from "@/components/StethoscopeCubes";
 
 const FEATURES = [
   {
@@ -48,6 +50,12 @@ const FEATURES = [
       "Consulta interativa do PNV 2020 com esquema por idade e resumo das vacinas.",
     icon: Syringe,
   },
+  {
+    title: "Progressao do Internato",
+    description:
+      "Grelha detalhada de MGF 1, MGF 2 e MGF 3 com progresso pessoal guardado por utilizador.",
+    icon: GraduationCap,
+  },
 ];
 
 export default function HomePage() {
@@ -56,24 +64,31 @@ export default function HomePage() {
       <section className="relative overflow-hidden px-4 pb-10 pt-12 sm:pb-14 sm:pt-16">
         <div className="absolute inset-0 hero-surface opacity-70" />
         <div className="absolute inset-0 soft-grain opacity-30" />
+        <div className="absolute left-1/2 top-12 h-56 w-56 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
 
-        <div className="relative mx-auto max-w-4xl space-y-6 text-center">
-          <h1 className="font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-            Plataforma para acompanhar o MGF.
-          </h1>
+        <div className="relative mx-auto grid max-w-6xl gap-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-center">
+          <div className="space-y-6 text-center lg:text-left">
+            <h1 className="font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+              Plataforma para acompanhar o MGF.
+            </h1>
 
-          <p className="mx-auto max-w-xl text-base leading-8 text-muted-foreground sm:text-lg">
-            Um espaco único para estudar, consultar ferramentas clínicas e organizar o percurso.
-          </p>
+            <p className="mx-auto max-w-xl text-base leading-8 text-muted-foreground sm:text-lg lg:mx-0">
+              Um espaco unico para estudar, consultar ferramentas clinicas e organizar o percurso.
+            </p>
 
-          <div className="flex items-center justify-center">
-            <Link
-              href="/auth"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-primary-foreground shadow-md transition-all hover:bg-primary/90"
-            >
-              Entrar
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+            <div className="flex items-center justify-center lg:justify-start">
+              <Link
+                href="/auth"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-primary-foreground shadow-md transition-all hover:bg-primary/90"
+              >
+                Entrar
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+
+          <div className="mx-auto w-full max-w-[360px] lg:max-w-none">
+            <StethoscopeCubes />
           </div>
         </div>
       </section>
