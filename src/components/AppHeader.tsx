@@ -4,7 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { LayoutDashboard, Menu, Stethoscope, UserRound, X } from "lucide-react";
+import {
+  LayoutDashboard,
+  Menu,
+  Stethoscope,
+  UserRound,
+  X,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function AppHeader() {
@@ -15,7 +21,7 @@ export default function AppHeader() {
   const accountLinks = [
     {
       href: "/dashboard",
-      label: "Dashboard",
+      label: "Painel",
       icon: LayoutDashboard,
       hint: "Visão geral",
     },
@@ -26,11 +32,8 @@ export default function AppHeader() {
       hint: "Conta",
     },
   ];
-  const publicLinks = [
-    { href: "/#funcionalidades", label: "Funcionalidades" },
-    { href: "/#modulos", label: "Módulos" },
-    { href: "/#acesso", label: "Acesso" },
-  ];
+  const createAccountHref = "/auth?mode=signup";
+  const loginHref = "/auth";
 
   useEffect(() => {
     const supabase = createClient();
@@ -66,9 +69,6 @@ export default function AppHeader() {
           </span>
           <span className="hidden sm:block">
             <span className="block text-sm font-semibold leading-none">Internos MGF</span>
-            <span className="mt-1 block text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-              Estudo e planeamento
-            </span>
           </span>
         </Link>
 
@@ -99,21 +99,17 @@ export default function AppHeader() {
             </>
           ) : (
             <>
-              {pathname === "/" &&
-                publicLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="rounded-full px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-foreground/90 transition hover:bg-secondary/80"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
               <Link
-                href="/auth"
+                href={loginHref}
                 className="rounded-full bg-primary px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary-foreground transition-all hover:bg-primary/90"
               >
                 Entrar
+              </Link>
+              <Link
+                href={createAccountHref}
+                className="rounded-full border border-border/70 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-foreground/90 transition hover:bg-secondary/80"
+              >
+                Criar conta
               </Link>
             </>
           )}
@@ -189,24 +185,21 @@ export default function AppHeader() {
                     </Link>
                   ))}
                 </div>
-              ) : pathname === "/" ? (
+              ) : (
                 <div className="space-y-2">
                   <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">
-                    Produto
+                    Conta
                   </p>
-                  {publicLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      onClick={() => setMenuOpen(false)}
-                      className="flex items-center justify-between rounded-2xl border border-border/70 bg-card/70 px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-secondary/70"
-                    >
-                      <span>{link.label}</span>
-                      <span className="text-xs text-muted-foreground">Abrir</span>
-                    </Link>
-                  ))}
+                  <Link
+                    href={createAccountHref}
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center justify-between rounded-2xl border border-border/70 bg-card/70 px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-secondary/70"
+                  >
+                    <span>Criar conta</span>
+                    <span className="text-xs text-muted-foreground">Abrir</span>
+                  </Link>
                 </div>
-              ) : null}
+              )}
 
               <div className="border-t border-border/70 pt-4">
                 {user ? (
@@ -222,7 +215,7 @@ export default function AppHeader() {
                   </button>
                 ) : (
                   <Link
-                    href="/auth"
+                    href={loginHref}
                     onClick={() => setMenuOpen(false)}
                     className="block rounded-2xl bg-primary px-4 py-3 text-center text-sm font-semibold text-primary-foreground"
                   >

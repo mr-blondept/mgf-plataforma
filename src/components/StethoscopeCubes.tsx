@@ -2,185 +2,201 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const CUBE_SIZE = 13;
-const GAP = 2;
+const CUBE_SIZE = 28;
+const GAP = 4;
 const STEP = CUBE_SIZE + GAP;
 
 const RAW_PIXELS = [
-  [3, 0],
-  [4, 0],
-  [5, 0],
-  [2, 1],
-  [3, 1],
-  [4, 1],
-  [1, 2],
-  [2, 2],
-  [3, 2],
-  [1, 3],
-  [2, 3],
-  [1, 4],
-  [2, 4],
-  [1, 5],
-  [2, 5],
-  [2, 6],
-  [3, 6],
-  [22, 0],
-  [23, 0],
-  [24, 0],
-  [23, 1],
-  [24, 1],
-  [25, 1],
-  [24, 2],
-  [25, 2],
-  [26, 2],
-  [25, 3],
-  [26, 3],
-  [25, 4],
-  [26, 4],
-  [25, 5],
-  [26, 5],
-  [24, 6],
-  [25, 6],
-  [3, 7],
-  [4, 7],
-  [4, 8],
-  [5, 8],
-  [5, 9],
-  [6, 9],
-  [6, 10],
-  [6, 11],
-  [6, 12],
-  [7, 12],
-  [7, 13],
-  [8, 13],
-  [8, 14],
-  [9, 14],
-  [9, 15],
-  [10, 15],
-  [10, 16],
-  [11, 16],
-  [11, 17],
-  [12, 17],
-  [12, 18],
-  [13, 18],
-  [23, 7],
-  [24, 7],
-  [22, 8],
-  [23, 8],
-  [21, 9],
-  [22, 9],
-  [21, 10],
-  [21, 11],
-  [20, 12],
-  [21, 12],
-  [19, 13],
-  [20, 13],
-  [18, 14],
-  [19, 14],
-  [17, 15],
-  [18, 15],
-  [16, 16],
-  [17, 16],
-  [15, 17],
-  [16, 17],
-  [14, 18],
-  [15, 18],
-  [13, 19],
-  [14, 19],
-  [13, 20],
-  [14, 20],
-  [13, 21],
-  [14, 21],
-  [13, 22],
-  [14, 22],
-  [13, 23],
-  [14, 23],
-  [13, 24],
-  [14, 24],
-  [13, 25],
-  [14, 25],
-  [13, 26],
-  [14, 26],
-  [13, 27],
-  [14, 27],
-  [11, 28],
-  [12, 28],
-  [13, 28],
-  [14, 28],
-  [15, 28],
-  [16, 28],
-  [10, 29],
-  [11, 29],
-  [12, 29],
-  [13, 29],
-  [14, 29],
-  [15, 29],
-  [16, 29],
-  [17, 29],
-  [10, 30],
-  [11, 30],
-  [12, 30],
-  [13, 30],
-  [14, 30],
-  [15, 30],
-  [16, 30],
-  [17, 30],
-  [10, 31],
-  [11, 31],
-  [12, 31],
-  [13, 31],
-  [14, 31],
-  [15, 31],
-  [16, 31],
-  [17, 31],
-  [10, 32],
-  [11, 32],
-  [12, 32],
-  [13, 32],
-  [14, 32],
-  [15, 32],
-  [16, 32],
-  [17, 32],
-  [11, 33],
-  [12, 33],
-  [13, 33],
-  [14, 33],
-  [15, 33],
-  [16, 33],
+  [3, 0, "olive"],
+  [4, 0, "olive"],
+  [5, 0, "olive"],
+  [3, 1, "olive"],
+  [4, 1, "olive"],
+  [5, 1, "olive"],
+  [3, 2, "olive"],
+  [4, 2, "olive"],
+  [5, 2, "olive"],
+  [22, 0, "olive"],
+  [23, 0, "olive"],
+  [24, 0, "olive"],
+  [22, 1, "olive"],
+  [23, 1, "olive"],
+  [24, 1, "olive"],
+  [22, 2, "olive"],
+  [23, 2, "olive"],
+  [24, 2, "olive"],
+  [4, 3, "tube"],
+  [5, 3, "tube"],
+  [3, 4, "tube"],
+  [4, 4, "tube"],
+  [2, 5, "tube"],
+  [3, 5, "tube"],
+  [2, 6, "tube"],
+  [3, 6, "tube"],
+  [2, 7, "tube"],
+  [3, 7, "tube"],
+  [3, 8, "tube"],
+  [4, 8, "tube"],
+  [4, 9, "tube"],
+  [5, 9, "tube"],
+  [5, 10, "tube"],
+  [6, 10, "tube"],
+  [6, 11, "tube"],
+  [7, 11, "tube"],
+  [7, 12, "tube"],
+  [8, 12, "tube"],
+  [8, 13, "tube"],
+  [9, 13, "tube"],
+  [9, 14, "tube"],
+  [10, 14, "tube"],
+  [10, 15, "tube"],
+  [11, 15, "tube"],
+  [22, 3, "tube"],
+  [23, 3, "tube"],
+  [23, 4, "tube"],
+  [24, 4, "tube"],
+  [24, 5, "tube"],
+  [25, 5, "tube"],
+  [24, 6, "tube"],
+  [25, 6, "tube"],
+  [24, 7, "tube"],
+  [25, 7, "tube"],
+  [23, 8, "tube"],
+  [24, 8, "tube"],
+  [22, 9, "tube"],
+  [23, 9, "tube"],
+  [21, 10, "tube"],
+  [22, 10, "tube"],
+  [20, 11, "tube"],
+  [21, 11, "tube"],
+  [19, 12, "tube"],
+  [20, 12, "tube"],
+  [18, 13, "tube"],
+  [19, 13, "tube"],
+  [17, 14, "tube"],
+  [18, 14, "tube"],
+  [16, 15, "tube"],
+  [17, 15, "tube"],
+  [11, 16, "tube"],
+  [12, 16, "tube"],
+  [13, 16, "tube"],
+  [14, 16, "tube"],
+  [15, 16, "tube"],
+  [16, 16, "tube"],
+  [12, 17, "tube"],
+  [13, 17, "tube"],
+  [14, 17, "tube"],
+  [15, 17, "tube"],
+  [13, 18, "tube"],
+  [14, 18, "tube"],
+  [13, 19, "tube"],
+  [14, 19, "tube"],
+  [13, 20, "tube"],
+  [14, 20, "tube"],
+  [13, 21, "tube"],
+  [14, 21, "tube"],
+  [13, 22, "tube"],
+  [14, 22, "tube"],
+  [13, 23, "tube"],
+  [14, 23, "tube"],
+  [13, 24, "tube"],
+  [14, 24, "tube"],
+  [10, 25, "ring"],
+  [11, 25, "ring"],
+  [12, 25, "ring"],
+  [13, 25, "ring"],
+  [14, 25, "ring"],
+  [15, 25, "ring"],
+  [16, 25, "ring"],
+  [9, 26, "ring"],
+  [17, 26, "ring"],
+  [9, 27, "ring"],
+  [17, 27, "ring"],
+  [9, 28, "ring"],
+  [17, 28, "ring"],
+  [9, 29, "ring"],
+  [17, 29, "ring"],
+  [9, 30, "ring"],
+  [17, 30, "ring"],
+  [10, 31, "ring"],
+  [11, 31, "ring"],
+  [12, 31, "ring"],
+  [13, 31, "ring"],
+  [14, 31, "ring"],
+  [15, 31, "ring"],
+  [16, 31, "ring"],
+  [10, 26, "head"],
+  [11, 26, "head"],
+  [12, 26, "head"],
+  [13, 26, "head"],
+  [14, 26, "head"],
+  [15, 26, "head"],
+  [16, 26, "head"],
+  [10, 27, "head"],
+  [11, 27, "head"],
+  [12, 27, "head"],
+  [13, 27, "head"],
+  [14, 27, "head"],
+  [15, 27, "head"],
+  [16, 27, "head"],
+  [10, 28, "head"],
+  [11, 28, "head"],
+  [12, 28, "head"],
+  [13, 28, "head"],
+  [14, 28, "head"],
+  [15, 28, "head"],
+  [16, 28, "head"],
+  [10, 29, "head"],
+  [11, 29, "head"],
+  [12, 29, "head"],
+  [13, 29, "head"],
+  [14, 29, "head"],
+  [15, 29, "head"],
+  [16, 29, "head"],
+  [10, 30, "head"],
+  [11, 30, "head"],
+  [12, 30, "head"],
+  [13, 30, "head"],
+  [14, 30, "head"],
+  [15, 30, "head"],
+  [16, 30, "head"],
 ] as const;
 
-const DIAPHRAGM_ROWS = new Set([28, 29, 30, 31, 32, 33]);
+const PALETTE: Record<"tube" | "olive" | "head" | "ring", { g1: string; g2: string }> = {
+  tube: { g1: "#e53e3e", g2: "#9b1c1c" },
+  olive: { g1: "#bcc4cb", g2: "#6e7d88" },
+  head: { g1: "#d4dbe1", g2: "#8d9aa3" },
+  ring: { g1: "#8d9faa", g2: "#4f6370" },
+};
 
 function seededRand(seed: number) {
-  let state = (seed * 9301 + 49297) % 233280;
-
+  let s = (seed * 9301 + 49297) % 233280;
   return () => {
-    state = (state * 9301 + 49297) % 233280;
-    return state / 233280;
+    s = (s * 9301 + 49297) % 233280;
+    return s / 233280;
   };
 }
 
 const ENTROPY = RAW_PIXELS.map(([col, row], index) => {
   const random = seededRand(index * 1327 + col * 31 + row * 97);
-
   return {
-    driftAmpX: 4 + random() * 5,
-    driftAmpY: 4 + random() * 5,
+    driftAmpX: 3.5 + random() * 4.5,
+    driftAmpY: 3.5 + random() * 4.5,
     driftPhaseX: random() * Math.PI * 2,
     driftPhaseY: random() * Math.PI * 2,
-    driftSpeedX: 0.18 + random() * 0.32,
-    driftSpeedY: 0.15 + random() * 0.28,
-    drift2AmpX: 1.5 + random() * 2,
-    drift2AmpY: 1.5 + random() * 2,
+    driftSpeedX: 0.16 + random() * 0.28,
+    driftSpeedY: 0.14 + random() * 0.26,
+    drift2AmpX: 1.2 + random() * 1.8,
+    drift2AmpY: 1.2 + random() * 1.8,
     drift2PhaseX: random() * Math.PI * 2,
     drift2PhaseY: random() * Math.PI * 2,
-    drift2SpeedX: 0.5 + random() * 0.7,
-    drift2SpeedY: 0.45 + random() * 0.65,
-    initRot: (random() - 0.5) * 10,
-    initScale: 0.88 + random() * 0.18,
-    gradAngle: 100 + random() * 80,
-    borderRadius: 2 + random() * 4,
-    opacity: 0.78 + random() * 0.22,
+    drift2SpeedX: 0.45 + random() * 0.6,
+    drift2SpeedY: 0.4 + random() * 0.55,
+    initRot: (random() - 0.5) * 7,
+    initScale: 0.88 + random() * 0.16,
+    gradAngle: 95 + random() * 85,
+    borderRadius: 4 + random() * 6,
+    opacity: 0.83 + random() * 0.17,
     nudgeAngle: random() * Math.PI * 2,
   };
 });
@@ -191,25 +207,24 @@ const minCol = Math.min(...allCols);
 const maxCol = Math.max(...allCols);
 const minRow = Math.min(...allRows);
 const maxRow = Math.max(...allRows);
-const gridW = (maxCol - minCol + 1) * STEP;
-const gridH = (maxRow - minRow + 1) * STEP;
-const PAD = 50;
-const CANVAS_W = gridW + PAD * 2;
-const CANVAS_H = gridH + PAD * 2;
+const PAD = 70;
+const CANVAS_W = (maxCol - minCol + 1) * STEP + PAD * 2;
+const CANVAS_H = (maxRow - minRow + 1) * STEP + PAD * 2;
 const ORIG_X = PAD - minCol * STEP;
 const ORIG_Y = PAD - minRow * STEP;
 
 type CubeProps = {
   col: number;
   row: number;
+  type: "tube" | "olive" | "ring" | "head";
   entropy: (typeof ENTROPY)[number];
   driftTime: number;
 };
 
-function Cube({ col, row, entropy, driftTime }: CubeProps) {
+function Cube({ col, row, type, entropy, driftTime }: CubeProps) {
   const [hovered, setHovered] = useState(false);
   const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const diaphragm = DIAPHRAGM_ROWS.has(row);
+  const palette = PALETTE[type];
 
   const driftX =
     Math.sin(driftTime * entropy.driftSpeedX + entropy.driftPhaseX) * entropy.driftAmpX +
@@ -218,20 +233,15 @@ function Cube({ col, row, entropy, driftTime }: CubeProps) {
     Math.cos(driftTime * entropy.driftSpeedY + entropy.driftPhaseY) * entropy.driftAmpY +
     Math.cos(driftTime * entropy.drift2SpeedY + entropy.drift2PhaseY) * entropy.drift2AmpY;
 
-  const nudgeDist = 22;
-  const tx = hovered ? Math.cos(entropy.nudgeAngle) * nudgeDist : driftX;
-  const ty = hovered ? Math.sin(entropy.nudgeAngle) * nudgeDist : driftY;
-  const scale = hovered ? entropy.initScale * 1.25 : entropy.initScale;
-
-  const base1 = diaphragm ? "#9ca3af" : "#c0392b";
-  const base2 = diaphragm ? "#6b7280" : "#8b1a1a";
+  const tx = hovered ? Math.cos(entropy.nudgeAngle) * 38 : driftX;
+  const ty = hovered ? Math.sin(entropy.nudgeAngle) * 38 : driftY;
+  const scale = hovered ? entropy.initScale * 1.22 : entropy.initScale;
+  const rot = hovered ? entropy.initRot + (entropy.nudgeAngle > Math.PI ? 12 : -12) : entropy.initRot;
 
   return (
     <div
       onMouseEnter={() => {
-        if (leaveTimer.current) {
-          clearTimeout(leaveTimer.current);
-        }
+        if (leaveTimer.current) clearTimeout(leaveTimer.current);
         setHovered(true);
       }}
       onMouseLeave={() => {
@@ -248,58 +258,55 @@ function Cube({ col, row, entropy, driftTime }: CubeProps) {
         zIndex: hovered ? 10 : 1,
         willChange: "transform",
         opacity: entropy.opacity,
-        transform: `translate(${tx}px, ${ty}px) rotate(${entropy.initRot}deg) scale(${scale})`,
+        transform: `translate(${tx}px,${ty}px) rotate(${rot}deg) scale(${scale})`,
         transition: hovered
-          ? "transform 0.55s cubic-bezier(0.25, 1, 0.5, 1)"
-          : "transform 1.1s cubic-bezier(0.25, 1, 0.5, 1)",
-        background: `linear-gradient(${entropy.gradAngle}deg, ${base1}, ${base2})`,
-        boxShadow: "1px 2px 4px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.15)",
+          ? "transform 0.45s cubic-bezier(0.25,1,0.5,1)"
+          : "transform 1.2s cubic-bezier(0.25,1,0.5,1)",
+        background: `linear-gradient(${entropy.gradAngle}deg, ${palette.g1}, ${palette.g2})`,
+        boxShadow: hovered
+          ? "2px 6px 18px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.2)"
+          : "1px 3px 7px rgba(0,0,0,0.26), inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -1px 0 rgba(0,0,0,0.14)",
       }}
     />
   );
 }
 
+const DISPLAY_SCALE = 0.5;
+
 export default function StethoscopeCubes() {
   const [driftTime, setDriftTime] = useState(0);
-  const frameRef = useRef<number | null>(null);
+  const rafRef = useRef<number | null>(null);
   const startRef = useRef<number | null>(null);
 
   useEffect(() => {
     const tick = (timestamp: number) => {
-      if (startRef.current === null) {
-        startRef.current = timestamp;
-      }
-
+      if (startRef.current === null) startRef.current = timestamp;
       setDriftTime((timestamp - startRef.current) / 1000);
-      frameRef.current = requestAnimationFrame(tick);
+      rafRef.current = requestAnimationFrame(tick);
     };
 
-    frameRef.current = requestAnimationFrame(tick);
+    rafRef.current = requestAnimationFrame(tick);
 
     return () => {
-      if (frameRef.current !== null) {
-        cancelAnimationFrame(frameRef.current);
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
       }
     };
   }, []);
 
   return (
     <div
-      aria-hidden="true"
-      className="relative mx-auto w-full max-w-[620px] overflow-visible"
-      style={{
-        aspectRatio: `${CANVAS_W} / ${CANVAS_H}`,
-      }}
+      className="relative mx-auto w-full max-w-[340px] overflow-visible"
+      style={{ aspectRatio: `${CANVAS_W * DISPLAY_SCALE} / ${CANVAS_H * DISPLAY_SCALE}` }}
     >
       <div
-        className="absolute inset-0 opacity-80"
+        className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(circle at 50% 35%, rgba(255,255,255,0.9), transparent 38%), radial-gradient(circle at 52% 64%, rgba(14,165,233,0.08), transparent 32%)",
-          filter: "blur(12px)",
+            "radial-gradient(circle at 50% 35%, rgba(255,255,255,0.35), transparent 42%), radial-gradient(circle at 52% 64%, rgba(14,165,233,0.08), transparent 40%)",
+          filter: "blur(10px)",
         }}
       />
-
       <div
         style={{
           width: CANVAS_W,
@@ -307,14 +314,23 @@ export default function StethoscopeCubes() {
           position: "absolute",
           left: "50%",
           top: "50%",
-          transform: "translate(-50%, -50%)",
+          transform: `translate(-50%, -50%) scale(${DISPLAY_SCALE})`,
+          transformOrigin: "center",
           background: "transparent",
           overflow: "visible",
           margin: "0 auto",
+          filter: "contrast(1.05) saturate(1.07)",
         }}
       >
-        {RAW_PIXELS.map(([col, row], index) => (
-          <Cube key={`${col}-${row}-${index}`} col={col} row={row} entropy={ENTROPY[index]} driftTime={driftTime} />
+        {RAW_PIXELS.map(([col, row, type], index) => (
+          <Cube
+            key={`${col}-${row}-${index}`}
+            col={col}
+            row={row}
+            type={type}
+            entropy={ENTROPY[index]}
+            driftTime={driftTime}
+          />
         ))}
       </div>
     </div>

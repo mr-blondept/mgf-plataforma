@@ -1,13 +1,25 @@
 'use client';
 
-import { useState, FormEvent } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Stethoscope } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSearchParams } from "next/navigation";
 
 export default function AuthPage() {
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const searchParams = useSearchParams();
+  const modeParam = searchParams.get("mode");
+  const normalizedMode = modeParam === "signup" ? "signup" : "login";
+  const lastModeRef = useRef<"login" | "signup">(normalizedMode);
+  const [mode, setMode] = useState<"login" | "signup">(normalizedMode);
+
+  useEffect(() => {
+    if (normalizedMode !== lastModeRef.current) {
+      lastModeRef.current = normalizedMode;
+      setMode(normalizedMode);
+    }
+  }, [normalizedMode]);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -109,7 +121,7 @@ export default function AuthPage() {
               <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <Stethoscope className="h-5 w-5" />
               </span>
-              MGF Quiz
+              Internos MGF
             </Link>
             <p className="text-sm text-muted-foreground">
               Internato de Medicina Geral e Familiar

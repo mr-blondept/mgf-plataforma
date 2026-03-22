@@ -56,7 +56,7 @@ const FEATURES = [
 export default function HomePage() {
   return (
     <main className="min-h-[calc(100vh-3.5rem)] app-surface">
-      <section className="relative overflow-hidden px-4 pb-10 pt-10 sm:pb-14 sm:pt-14 lg:pb-20 lg:pt-20">
+      <section className="relative overflow-hidden px-4 pb-10 pt-6 sm:pb-14 sm:pt-10 lg:pb-20 lg:pt-16">
         <div className="absolute inset-0 hero-surface opacity-90" />
         <div className="absolute inset-0 soft-grain opacity-30" />
         <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-white/50 to-transparent" />
@@ -82,14 +82,8 @@ export default function HomePage() {
                 href="/auth"
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-primary-foreground shadow-md transition-all hover:bg-primary/90"
               >
-                Entrar na plataforma
+                Entrar
                 <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="#funcionalidades"
-                className="inline-flex items-center justify-center rounded-full border border-border/70 bg-secondary/70 px-6 py-3 text-xs font-semibold uppercase tracking-[0.3em] shadow-sm transition-all hover:bg-secondary"
-              >
-                Ver funcionalidades
               </Link>
             </div>
           </div>

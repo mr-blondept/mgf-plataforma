@@ -493,17 +493,14 @@ export default function VacinacaoPage() {
 
         <section className="relative mt-4 min-h-0 flex-1 overflow-hidden rounded-[2rem] border border-border/70 bg-card/85 shadow-sm backdrop-blur">
           <div className="border-b border-border/70 bg-secondary/35 px-5 py-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <CalendarClock className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-semibold text-foreground">
-                  Mapa vacinal por idade
-                </h2>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <CalendarClock className="h-5 w-5 text-primary" />
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Mapa vacinal por idade
+                  </h2>
+                </div>
               </div>
-              <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                Carrega numa vacina para abrir o detalhe
-              </p>
-            </div>
           </div>
 
           <div className="relative h-[calc(100%-73px)] overflow-auto">

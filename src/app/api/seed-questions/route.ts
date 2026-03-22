@@ -171,7 +171,7 @@ export async function GET() {
         );
       }
 
-      const questionId = (inserted as any).id as string;
+      const questionId = inserted.id;
 
       const { error: optionsError } = await supabase
         .from("question_options")
@@ -199,12 +199,12 @@ export async function GET() {
       { message: "Perguntas de exemplo inseridas com sucesso." },
       { status: 200 }
     );
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Erro desconhecido";
     console.error("Erro inesperado no seed:", err);
     return NextResponse.json(
-      { message: "Erro inesperado ao fazer seed.", error: err?.message },
+      { message: "Erro inesperado ao fazer seed.", error: message },
       { status: 500 }
     );
   }
 }
-

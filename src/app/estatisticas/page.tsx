@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -52,20 +52,15 @@ export default function EstatisticasPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [resetting, setResetting] = useState(false);
-  const [showToast, setShowToast] = useState(false);
 
-  async function loadStats(): Promise<AggregatedStats | null> {
-    setLoading(true);
-    setErrorMsg(null);
-    setSuccessMsg(null);
-
+  const loadStats = useCallback(async (options?: { preserveSuccess?: boolean }) => {
     const supabase = createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
     if (!user) {
-      window.location.href = "/auth";
+      window.location.replace("/auth");
       return null;
     }
 
@@ -75,20 +70,40 @@ export default function EstatisticasPage() {
       .eq("user_id", user.id);
 
     if (error) {
+      setStats(null);
       setErrorMsg("Erro a carregar estatísticas.");
-      setLoading(false);
       return null;
     }
 
     const computed = computeStats((data ?? []) as unknown as AnswerWithQuestion[]);
     setStats(computed);
-    setLoading(false);
+    setErrorMsg(null);
+    if (!options?.preserveSuccess) {
+      setSuccessMsg(null);
+    }
     return computed;
-  }
+  }, []);
 
   useEffect(() => {
-    loadStats();
-  }, []);
+    let mounted = true;
+
+    async function initialize() {
+      setLoading(true);
+      const result = await loadStats();
+      if (mounted) {
+        setLoading(false);
+        if (!result) {
+          return;
+        }
+      }
+    }
+
+    void initialize();
+
+    return () => {
+      mounted = false;
+    };
+  }, [loadStats]);
 
   async function handleReset() {
     const confirmed = window.confirm(
@@ -115,7 +130,7 @@ export default function EstatisticasPage() {
     const remainingSessions =
       typeof payload?.remainingSessions === "number" ? payload.remainingSessions : null;
 
-    const refreshed = await loadStats();
+    const refreshed = await loadStats({ preserveSuccess: true });
     const localRemaining = refreshed?.total ?? null;
 
     if (
@@ -138,18 +153,14 @@ export default function EstatisticasPage() {
     }
 
     setSuccessMsg("Estatísticas e histórico de sessões apagados com sucesso.");
-    setShowToast(true);
     setResetting(false);
   }
 
   useEffect(() => {
-    if (!successMsg) {
-      setShowToast(false);
-      return;
-    }
+    if (!successMsg) return;
 
     const timer = window.setTimeout(() => {
-      setShowToast(false);
+      setSuccessMsg(null);
     }, 3200);
 
     return () => window.clearTimeout(timer);
@@ -163,7 +174,7 @@ export default function EstatisticasPage() {
   return (
     <main className="relative min-h-[calc(100vh-3.5rem)] app-surface">
       <div className="relative mx-auto w-full max-w-2xl px-4 py-8">
-        {showToast && (
+        {successMsg && (
           <div className="fixed right-4 top-24 z-40 rounded-2xl border border-success/40 bg-success/10 px-4 py-2 text-sm text-success shadow-lg transition-all backdrop-blur">
             Estatísticas redefinidas
           </div>
@@ -195,12 +206,6 @@ export default function EstatisticasPage() {
               </Link>
             </div>
           </div>
-
-          {successMsg && (
-            <div className="rounded-2xl border border-success/40 bg-success/10 px-4 py-3 text-sm text-success">
-              {successMsg}
-            </div>
-          )}
 
           {loading && (
             <div className="flex items-center gap-2 text-muted-foreground text-sm py-8">

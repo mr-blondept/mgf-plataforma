@@ -10,7 +10,6 @@ import {
   CalendarDays,
   Clock3,
   Search,
-  Stethoscope,
   Syringe,
   UserRound,
 } from "lucide-react";
@@ -109,7 +108,7 @@ function FeatureCard({
   );
 }
 
-export default function DashboardPage() {
+export default function PainelPage() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [nextEvents, setNextEvents] = useState<UserEvent[]>([]);
@@ -148,7 +147,7 @@ export default function DashboardPage() {
       ]);
 
       if (eventsResult.error || sessionsResult.error) {
-        setErrorMsg("Não foi possível carregar o dashboard.");
+        setErrorMsg("Não foi possível carregar o Painel.");
         setLoading(false);
         return;
       }
@@ -327,26 +326,6 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="mt-8 rounded-[2rem] border border-border/70 bg-card/80 p-6 shadow-sm backdrop-blur">
-          <div className="flex items-center gap-3">
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-border/70 bg-secondary/70">
-              <Stethoscope className="h-5 w-5 text-foreground" />
-            </span>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                Nota
-              </p>
-              <h2 className="mt-1 text-xl font-semibold text-foreground">
-                Menos ruído, mais acesso direto
-              </h2>
-            </div>
-          </div>
-          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-            As estatísticas continuam disponíveis, mas o dashboard deixa de ser um
-            painel de métricas e passa a funcionar como uma base simples para abrir
-            rapidamente cada área da plataforma.
-          </p>
-        </section>
       </div>
     </main>
   );

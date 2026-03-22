@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -116,12 +116,10 @@ export default function TreinoPage() {
   const [questionIndex, setQuestionIndex] = useState<QuestionMeta[]>([]);
   const [sessionQuestions, setSessionQuestions] = useState<QuestionDisplay[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
   const [loadingIndex, setLoadingIndex] = useState(true);
   const [loadingSession, setLoadingSession] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [categoryFilter, setCategoryFilter] = useState(DEFAULT_CATEGORY);
+  const [categoryFilter] = useState(DEFAULT_CATEGORY);
   const [mode, setMode] = useState<"treino" | "simulado">("treino");
   const [timeLeftSec, setTimeLeftSec] = useState<number | null>(null);
   const [simuladoFinalizado, setSimuladoFinalizado] = useState(false);
@@ -133,20 +131,26 @@ export default function TreinoPage() {
   const [sessionQuestionIds, setSessionQuestionIds] = useState<string[] | null>(null);
   const [simuladoCategories, setSimuladoCategories] = useState<string[]>([]);
   const [simuladoCount, setSimuladoCount] = useState(MAX_SIMULADO_QUESTIONS);
+  const autoFinishedRef = useRef(false);
 
-  const categoryNames = useMemo(
-    () => Array.from(new Set(questionIndex.map((question) => question.category))),
-    [questionIndex]
-  );
+  const categoryNames = useMemo(() => {
+    const unique = new Set<string>();
+    questionIndex.forEach((question) => unique.add(question.category));
+    return Array.from(unique);
+  }, [questionIndex]);
+
+  const effectiveCategoryFilter = useMemo(() => {
+    if (categoryNames.length === 0) return DEFAULT_CATEGORY;
+    return categoryNames.includes(categoryFilter) ? categoryFilter : categoryNames[0];
+  }, [categoryFilter, categoryNames]);
+
   const categoryCounts = useMemo(
     () =>
-      Object.fromEntries(
-        categoryNames.map((name) => [
-          name,
-          questionIndex.filter((question) => question.category === name).length,
-        ])
-      ),
-    [categoryNames, questionIndex]
+      questionIndex.reduce<Record<string, number>>((acc, question) => {
+        acc[question.category] = (acc[question.category] ?? 0) + 1;
+        return acc;
+      }, {}),
+    [questionIndex]
   );
   const simuladoSelectedCount = useMemo(
     () =>
@@ -156,12 +160,6 @@ export default function TreinoPage() {
       ),
     [categoryCounts, simuladoCategories]
   );
-
-  useEffect(() => {
-    if (categoryNames.length > 0 && !categoryNames.includes(categoryFilter)) {
-      setCategoryFilter(categoryNames[0]);
-    }
-  }, [categoryNames, categoryFilter]);
 
   useEffect(() => {
     async function loadQuestionIndex() {
@@ -174,7 +172,7 @@ export default function TreinoPage() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        window.location.href = "/auth";
+        window.location.replace("/auth");
         return;
       }
 
@@ -223,40 +221,45 @@ export default function TreinoPage() {
     loadSessions();
   }, []);
 
-  const deferredCategoryFilter = useDeferredValue(categoryFilter);
-
   const activeQuestions = useMemo(() => {
     if (view === "session" && sessionQuestions.length > 0) return sessionQuestions;
     return [];
   }, [view, sessionQuestions]);
 
-  async function persistSessionProgress(status: QuestionSession["status"]) {
-    if (!activeSessionId) return;
+  const persistSessionProgress = useCallback(async (
+    status: QuestionSession["status"],
+    overrides?: {
+      sessionId?: string | null;
+      currentIndex?: number;
+      timeLeftSec?: number | null;
+      answers?: Record<string, SessionAnswer>;
+    }
+  ) => {
+    const sessionId = overrides?.sessionId ?? activeSessionId;
+    if (!sessionId) return;
     const supabase = createClient();
     await supabase
       .from("question_sessions")
       .update({
         status,
-        time_left_sec: timeLeftSec,
-        current_index: currentIndex,
-        answers: sessionAnswers,
+        time_left_sec: overrides?.timeLeftSec ?? timeLeftSec,
+        current_index: overrides?.currentIndex ?? currentIndex,
+        answers: overrides?.answers ?? sessionAnswers,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", activeSessionId);
-  }
+      .eq("id", sessionId);
+  }, [activeSessionId, currentIndex, sessionAnswers, timeLeftSec]);
 
-  async function finalizarSimulado() {
+  const finalizeSimulado = useCallback(async () => {
     const total = activeQuestions.length;
     const corretas = Object.values(sessionAnswers).filter((entry) => entry.is_correct).length;
     setSimuladoResumo({ total, corretas });
     setSimuladoFinalizado(true);
-    setSelectedOptionId(null);
-    setFeedback(null);
 
     if (activeSessionId) {
       await persistSessionProgress("completed");
     }
-  }
+  }, [activeQuestions.length, activeSessionId, persistSessionProgress, sessionAnswers]);
 
   async function loadSessionQuestions(questionIds: string[]) {
     setLoadingSession(true);
@@ -291,20 +294,6 @@ export default function TreinoPage() {
   }
 
   useEffect(() => {
-    setCurrentIndex(0);
-    setSelectedOptionId(null);
-    setFeedback(null);
-    setSimuladoFinalizado(false);
-    setSimuladoResumo(null);
-    setSessionAnswers({});
-    if (mode === "simulado" && activeSessionId) {
-      setTimeLeftSec(activeQuestions.length * EXAM_TIME_PER_QUESTION_MIN * 60);
-    } else if (mode === "treino") {
-      setTimeLeftSec(null);
-    }
-  }, [categoryFilter, activeQuestions.length]);
-
-  useEffect(() => {
     if (mode !== "simulado" || view !== "session") return;
     if (simuladoFinalizado) return;
     if (timeLeftSec === null || timeLeftSec <= 0) return;
@@ -323,10 +312,15 @@ export default function TreinoPage() {
   useEffect(() => {
     if (mode !== "simulado" || view !== "session") return;
     if (simuladoFinalizado) return;
-    if (timeLeftSec === 0) {
-      finalizarSimulado();
-    }
-  }, [timeLeftSec, mode, view, simuladoFinalizado]);
+    if (timeLeftSec !== 0 || autoFinishedRef.current) return;
+
+    autoFinishedRef.current = true;
+    const finalizeTimer = window.setTimeout(() => {
+      void finalizeSimulado();
+    }, 0);
+
+    return () => window.clearTimeout(finalizeTimer);
+  }, [finalizeSimulado, mode, simuladoFinalizado, timeLeftSec, view]);
 
   useEffect(() => {
     if (view !== "session" || !activeSessionId) return;
@@ -336,23 +330,7 @@ export default function TreinoPage() {
     }, 15000);
 
     return () => window.clearInterval(interval);
-  }, [view, activeSessionId, timeLeftSec, currentIndex, sessionAnswers]);
-
-  useEffect(() => {
-    if (view !== "session" || !activeSessionId) return;
-    const existing = sessionAnswers[activeQuestions[currentIndex]?.id ?? ""];
-    if (existing) {
-      setSelectedOptionId(existing.option_id || null);
-      setFeedback(
-        existing.is_correct
-          ? "Correto! Boa!"
-          : "Resposta incorreta. Revê a explicação abaixo."
-      );
-    } else {
-      setSelectedOptionId(null);
-      setFeedback(null);
-    }
-  }, [view, activeSessionId, currentIndex, activeQuestions, sessionAnswers]);
+  }, [activeSessionId, persistSessionProgress, view]);
 
   async function iniciarSimulado() {
     const supabase = createClient();
@@ -361,11 +339,12 @@ export default function TreinoPage() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      window.location.href = "/auth";
+      window.location.replace("/auth");
       return;
     }
 
-    const categories = simuladoCategories.length > 0 ? simuladoCategories : [categoryFilter];
+    const categories =
+      simuladoCategories.length > 0 ? simuladoCategories : [effectiveCategoryFilter];
     const pool = questionIndex.filter((q) => categories.includes(q.category));
 
     if (pool.length === 0) {
@@ -410,10 +389,9 @@ export default function TreinoPage() {
     setMode("simulado");
     setView("session");
     setActiveSessionId(data.id);
+    autoFinishedRef.current = false;
     setTimeLeftSec(data.time_left_sec ?? durationSec);
     setCurrentIndex(0);
-    setSelectedOptionId(null);
-    setFeedback(null);
     setSimuladoFinalizado(false);
     setSimuladoResumo(null);
     setSessionAnswers({});
@@ -430,10 +408,9 @@ export default function TreinoPage() {
     setMode(session.mode);
     setView("session");
     setActiveSessionId(session.id);
+    autoFinishedRef.current = false;
     setTimeLeftSec(session.time_left_sec ?? null);
     setCurrentIndex(session.current_index ?? 0);
-    setSelectedOptionId(null);
-    setFeedback(null);
     setSimuladoFinalizado(false);
     setSimuladoResumo(null);
     setSessionAnswers(normalizedAnswers);
@@ -444,7 +421,12 @@ export default function TreinoPage() {
       await loadSessionQuestions(session.question_ids);
     }
 
-    await persistSessionProgress("active");
+    await persistSessionProgress("active", {
+      sessionId: session.id,
+      currentIndex: session.current_index ?? 0,
+      timeLeftSec: session.time_left_sec ?? null,
+      answers: normalizedAnswers,
+    });
   }
 
   async function pausarSessao() {
@@ -455,6 +437,13 @@ export default function TreinoPage() {
   }
 
   const question = activeQuestions[currentIndex] ?? null;
+  const currentAnswer = question ? sessionAnswers[question.id] : undefined;
+  const selectedOptionId = currentAnswer?.option_id ?? null;
+  const feedback = currentAnswer
+    ? currentAnswer.is_correct
+      ? "Correto! Boa!"
+      : "Resposta incorreta. Revê a explicação abaixo."
+    : null;
   const progress =
     activeQuestions.length > 0
       ? ((currentIndex + 1) / activeQuestions.length) * 100
@@ -462,8 +451,6 @@ export default function TreinoPage() {
 
   async function handleAnswer(option: QuestionOption) {
     if (!question) return;
-
-    setSelectedOptionId(option.id);
 
     const supabase = createClient();
     const {
@@ -484,7 +471,7 @@ export default function TreinoPage() {
     });
 
     if (error) {
-      setFeedback("Erro ao guardar resposta.");
+      setErrorMsg("Erro ao guardar resposta.");
       return;
     }
 
@@ -504,21 +491,14 @@ export default function TreinoPage() {
       );
     }
 
-    setFeedback(
-      isCorrect
-        ? "Correto! Boa!"
-        : "Resposta incorreta. Revê a explicação abaixo."
-    );
   }
 
   function goToNextQuestion() {
     if (activeQuestions.length === 0) return;
-    setSelectedOptionId(null);
-    setFeedback(null);
 
     if (mode === "simulado") {
       if (currentIndex + 1 >= activeQuestions.length) {
-        finalizarSimulado();
+        void finalizeSimulado();
         return;
       }
       setCurrentIndex((prev) => prev + 1);
@@ -543,7 +523,7 @@ export default function TreinoPage() {
                 {mode === "simulado" ? "Sessão de exame" : "Sessão de treino"}
               </p>
               <p className="text-lg font-semibold text-foreground">
-                {sessionQuestionIds ? "Sessão personalizada" : categoryFilter}
+                {sessionQuestionIds ? "Sessão personalizada" : effectiveCategoryFilter}
               </p>
             </div>
             <button
@@ -577,7 +557,7 @@ export default function TreinoPage() {
                   href="/dashboard"
                   className="text-sm font-semibold text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
                 >
-                  Voltar ao dashboard
+                  Voltar ao Painel
                 </Link>
               </div>
             </div>
@@ -675,8 +655,9 @@ export default function TreinoPage() {
                   </div>
                   <button
                     type="button"
-                    onClick={iniciarSimulado}
-                    className="rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground sm:min-w-52"
+                      onClick={iniciarSimulado}
+                    className="rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground sm:min-w-52 disabled:opacity-60"
+                    disabled={loadingIndex || questionIndex.length === 0}
                   >
                     Iniciar exame
                   </button>
@@ -775,7 +756,7 @@ export default function TreinoPage() {
                 </p>
                 <h2 className="text-2xl font-semibold text-foreground">Roteiro de estudo</h2>
                 <p className="text-sm text-muted-foreground">
-                  {CATEGORY_DETAILS[categoryFilter] ?? "Caminho dedicado ao módulo seleccionado."}
+                  {CATEGORY_DETAILS[effectiveCategoryFilter] ?? "Caminho dedicado ao módulo seleccionado."}
                 </p>
               </div>
               <div className="flex items-end gap-3">
@@ -910,7 +891,7 @@ export default function TreinoPage() {
                       </button>
                       <button
                         type="button"
-                        onClick={finalizarSimulado}
+                        onClick={() => void finalizeSimulado()}
                         className="rounded-2xl border border-foreground/30 bg-secondary/80 px-5 py-3 text-sm font-semibold text-foreground hover:bg-secondary"
                       >
                         Terminar exame
