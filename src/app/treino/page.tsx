@@ -457,7 +457,7 @@ export default function TreinoPage() {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
-      setFeedback("Precisas de iniciar sessão.");
+      setErrorMsg("Precisas de iniciar sessão.");
       return;
     }
 
