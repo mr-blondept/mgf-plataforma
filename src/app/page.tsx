@@ -66,7 +66,7 @@ export default function HomePage() {
         <div className="absolute inset-0 soft-grain opacity-30" />
         <div className="absolute left-1/2 top-12 h-56 w-56 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
 
-        <div className="relative mx-auto grid max-w-6xl gap-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-center">
+        <div className="relative mx-auto grid max-w-6xl gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,320px)] lg:items-center">
           <div className="space-y-6 text-center lg:text-left">
             <h1 className="font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
               Plataforma para acompanhar o MGF.
@@ -87,7 +87,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="mx-auto w-full max-w-[360px] lg:max-w-none">
+          <div className="mx-auto hidden w-full max-w-[360px] lg:block lg:max-w-none">
             <StethoscopeCubes />
           </div>
         </div>

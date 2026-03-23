@@ -535,35 +535,38 @@ export default function TreinoPage() {
             </button>
           </section>
         ) : (
-          <section className="rounded-3xl border border-border/70 bg-card/80 p-6 shadow-sm backdrop-blur">
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                <span>Banco de Perguntas</span>
-              </div>
-              <h1 className="font-display text-3xl font-semibold text-foreground">
-                Criar sessão
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Seleciona as categorias e define quantas perguntas queres incluir no exame.
-              </p>
-              <div className="mt-3 flex flex-wrap items-center gap-3">
-                <Link
-                  href="/estatisticas"
-                  className="text-sm font-semibold text-primary underline-offset-4 hover:underline"
-                >
-                  Ver estatísticas →
-                </Link>
-                <Link
-                  href="/dashboard"
-                  className="text-sm font-semibold text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-                >
-                  Voltar ao Painel
-                </Link>
+          <section className="overflow-hidden rounded-[2rem] border border-border/70 bg-card/85 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+            <div className="border-b border-border/60 bg-gradient-to-r from-primary/10 via-background to-secondary/40 px-6 py-6">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                  <span>Banco de Perguntas</span>
+                </div>
+                <h1 className="font-display text-3xl font-semibold text-foreground">
+                  Criar sessão
+                </h1>
+                <p className="max-w-2xl text-sm text-muted-foreground">
+                  Seleciona as categorias e define quantas perguntas queres incluir no exame.
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <Link
+                    href="/estatisticas"
+                    className="text-sm font-semibold text-primary underline-offset-4 hover:underline"
+                  >
+                    Ver estatísticas →
+                  </Link>
+                  <Link
+                    href="/dashboard"
+                    className="text-sm font-semibold text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                  >
+                    Voltar ao Painel
+                  </Link>
+                </div>
               </div>
             </div>
-            <div className="mt-6 rounded-3xl border border-border/70 bg-gradient-to-b from-card to-card/80 p-4 shadow-sm">
-              <div className="mt-4 rounded-3xl border border-border/70 bg-card/70 p-5">
-                <div className="flex flex-wrap items-start justify-between gap-3">
+
+            <div className="grid gap-6 px-6 py-6 lg:grid-cols-[1.2fr_0.8fr]">
+              <div className="space-y-5">
+                <div className="flex items-start justify-between gap-4 rounded-[1.6rem] border border-border/70 bg-background/70 p-5 shadow-sm">
                   <div>
                     <h2 className="font-display text-2xl font-semibold text-foreground">
                       Criar exame
@@ -572,91 +575,105 @@ export default function TreinoPage() {
                       {`Seleciona as categorias e define o número de perguntas até ${MAX_SIMULADO_QUESTIONS}.`}
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-border/70 bg-background/70 px-4 py-3">
+                  <div className="rounded-[1.2rem] border border-border/70 bg-card px-4 py-3 text-right shadow-sm">
                     <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                      Banco de perguntas
+                      Banco
                     </p>
                     <p className="mt-1 text-2xl font-semibold text-foreground">{questionIndex.length}</p>
                   </div>
                 </div>
 
-                <div className="mt-5 space-y-4">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {categoryNames.map((category) => {
-                      const isSelected = simuladoCategories.includes(category);
-                      return (
-                        <button
-                          key={category}
-                          type="button"
-                          onClick={() => {
-                            setSimuladoCategories((prev) =>
-                              prev.includes(category)
-                                ? prev.filter((item) => item !== category)
-                                : [...prev, category]
-                            );
-                          }}
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {categoryNames.map((category) => {
+                    const isSelected = simuladoCategories.includes(category);
+                    return (
+                      <button
+                        key={category}
+                        type="button"
+                        onClick={() => {
+                          setSimuladoCategories((prev) =>
+                            prev.includes(category)
+                              ? prev.filter((item) => item !== category)
+                              : [...prev, category]
+                          );
+                        }}
+                        className={cn(
+                          "flex items-center justify-between gap-3 rounded-[1.35rem] border px-4 py-4 text-left transition",
+                          isSelected
+                            ? "border-primary/40 bg-primary/10 shadow-[0_12px_28px_rgba(15,23,42,0.08)]"
+                            : "border-border/70 bg-background/70 hover:border-foreground/30 hover:bg-secondary/40 hover:shadow-sm"
+                        )}
+                      >
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">{category}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {categoryCounts[category] ?? 0} questões disponíveis
+                          </p>
+                        </div>
+                        <span
                           className={cn(
-                            "flex items-center justify-between gap-3 rounded-2xl border px-4 py-4 text-left transition",
+                            "rounded-full px-3 py-1 text-xs font-semibold",
                             isSelected
-                              ? "border-primary/40 bg-primary/10 shadow-sm"
-                              : "border-border/70 bg-background/60 hover:border-foreground/30 hover:bg-secondary/40"
+                              ? "bg-primary text-primary-foreground shadow-sm"
+                              : "bg-secondary text-muted-foreground"
                           )}
                         >
-                          <div>
-                            <p className="text-sm font-semibold text-foreground">{category}</p>
-                            <p className="mt-1 text-xs text-muted-foreground">
-                              {categoryCounts[category] ?? 0} questões disponíveis
-                            </p>
-                          </div>
-                          <span
-                            className={cn(
-                              "rounded-full px-3 py-1 text-xs font-semibold",
-                              isSelected
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-secondary/70 text-muted-foreground"
-                            )}
-                          >
-                            {isSelected ? "Selecionada" : "Selecionar"}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                          {isSelected ? "Selecionada" : "Selecionar"}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-                  <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
-                    <label className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                      Número de perguntas
-                    </label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={MAX_SIMULADO_QUESTIONS}
-                      value={simuladoCount}
-                      onChange={(event) => {
-                        const value = Number(event.target.value);
-                        setSimuladoCount(Number.isFinite(value) ? value : 1);
-                      }}
-                      className="mt-3 w-full rounded-xl border border-border/70 bg-card px-4 py-3 text-base text-foreground"
-                    />
-                  </div>
+              <div className="space-y-4">
+                <div className="rounded-[1.6rem] border border-border/70 bg-background/70 p-5 shadow-sm">
+                  <label className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                    Número de perguntas
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={MAX_SIMULADO_QUESTIONS}
+                    value={simuladoCount}
+                    onChange={(event) => {
+                      const value = Number(event.target.value);
+                      setSimuladoCount(Number.isFinite(value) ? value : 1);
+                    }}
+                    className="mt-3 w-full rounded-[1rem] border border-border/70 bg-card px-4 py-3 text-base text-foreground shadow-sm"
+                  />
                 </div>
 
-                <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-border/70 bg-background/60 p-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                      Resumo do exame
-                    </p>
-                    <p className="mt-1 text-base font-semibold text-foreground">
-                      {`${simuladoCategories.length} categorias · ${simuladoCount} perguntas`}
-                    </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {`${simuladoSelectedCount} questões disponíveis nas categorias escolhidas.`}
-                    </p>
+                <div className="rounded-[1.6rem] border border-border/70 bg-gradient-to-b from-card to-background/90 p-5 shadow-sm">
+                  <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                    Resumo do exame
+                  </p>
+                  <p className="mt-2 text-xl font-semibold text-foreground">
+                    {`${simuladoCategories.length} categorias · ${simuladoCount} perguntas`}
+                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {`${simuladoSelectedCount} questões disponíveis nas categorias escolhidas.`}
+                  </p>
+
+                  <div className="mt-5 grid grid-cols-2 gap-3">
+                    <div className="rounded-[1rem] border border-border/60 bg-background/80 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                        Categorias
+                      </p>
+                      <p className="mt-1 text-lg font-semibold text-foreground">{simuladoCategories.length}</p>
+                    </div>
+                    <div className="rounded-[1rem] border border-border/60 bg-background/80 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                        Questões
+                      </p>
+                      <p className="mt-1 text-lg font-semibold text-foreground">{simuladoCount}</p>
+                    </div>
                   </div>
+
                   <button
                     type="button"
-                      onClick={iniciarSimulado}
-                    className="rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground sm:min-w-52 disabled:opacity-60"
+                    onClick={iniciarSimulado}
+                    className="mt-5 w-full rounded-[1.1rem] bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary/90 disabled:opacity-60"
                     disabled={loadingIndex || questionIndex.length === 0}
                   >
                     Iniciar exame

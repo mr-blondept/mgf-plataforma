@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import {
   Award,
   BookOpen,
@@ -20,8 +19,6 @@ import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import {
   INTERNATO_DRE_LINK,
-  INTERNATO_OLD_DRE_LINK,
-  INTERNATO_OM_LINK,
   INTERNATO_STAGES,
   type ProgressCategoryTag,
   type ProgressRequirement,
@@ -58,28 +55,28 @@ const toneClasses: Record<ProgressTone, { accent: string; soft: string; strong: 
 
 const requirementClasses: Record<ProgressRequirement, string> = {
   obrigatorio:
-    "border-red-200 bg-red-50 text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-200",
+    "border-red-300 bg-red-100 text-red-800 shadow-sm dark:border-red-400/30 dark:bg-red-500/20 dark:text-red-100",
   recomendado:
-    "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200",
+    "border-amber-300 bg-amber-100 text-amber-800 shadow-sm dark:border-amber-400/30 dark:bg-amber-500/20 dark:text-amber-100",
   opcional:
-    "border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-500/20 dark:bg-slate-500/10 dark:text-slate-200",
+    "border-slate-300 bg-slate-200 text-slate-800 shadow-sm dark:border-slate-400/30 dark:bg-slate-500/20 dark:text-slate-100",
 };
 
 const categoryTagClasses: Record<ProgressCategoryTag, string> = {
   estagio:
-    "bg-teal-50 text-teal-700 dark:bg-teal-500/10 dark:text-teal-200",
+    "border border-teal-200 bg-teal-100 text-teal-800 shadow-sm dark:border-teal-400/30 dark:bg-teal-500/20 dark:text-teal-100",
   avaliacao:
-    "bg-fuchsia-50 text-fuchsia-700 dark:bg-fuchsia-500/10 dark:text-fuchsia-200",
+    "border border-fuchsia-200 bg-fuchsia-100 text-fuchsia-800 shadow-sm dark:border-fuchsia-400/30 dark:bg-fuchsia-500/20 dark:text-fuchsia-100",
   documento:
-    "bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-200",
+    "border border-orange-200 bg-orange-100 text-orange-800 shadow-sm dark:border-orange-400/30 dark:bg-orange-500/20 dark:text-orange-100",
   prova:
-    "bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-200",
+    "border border-rose-200 bg-rose-100 text-rose-800 shadow-sm dark:border-rose-400/30 dark:bg-rose-500/20 dark:text-rose-100",
   formacao:
-    "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-200",
+    "border border-blue-200 bg-blue-100 text-blue-800 shadow-sm dark:border-blue-400/30 dark:bg-blue-500/20 dark:text-blue-100",
   clinico:
-    "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200",
+    "border border-emerald-200 bg-emerald-100 text-emerald-800 shadow-sm dark:border-emerald-400/30 dark:bg-emerald-500/20 dark:text-emerald-100",
   legal:
-    "bg-slate-100 text-slate-700 dark:bg-slate-500/10 dark:text-slate-200",
+    "border border-slate-200 bg-slate-200 text-slate-800 shadow-sm dark:border-slate-400/30 dark:bg-slate-500/20 dark:text-slate-100",
 };
 
 function sectionIcon(icon: ProgressSectionIcon) {
@@ -282,6 +279,7 @@ export default function InternatoPage() {
       <div className="pointer-events-none absolute inset-0 soft-grain opacity-20" />
       <div className="pointer-events-none absolute left-1/2 top-0 h-80 w-80 -translate-x-1/2 rounded-full bg-blue-500/10 blur-3xl" />
       <div className="pointer-events-none absolute right-0 top-40 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl" />
+      <div className="pointer-events-none absolute left-12 top-72 h-64 w-64 rounded-full bg-fuchsia-400/10 blur-3xl" />
 
       <section className="relative border-b border-border/70 bg-background/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4">
@@ -338,10 +336,11 @@ export default function InternatoPage() {
           </div>
         ) : null}
 
-        <div className="mb-6 overflow-hidden rounded-[2rem] border border-border/70 bg-card/80 shadow-sm backdrop-blur">
+        <div className="relative mb-6 overflow-hidden rounded-[2rem] border border-border/70 bg-card/85 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-r from-blue-500/10 via-emerald-400/10 to-fuchsia-500/10" />
           <div className="grid gap-0 lg:grid-cols-[1.25fr_0.75fr]">
             <div className="border-b border-border/60 px-6 py-7 lg:border-b-0 lg:border-r">
-              <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+              <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-muted-foreground shadow-sm">
                 <GraduationCap className="h-3.5 w-3.5" />
                 Grelha interativa
               </div>
@@ -352,6 +351,26 @@ export default function InternatoPage() {
                 A grelha foi reorganizada para ficar mais visual e mais facil de usar no dia a dia.
                 Cada check fica gravado apenas para ti e o progresso atualiza-se em tempo real.
               </p>
+              <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border border-blue-200/70 bg-blue-50/80 px-4 py-3 shadow-sm dark:border-blue-400/20 dark:bg-blue-500/10">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-700 dark:text-blue-200">
+                    Estrutura
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-foreground">MGF 1 a MGF 3</p>
+                </div>
+                <div className="rounded-2xl border border-emerald-200/70 bg-emerald-50/80 px-4 py-3 shadow-sm dark:border-emerald-400/20 dark:bg-emerald-500/10">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-700 dark:text-emerald-200">
+                    Conteudo
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-foreground">Estagios, provas e docs</p>
+                </div>
+                <div className="rounded-2xl border border-fuchsia-200/70 bg-fuchsia-50/80 px-4 py-3 shadow-sm dark:border-fuchsia-400/20 dark:bg-fuchsia-500/10">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-fuchsia-700 dark:text-fuchsia-200">
+                    Guarda
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-foreground">Progresso por utilizador</p>
+                </div>
+              </div>
               <div className="mt-5 flex flex-wrap gap-2">
                 <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-500/10 dark:text-blue-200">
                   MGF 1
@@ -364,11 +383,11 @@ export default function InternatoPage() {
                 </span>
               </div>
             </div>
-            <div className="px-6 py-7">
+            <div className="relative px-6 py-7">
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
                 Progresso global
               </p>
-              <p className="mt-3 text-4xl font-semibold text-foreground">
+              <p className="mt-3 text-5xl font-semibold tracking-tight text-foreground">
                 {globalStats.pct}%
               </p>
               <p className="mt-1 font-mono text-sm text-muted-foreground">
@@ -380,6 +399,24 @@ export default function InternatoPage() {
                   style={{ width: `${globalStats.pct}%` }}
                 />
               </div>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                <div className="rounded-2xl border border-border/60 bg-background/70 px-4 py-3 shadow-sm">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                    Estado atual
+                  </p>
+                  <p className="mt-1 text-sm text-foreground">
+                    Visao rapida do percurso inteiro com atualizacao imediata.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-border/60 bg-background/70 px-4 py-3 shadow-sm">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                    Utilizacao
+                  </p>
+                  <p className="mt-1 text-sm text-foreground">
+                    Entra numa etapa, abre uma secao e marca o que ja concluiste.
+                  </p>
+                </div>
+              </div>
               <div className="mt-5 space-y-2 text-sm text-muted-foreground">
                 <p>Inclui estagios, formacao, documentos e avaliacao final.</p>
                 <p>Usa os blocos abaixo para ver detalhe por etapa e marcar o que ja completaste.</p>
@@ -388,7 +425,7 @@ export default function InternatoPage() {
           </div>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-3">
           {INTERNATO_STAGES.map((stage) => {
             const stats = stageStats(stage, checkedIds);
             const tone = toneClasses[stage.tone];
@@ -399,11 +436,12 @@ export default function InternatoPage() {
                 type="button"
                 onClick={() => setActiveStage(stage.id)}
                 className={cn(
-                  "group rounded-[1.4rem] border bg-card/90 p-4 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg",
+                  "group relative overflow-hidden rounded-[1.5rem] border bg-card/95 p-5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(15,23,42,0.12)]",
                   activeStage === stage.id ? tone.border : "border-border/70",
-                  activeStage === stage.id && `${tone.soft} shadow-md`,
+                  activeStage === stage.id && `${tone.soft} shadow-[0_18px_40px_rgba(15,23,42,0.1)]`,
                 )}
               >
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-white/0 via-white/40 to-white/0 opacity-80 dark:via-white/5" />
                 <div className="flex items-center justify-between gap-3">
                   <span className={cn("text-sm font-semibold uppercase tracking-[0.16em]", tone.strong)}>
                     {stage.label}
@@ -412,7 +450,7 @@ export default function InternatoPage() {
                     {stats.pct}%
                   </span>
                 </div>
-                <p className="mt-2 text-base font-medium text-foreground">{stage.summary}</p>
+                <p className="mt-3 text-lg font-medium text-foreground">{stage.summary}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{stage.meta}</p>
                 <div className="mt-4 h-2 overflow-hidden rounded-full bg-secondary">
                   <div
@@ -431,7 +469,7 @@ export default function InternatoPage() {
           })}
         </div>
 
-        <div className="mt-6 flex flex-wrap gap-2">
+        <div className="mt-6 flex flex-wrap gap-2 rounded-[1.4rem] border border-border/70 bg-card/75 p-2 shadow-sm backdrop-blur">
           {INTERNATO_STAGES.map((stage) => {
             const tone = toneClasses[stage.tone];
             return (
@@ -440,10 +478,10 @@ export default function InternatoPage() {
                 type="button"
                 onClick={() => setActiveStage(stage.id)}
                 className={cn(
-                  "rounded-xl border px-4 py-2 text-sm font-semibold transition",
+                  "rounded-xl border px-4 py-2.5 text-sm font-semibold transition",
                   activeStage === stage.id
-                    ? `${tone.accent} border-transparent text-white`
-                    : "border-border/70 bg-card/80 text-muted-foreground hover:text-foreground",
+                    ? `${tone.accent} border-transparent text-white shadow-sm`
+                    : "border-transparent bg-transparent text-muted-foreground hover:border-border/70 hover:bg-background/80 hover:text-foreground",
                 )}
               >
                 {stage.label}
@@ -452,7 +490,7 @@ export default function InternatoPage() {
           })}
         </div>
 
-        <div className="mt-5 rounded-[1.4rem] border border-border/70 bg-card/75 p-4 shadow-sm backdrop-blur">
+        <div className="mt-5 rounded-[1.5rem] border border-border/70 bg-card/80 p-4 shadow-sm backdrop-blur">
           <div className="flex flex-wrap items-center gap-2">
             <span className="mr-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">
               Legenda
@@ -481,7 +519,7 @@ export default function InternatoPage() {
 
         <div
           className={cn(
-            "mt-6 overflow-hidden rounded-[1.7rem] border p-0 shadow-sm",
+            "mt-6 overflow-hidden rounded-[1.8rem] border p-0 shadow-[0_20px_50px_rgba(15,23,42,0.08)]",
             toneClasses[currentStage.tone].border,
           )}
         >
@@ -491,7 +529,7 @@ export default function InternatoPage() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
                   Etapa ativa
                 </p>
-                <h1 className={cn("mt-2 text-2xl font-semibold", toneClasses[currentStage.tone].strong)}>
+                <h1 className={cn("mt-2 text-2xl font-semibold tracking-tight", toneClasses[currentStage.tone].strong)}>
                   {currentStage.title}
                 </h1>
                 <p className="mt-1 text-sm font-medium text-foreground/80">{currentStage.subtitle}</p>
@@ -511,7 +549,7 @@ export default function InternatoPage() {
 
           <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
             <div className="border-b border-border/60 px-6 py-5 lg:border-b-0 lg:border-r">
-              <div className="rounded-2xl bg-background/60 px-4 py-4 text-sm text-foreground/80">
+              <div className="rounded-[1.35rem] border border-border/50 bg-background/70 px-4 py-4 text-sm text-foreground/80 shadow-sm">
                 <strong>Provas:</strong> {currentStage.provas}
               </div>
               <p className="mt-4 font-mono text-[11px] leading-5 text-muted-foreground">{currentStage.legal}</p>
@@ -531,7 +569,7 @@ export default function InternatoPage() {
                 />
               </div>
               <div className="mt-4 grid grid-cols-3 gap-3 text-center">
-                <div className="rounded-2xl border border-border/60 bg-background/50 px-3 py-3">
+                <div className="rounded-[1.2rem] border border-border/60 bg-background/70 px-3 py-3 shadow-sm">
                   <p className="font-mono text-lg font-semibold text-foreground">
                     {stageStats(currentStage, checkedIds).pct}%
                   </p>
@@ -539,7 +577,7 @@ export default function InternatoPage() {
                     total
                   </p>
                 </div>
-                <div className="rounded-2xl border border-border/60 bg-background/50 px-3 py-3">
+                <div className="rounded-[1.2rem] border border-border/60 bg-background/70 px-3 py-3 shadow-sm">
                   <p className="font-mono text-lg font-semibold text-foreground">
                     {stageStats(currentStage, checkedIds).done}
                   </p>
@@ -547,7 +585,7 @@ export default function InternatoPage() {
                     feitos
                   </p>
                 </div>
-                <div className="rounded-2xl border border-border/60 bg-background/50 px-3 py-3">
+                <div className="rounded-[1.2rem] border border-border/60 bg-background/70 px-3 py-3 shadow-sm">
                   <p className="font-mono text-lg font-semibold text-foreground">
                     {stageStats(currentStage, checkedIds).total - stageStats(currentStage, checkedIds).done}
                   </p>
@@ -574,14 +612,14 @@ export default function InternatoPage() {
             return (
               <div
                 key={section.id}
-                className="overflow-hidden rounded-[1.25rem] border border-border/70 bg-card/90 shadow-sm transition hover:shadow-md"
+                className="overflow-hidden rounded-[1.35rem] border border-border/70 bg-card/90 shadow-sm transition hover:shadow-[0_14px_32px_rgba(15,23,42,0.08)]"
               >
                 <button
                   type="button"
                   onClick={() => toggleSection(sectionKey)}
                   className="flex w-full items-center gap-4 px-4 py-4 text-left transition hover:bg-secondary/30"
                 >
-                  <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl shadow-sm", toneClasses[currentStage.tone].soft)}>
+                  <div className={cn("flex h-11 w-11 items-center justify-center rounded-2xl shadow-sm", toneClasses[currentStage.tone].soft)}>
                     <Icon className="h-5 w-5" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -615,10 +653,10 @@ export default function InternatoPage() {
                             onClick={() => void toggleItem(item.id)}
                             disabled={loading || isSaving}
                             className={cn(
-                              "flex w-full items-start gap-3 rounded-2xl border px-3 py-3 text-left transition",
+                              "flex w-full items-start gap-3 rounded-[1.2rem] border px-4 py-3.5 text-left transition",
                               checked
-                                ? "border-border/60 bg-card shadow-sm"
-                                : "border-transparent hover:border-border/70 hover:bg-card hover:shadow-sm",
+                                ? "border-border/70 bg-card shadow-[0_10px_24px_rgba(15,23,42,0.07)]"
+                                : "border-border/20 bg-white/70 hover:border-border/70 hover:bg-card hover:shadow-sm",
                               isSaving && "opacity-70",
                             )}
                           >
@@ -637,7 +675,7 @@ export default function InternatoPage() {
                                 <span
                                   className={cn(
                                     "flex-1 text-sm font-medium leading-6 text-foreground",
-                                    checked && "text-muted-foreground line-through",
+                                    checked && "text-foreground",
                                   )}
                                 >
                                   {item.text}
@@ -653,7 +691,7 @@ export default function InternatoPage() {
                               </div>
 
                               {item.note ? (
-                                <p className={cn("mt-1 text-xs leading-5 text-muted-foreground", checked && "text-muted-foreground/70")}>
+                                <p className={cn("mt-1 text-xs leading-5 text-muted-foreground", checked && "text-muted-foreground")}>
                                   {item.note}
                                 </p>
                               ) : null}
@@ -690,29 +728,6 @@ export default function InternatoPage() {
           })}
         </div>
 
-        <footer className="mt-10 border-t border-border/70 pt-6 text-center">
-          <p className="text-xs leading-6 text-muted-foreground">
-            Baseado na{" "}
-            <a className="underline hover:text-foreground" href={INTERNATO_DRE_LINK} target="_blank" rel="noreferrer">
-              Portaria n.º 125/2019
-            </a>{" "}
-            e na{" "}
-            <a className="underline hover:text-foreground" href={INTERNATO_OLD_DRE_LINK} target="_blank" rel="noreferrer">
-              Portaria n.º 45/2015
-            </a>
-            . O progresso fica gravado apenas na tua conta e nao substitui os documentos oficiais.
-          </p>
-          <p className="mt-2 text-xs text-muted-foreground">
-            <a className="underline hover:text-foreground" href={INTERNATO_OM_LINK} target="_blank" rel="noreferrer">
-              Colegio de MGF - Ordem dos Medicos
-            </a>
-          </p>
-          <div className="mt-4">
-            <Link href="/dashboard" className="text-sm font-semibold text-primary hover:underline">
-              Voltar ao Painel
-            </Link>
-          </div>
-        </footer>
       </section>
     </main>
   );

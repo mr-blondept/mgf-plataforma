@@ -62,13 +62,21 @@ export default function AppHeader() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <Link
           href="/"
-          className="flex items-center gap-2 text-base font-semibold tracking-tight text-foreground transition hover:text-primary"
+          className="group flex items-center gap-3 text-base font-semibold tracking-tight text-foreground transition"
         >
-          <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-border/70 bg-secondary/80 text-foreground shadow-sm">
+          <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-border/70 bg-gradient-to-br from-card via-secondary/90 to-secondary text-foreground shadow-sm transition group-hover:border-primary/30 group-hover:text-primary">
             <Stethoscope className="h-4 w-4" />
           </span>
           <span className="hidden sm:block">
-            <span className="block text-sm font-semibold leading-none">MediFam</span>
+            <span className="block text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground transition group-hover:text-primary/70">
+              Plataforma MGF
+            </span>
+            <span className="mt-0.5 block font-display text-lg font-semibold leading-none tracking-[-0.03em] text-foreground transition group-hover:text-primary">
+              MediFam
+            </span>
+          </span>
+          <span className="font-display text-lg font-semibold tracking-[-0.03em] text-foreground transition group-hover:text-primary sm:hidden">
+            MediFam
           </span>
         </Link>
 
