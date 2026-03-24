@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Chrome, Stethoscope } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getCanonicalSiteUrl } from "@/lib/site-url";
 import { useSearchParams } from "next/navigation";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
@@ -61,7 +62,11 @@ function AuthPageContent() {
 
     try {
       const supabase = createClient();
-      const redirectTo = `${window.location.origin}/auth/callback`;
+      const redirectBaseUrl =
+        process.env.NODE_ENV === "development"
+          ? window.location.origin
+          : getCanonicalSiteUrl();
+      const redirectTo = `${redirectBaseUrl}/auth/callback`;
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
