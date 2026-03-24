@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState, FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
 
 type ProfileForm = {
   full_name: string;
@@ -12,6 +14,7 @@ type ProfileForm = {
 };
 
 export default function PerfilPage() {
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [email, setEmail] = useState<string>("");
@@ -25,6 +28,7 @@ export default function PerfilPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const requiresCompletion = searchParams.get("complete") === "1";
 
   useEffect(() => {
     const supabase = createClient();
@@ -195,8 +199,22 @@ export default function PerfilPage() {
             </p>
           </div>
 
+          {requiresCompletion ? (
+            <div className="mt-6 rounded-2xl border border-amber-300/70 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              Precisamos que completes o teu perfil antes de continuares. Preenche o Nº Ordem dos Médicos, o ano de conclusão do curso de Medicina e o local de trabalho.
+            </div>
+          ) : null}
+
           {loading ? (
-            <div className="mt-8 text-sm text-muted-foreground">A carregar...</div>
+            <div className="mt-8 space-y-4">
+              <LoadingSkeleton className="h-5 w-40" />
+              <LoadingSkeleton className="h-11 rounded-xl" />
+              <LoadingSkeleton className="h-5 w-28" />
+              <LoadingSkeleton className="h-11 rounded-xl" />
+              <LoadingSkeleton className="h-5 w-32" />
+              <LoadingSkeleton className="h-11 rounded-xl" />
+              <LoadingSkeleton className="h-12 rounded-2xl" />
+            </div>
           ) : (
             <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
               <div className="space-y-2">

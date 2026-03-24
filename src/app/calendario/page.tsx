@@ -31,6 +31,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 type UserEvent = {
   id: string;
@@ -453,8 +455,10 @@ export default function CalendarioPage() {
 
           {viewMode === "year" ? (
             loading ? (
-              <div className="flex justify-center items-center h-32">
-                <Loader2 className="animate-spin w-7 h-7 text-muted-foreground" />
+              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                {[0, 1, 2, 3, 4, 5].map((item) => (
+                  <LoadingSkeleton key={item} className="h-64 rounded-2xl" />
+                ))}
               </div>
             ) : (
               <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -560,8 +564,9 @@ export default function CalendarioPage() {
               </div>
             )
           ) : loading ? (
-            <div className="flex justify-center items-center h-32">
-              <Loader2 className="animate-spin w-7 h-7 text-muted-foreground" />
+            <div className="space-y-4">
+              <LoadingSpinner label="A carregar calendário..." />
+              <LoadingSkeleton className="h-[22rem] rounded-3xl" />
             </div>
           ) : (
             <>
@@ -681,8 +686,8 @@ export default function CalendarioPage() {
             <CalendarIcon className="w-4 h-4" />
           </h2>
           {loading ? (
-            <div className="flex justify-center items-center h-12">
-              <Loader2 className="animate-spin w-6 h-6 text-muted-foreground" />
+            <div className="py-2">
+              <LoadingSpinner label="A carregar eventos..." />
             </div>
           ) : events.length === 0 ? (
             <p className="text-muted-foreground">

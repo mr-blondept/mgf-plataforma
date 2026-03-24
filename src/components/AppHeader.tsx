@@ -14,7 +14,23 @@ import {
 import { cn } from "@/lib/utils";
 
 export default function AppHeader() {
-  const [user, setUser] = useState<{ id: string } | null>(null);
+  const [user, setUser] = useState<{
+    id: string;
+    user_metadata?: {
+      avatar_url?: string | null;
+      picture?: string | null;
+      full_name?: string | null;
+      name?: string | null;
+    };
+    identities?: Array<{
+      identity_data?: {
+        avatar_url?: string | null;
+        picture?: string | null;
+        full_name?: string | null;
+        name?: string | null;
+      } | null;
+    }> | null;
+  } | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
 
@@ -57,6 +73,19 @@ export default function AppHeader() {
     return pathname === path || pathname.startsWith(`${path}/`);
   }
 
+  const avatarUrl =
+    user?.user_metadata?.avatar_url ??
+    user?.user_metadata?.picture ??
+    user?.identities?.[0]?.identity_data?.avatar_url ??
+    user?.identities?.[0]?.identity_data?.picture ??
+    null;
+  const avatarLabel =
+    user?.user_metadata?.full_name ??
+    user?.user_metadata?.name ??
+    user?.identities?.[0]?.identity_data?.full_name ??
+    user?.identities?.[0]?.identity_data?.name ??
+    "Perfil";
+
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/70 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
@@ -97,6 +126,25 @@ export default function AppHeader() {
                   {link.label}
                 </Link>
               ))}
+              <Link
+                href="/perfil"
+                aria-label={avatarLabel}
+                className={cn(
+                  "flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-border/70 bg-background shadow-sm transition hover:border-primary/40",
+                  isActive("/perfil") && "ring-2 ring-primary/20",
+                )}
+              >
+                {avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={avatarUrl}
+                    alt={avatarLabel}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <UserRound className="h-4 w-4 text-foreground/90" />
+                )}
+              </Link>
               <button
                 type="button"
                 onClick={handleSignOut}
@@ -165,6 +213,24 @@ export default function AppHeader() {
             <div className="mt-5 space-y-4">
               {user ? (
                 <div className="space-y-2">
+                  <div className="flex items-center gap-3 rounded-2xl border border-border/70 bg-card/70 px-4 py-3">
+                    <span className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-border/70 bg-background shadow-sm">
+                      {avatarUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={avatarUrl}
+                          alt={avatarLabel}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <UserRound className="h-4 w-4 text-foreground/90" />
+                      )}
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{avatarLabel}</p>
+                      <p className="text-xs text-muted-foreground">Conta autenticada</p>
+                    </div>
+                  </div>
                   <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">
                     Conta
                   </p>

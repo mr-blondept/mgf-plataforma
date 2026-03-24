@@ -17,6 +17,7 @@ import {
 import { format, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
 
 type UserEvent = {
   id: string;
@@ -221,7 +222,7 @@ export default function PainelPage() {
             {loading ? (
               <div className="mt-6 space-y-3">
                 {[0, 1, 2].map((item) => (
-                  <div key={item} className="h-20 animate-pulse rounded-2xl bg-secondary/50" />
+                  <LoadingSkeleton key={item} className="h-20" />
                 ))}
               </div>
             ) : activeSessions.length === 0 ? (
@@ -284,7 +285,7 @@ export default function PainelPage() {
             {loading ? (
               <div className="mt-6 space-y-3">
                 {[0, 1, 2].map((item) => (
-                  <div key={item} className="h-20 animate-pulse rounded-2xl bg-secondary/50" />
+                  <LoadingSkeleton key={item} className="h-20" />
                 ))}
               </div>
             ) : nextEvents.length === 0 ? (

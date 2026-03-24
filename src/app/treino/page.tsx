@@ -1,9 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { Pause, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 type QuestionOption = {
   id: string;
@@ -50,7 +53,6 @@ type QuestionSession = {
 };
 
 const DEFAULT_CATEGORY = "MGF 1";
-const EXAM_TIME_PER_QUESTION_MIN = 2;
 const AI_EXPLANATION_PREFIX = "Explicação (IA):";
 const MAX_SIMULADO_QUESTIONS = 50;
 
@@ -75,6 +77,12 @@ function formatTime(totalSeconds: number) {
   return `${minutes.toString().padStart(2, "0")}:${seconds
     .toString()
     .padStart(2, "0")}`;
+}
+
+function getExplanationText(explanation: string) {
+  return explanation.startsWith(AI_EXPLANATION_PREFIX)
+    ? explanation.slice(AI_EXPLANATION_PREFIX.length).trim()
+    : explanation;
 }
 
 function getSessionScore(session: QuestionSession) {
@@ -121,7 +129,7 @@ export default function TreinoPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [categoryFilter] = useState(DEFAULT_CATEGORY);
   const [mode, setMode] = useState<"treino" | "simulado">("treino");
-  const [timeLeftSec, setTimeLeftSec] = useState<number | null>(null);
+  const [elapsedSec, setElapsedSec] = useState<number | null>(null);
   const [simuladoFinalizado, setSimuladoFinalizado] = useState(false);
   const [simuladoResumo, setSimuladoResumo] = useState<{ total: number; corretas: number } | null>(null);
   const [sessionAnswers, setSessionAnswers] = useState<Record<string, SessionAnswer>>({});
@@ -131,7 +139,6 @@ export default function TreinoPage() {
   const [sessionQuestionIds, setSessionQuestionIds] = useState<string[] | null>(null);
   const [simuladoCategories, setSimuladoCategories] = useState<string[]>([]);
   const [simuladoCount, setSimuladoCount] = useState(MAX_SIMULADO_QUESTIONS);
-  const autoFinishedRef = useRef(false);
 
   const categoryNames = useMemo(() => {
     const unique = new Set<string>();
@@ -231,7 +238,7 @@ export default function TreinoPage() {
     overrides?: {
       sessionId?: string | null;
       currentIndex?: number;
-      timeLeftSec?: number | null;
+      elapsedSec?: number | null;
       answers?: Record<string, SessionAnswer>;
     }
   ) => {
@@ -242,24 +249,37 @@ export default function TreinoPage() {
       .from("question_sessions")
       .update({
         status,
-        time_left_sec: overrides?.timeLeftSec ?? timeLeftSec,
+        time_left_sec: overrides?.elapsedSec ?? elapsedSec,
         current_index: overrides?.currentIndex ?? currentIndex,
         answers: overrides?.answers ?? sessionAnswers,
         updated_at: new Date().toISOString(),
       })
       .eq("id", sessionId);
-  }, [activeSessionId, currentIndex, sessionAnswers, timeLeftSec]);
+  }, [activeSessionId, currentIndex, elapsedSec, sessionAnswers]);
 
   const finalizeSimulado = useCallback(async () => {
     const total = activeQuestions.length;
     const corretas = Object.values(sessionAnswers).filter((entry) => entry.is_correct).length;
     setSimuladoResumo({ total, corretas });
     setSimuladoFinalizado(true);
+    setSessions((prev) =>
+      prev.map((session) =>
+        session.id === activeSessionId
+          ? {
+              ...session,
+              status: "completed",
+              time_left_sec: elapsedSec,
+              current_index: currentIndex,
+              answers: sessionAnswers,
+            }
+          : session
+      )
+    );
 
     if (activeSessionId) {
       await persistSessionProgress("completed");
     }
-  }, [activeQuestions.length, activeSessionId, persistSessionProgress, sessionAnswers]);
+  }, [activeQuestions.length, activeSessionId, currentIndex, elapsedSec, persistSessionProgress, sessionAnswers]);
 
   async function loadSessionQuestions(questionIds: string[]) {
     setLoadingSession(true);
@@ -292,35 +312,6 @@ export default function TreinoPage() {
     setSessionQuestions(ordered);
     setLoadingSession(false);
   }
-
-  useEffect(() => {
-    if (mode !== "simulado" || view !== "session") return;
-    if (simuladoFinalizado) return;
-    if (timeLeftSec === null || timeLeftSec <= 0) return;
-
-    const timer = window.setInterval(() => {
-      setTimeLeftSec((prev) => {
-        if (prev === null) return prev;
-        if (prev <= 1) return 0;
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => window.clearInterval(timer);
-  }, [mode, view, timeLeftSec, simuladoFinalizado]);
-
-  useEffect(() => {
-    if (mode !== "simulado" || view !== "session") return;
-    if (simuladoFinalizado) return;
-    if (timeLeftSec !== 0 || autoFinishedRef.current) return;
-
-    autoFinishedRef.current = true;
-    const finalizeTimer = window.setTimeout(() => {
-      void finalizeSimulado();
-    }, 0);
-
-    return () => window.clearTimeout(finalizeTimer);
-  }, [finalizeSimulado, mode, simuladoFinalizado, timeLeftSec, view]);
 
   useEffect(() => {
     if (view !== "session" || !activeSessionId) return;
@@ -359,8 +350,6 @@ export default function TreinoPage() {
     );
 
     const questionIds = pickRandomIds(pool, desiredCount);
-    const durationSec = questionIds.length * EXAM_TIME_PER_QUESTION_MIN * 60;
-
     const { data, error } = await supabase
       .from("question_sessions")
       .insert({
@@ -370,8 +359,8 @@ export default function TreinoPage() {
         question_ids: questionIds,
         mode: "simulado",
         status: "active",
-        duration_sec: durationSec,
-        time_left_sec: durationSec,
+        duration_sec: null,
+        time_left_sec: 0,
         current_index: 0,
         total_questions: questionIds.length,
         answers: {},
@@ -389,8 +378,7 @@ export default function TreinoPage() {
     setMode("simulado");
     setView("session");
     setActiveSessionId(data.id);
-    autoFinishedRef.current = false;
-    setTimeLeftSec(data.time_left_sec ?? durationSec);
+    setElapsedSec(data.time_left_sec ?? 0);
     setCurrentIndex(0);
     setSimuladoFinalizado(false);
     setSimuladoResumo(null);
@@ -408,8 +396,7 @@ export default function TreinoPage() {
     setMode(session.mode);
     setView("session");
     setActiveSessionId(session.id);
-    autoFinishedRef.current = false;
-    setTimeLeftSec(session.time_left_sec ?? null);
+    setElapsedSec(session.time_left_sec ?? 0);
     setCurrentIndex(session.current_index ?? 0);
     setSimuladoFinalizado(false);
     setSimuladoResumo(null);
@@ -424,7 +411,7 @@ export default function TreinoPage() {
     await persistSessionProgress("active", {
       sessionId: session.id,
       currentIndex: session.current_index ?? 0,
-      timeLeftSec: session.time_left_sec ?? null,
+      elapsedSec: session.time_left_sec ?? 0,
       answers: normalizedAnswers,
     });
   }
@@ -432,6 +419,13 @@ export default function TreinoPage() {
   async function pausarSessao() {
     if (activeSessionId) {
       await persistSessionProgress("paused");
+      setSessions((prev) =>
+        prev.map((session) =>
+          session.id === activeSessionId
+            ? { ...session, status: "paused", time_left_sec: elapsedSec, current_index: currentIndex, answers: sessionAnswers }
+            : session
+        )
+      );
     }
     setView("categories");
   }
@@ -439,10 +433,11 @@ export default function TreinoPage() {
   const question = activeQuestions[currentIndex] ?? null;
   const currentAnswer = question ? sessionAnswers[question.id] : undefined;
   const selectedOptionId = currentAnswer?.option_id ?? null;
+  const correctOptionId = question?.question_options.find((option) => option.is_correct)?.id ?? null;
   const feedback = currentAnswer
     ? currentAnswer.is_correct
       ? "Correto! Boa!"
-      : "Resposta incorreta. Revê a explicação abaixo."
+      : "Resposta incorreta. A opção correta está destacada a verde."
     : null;
   const progress =
     activeQuestions.length > 0
@@ -490,7 +485,6 @@ export default function TreinoPage() {
         { onConflict: "session_id,question_id" }
       );
     }
-
   }
 
   function goToNextQuestion() {
@@ -501,12 +495,53 @@ export default function TreinoPage() {
         void finalizeSimulado();
         return;
       }
+      setElapsedSec(0);
       setCurrentIndex((prev) => prev + 1);
       return;
     }
 
     setCurrentIndex((prev) => (prev + 1) % activeQuestions.length);
   }
+
+  async function eliminarSessao(sessionId: string) {
+    const confirmed = window.confirm("Eliminar esta sessão de exame?");
+    if (!confirmed) return;
+
+    const supabase = createClient();
+
+    const { error } = await supabase
+      .from("question_sessions")
+      .delete()
+      .eq("id", sessionId);
+
+    if (error) {
+      setErrorMsg("Não foi possível eliminar esta sessão.");
+      return;
+    }
+
+    setSessions((prev) => prev.filter((session) => session.id !== sessionId));
+
+    if (activeSessionId === sessionId) {
+      setView("categories");
+      setActiveSessionId(null);
+      setSessionQuestions([]);
+      setSessionQuestionIds(null);
+      setSessionAnswers({});
+      setSimuladoResumo(null);
+      setSimuladoFinalizado(false);
+      setElapsedSec(null);
+    }
+  }
+
+  useEffect(() => {
+    if (view !== "session" || mode !== "simulado" || simuladoFinalizado) return;
+
+    const timer = window.setInterval(() => {
+      setElapsedSec((prev) => (prev ?? 0) + 1);
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [currentIndex, mode, simuladoFinalizado, view]);
 
   const activeSessions = sessions.filter((session) => session.status !== "completed");
   const completedSessions = sessions.filter((session) => session.status === "completed");
@@ -531,7 +566,10 @@ export default function TreinoPage() {
               onClick={pausarSessao}
               className="rounded-full border border-border/70 bg-secondary/70 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-foreground hover:border-foreground/40"
             >
-              Guardar e sair
+              <span className="inline-flex items-center gap-2">
+                <Pause className="h-3.5 w-3.5" />
+                Pausar exame
+              </span>
             </button>
           </section>
         ) : (
@@ -565,121 +603,143 @@ export default function TreinoPage() {
             </div>
 
             <div className="grid gap-6 px-6 py-6 lg:grid-cols-[1.2fr_0.8fr]">
-              <div className="space-y-5">
-                <div className="flex items-start justify-between gap-4 rounded-[1.6rem] border border-border/70 bg-background/70 p-5 shadow-sm">
-                  <div>
-                    <h2 className="font-display text-2xl font-semibold text-foreground">
-                      Criar exame
-                    </h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {`Seleciona as categorias e define o número de perguntas até ${MAX_SIMULADO_QUESTIONS}.`}
-                    </p>
+              {loadingIndex ? (
+                <>
+                  <div className="space-y-5">
+                    <div className="rounded-[1.6rem] border border-border/70 bg-background/70 p-5 shadow-sm">
+                      <LoadingSpinner label="A carregar banco de perguntas..." />
+                      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                        {[0, 1, 2, 3].map((item) => (
+                          <LoadingSkeleton key={item} className="h-24 rounded-[1.35rem]" />
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                  <div className="rounded-[1.2rem] border border-border/70 bg-card px-4 py-3 text-right shadow-sm">
-                    <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                      Banco
-                    </p>
-                    <p className="mt-1 text-2xl font-semibold text-foreground">{questionIndex.length}</p>
-                  </div>
-                </div>
 
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {categoryNames.map((category) => {
-                    const isSelected = simuladoCategories.includes(category);
-                    return (
-                      <button
-                        key={category}
-                        type="button"
-                        onClick={() => {
-                          setSimuladoCategories((prev) =>
-                            prev.includes(category)
-                              ? prev.filter((item) => item !== category)
-                              : [...prev, category]
-                          );
+                  <div className="space-y-4">
+                    <LoadingSkeleton className="h-28 rounded-[1.6rem]" />
+                    <LoadingSkeleton className="h-56 rounded-[1.6rem]" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-5">
+                    <div className="flex items-start justify-between gap-4 rounded-[1.6rem] border border-border/70 bg-background/70 p-5 shadow-sm">
+                      <div>
+                        <h2 className="font-display text-2xl font-semibold text-foreground">
+                          Criar exame
+                        </h2>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {`Seleciona as categorias e define o número de perguntas até ${MAX_SIMULADO_QUESTIONS}.`}
+                        </p>
+                      </div>
+                      <div className="rounded-[1.2rem] border border-border/70 bg-card px-4 py-3 text-right shadow-sm">
+                        <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                          Banco
+                        </p>
+                        <p className="mt-1 text-2xl font-semibold text-foreground">{questionIndex.length}</p>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {categoryNames.map((category) => {
+                        const isSelected = simuladoCategories.includes(category);
+                        return (
+                          <button
+                            key={category}
+                            type="button"
+                            onClick={() => {
+                              setSimuladoCategories((prev) =>
+                                prev.includes(category)
+                                  ? prev.filter((item) => item !== category)
+                                  : [...prev, category]
+                              );
+                            }}
+                            className={cn(
+                              "flex items-center justify-between gap-3 rounded-[1.35rem] border px-4 py-4 text-left transition",
+                              isSelected
+                                ? "border-primary/40 bg-primary/10 shadow-[0_12px_28px_rgba(15,23,42,0.08)]"
+                                : "border-border/70 bg-background/70 hover:border-foreground/30 hover:bg-secondary/40 hover:shadow-sm"
+                            )}
+                          >
+                            <div>
+                              <p className="text-sm font-semibold text-foreground">{category}</p>
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                {categoryCounts[category] ?? 0} questões disponíveis
+                              </p>
+                            </div>
+                            <span
+                              className={cn(
+                                "rounded-full px-3 py-1 text-xs font-semibold",
+                                isSelected
+                                  ? "bg-primary text-primary-foreground shadow-sm"
+                                  : "bg-secondary text-muted-foreground"
+                              )}
+                            >
+                              {isSelected ? "Selecionada" : "Selecionar"}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="rounded-[1.6rem] border border-border/70 bg-background/70 p-5 shadow-sm">
+                      <label className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                        Número de perguntas
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={MAX_SIMULADO_QUESTIONS}
+                        value={simuladoCount}
+                        onChange={(event) => {
+                          const value = Number(event.target.value);
+                          setSimuladoCount(Number.isFinite(value) ? value : 1);
                         }}
-                        className={cn(
-                          "flex items-center justify-between gap-3 rounded-[1.35rem] border px-4 py-4 text-left transition",
-                          isSelected
-                            ? "border-primary/40 bg-primary/10 shadow-[0_12px_28px_rgba(15,23,42,0.08)]"
-                            : "border-border/70 bg-background/70 hover:border-foreground/30 hover:bg-secondary/40 hover:shadow-sm"
-                        )}
-                      >
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">{category}</p>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            {categoryCounts[category] ?? 0} questões disponíveis
-                          </p>
-                        </div>
-                        <span
-                          className={cn(
-                            "rounded-full px-3 py-1 text-xs font-semibold",
-                            isSelected
-                              ? "bg-primary text-primary-foreground shadow-sm"
-                              : "bg-secondary text-muted-foreground"
-                          )}
-                        >
-                          {isSelected ? "Selecionada" : "Selecionar"}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="rounded-[1.6rem] border border-border/70 bg-background/70 p-5 shadow-sm">
-                  <label className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                    Número de perguntas
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={MAX_SIMULADO_QUESTIONS}
-                    value={simuladoCount}
-                    onChange={(event) => {
-                      const value = Number(event.target.value);
-                      setSimuladoCount(Number.isFinite(value) ? value : 1);
-                    }}
-                    className="mt-3 w-full rounded-[1rem] border border-border/70 bg-card px-4 py-3 text-base text-foreground shadow-sm"
-                  />
-                </div>
-
-                <div className="rounded-[1.6rem] border border-border/70 bg-gradient-to-b from-card to-background/90 p-5 shadow-sm">
-                  <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                    Resumo do exame
-                  </p>
-                  <p className="mt-2 text-xl font-semibold text-foreground">
-                    {`${simuladoCategories.length} categorias · ${simuladoCount} perguntas`}
-                  </p>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {`${simuladoSelectedCount} questões disponíveis nas categorias escolhidas.`}
-                  </p>
-
-                  <div className="mt-5 grid grid-cols-2 gap-3">
-                    <div className="rounded-[1rem] border border-border/60 bg-background/80 px-4 py-3">
-                      <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
-                        Categorias
-                      </p>
-                      <p className="mt-1 text-lg font-semibold text-foreground">{simuladoCategories.length}</p>
+                        className="mt-3 w-full rounded-[1rem] border border-border/70 bg-card px-4 py-3 text-base text-foreground shadow-sm"
+                      />
                     </div>
-                    <div className="rounded-[1rem] border border-border/60 bg-background/80 px-4 py-3">
-                      <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
-                        Questões
+
+                    <div className="rounded-[1.6rem] border border-border/70 bg-gradient-to-b from-card to-background/90 p-5 shadow-sm">
+                      <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                        Resumo do exame
                       </p>
-                      <p className="mt-1 text-lg font-semibold text-foreground">{simuladoCount}</p>
+                      <p className="mt-2 text-xl font-semibold text-foreground">
+                        {`${simuladoCategories.length} categorias · ${simuladoCount} perguntas`}
+                      </p>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        {`${simuladoSelectedCount} questões disponíveis nas categorias escolhidas.`}
+                      </p>
+
+                      <div className="mt-5 grid grid-cols-2 gap-3">
+                        <div className="rounded-[1rem] border border-border/60 bg-background/80 px-4 py-3">
+                          <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                            Categorias
+                          </p>
+                          <p className="mt-1 text-lg font-semibold text-foreground">{simuladoCategories.length}</p>
+                        </div>
+                        <div className="rounded-[1rem] border border-border/60 bg-background/80 px-4 py-3">
+                          <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                            Questões
+                          </p>
+                          <p className="mt-1 text-lg font-semibold text-foreground">{simuladoCount}</p>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={iniciarSimulado}
+                        className="mt-5 w-full rounded-[1.1rem] bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary/90 disabled:opacity-60"
+                        disabled={loadingIndex || questionIndex.length === 0}
+                      >
+                        Iniciar exame
+                      </button>
                     </div>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={iniciarSimulado}
-                    className="mt-5 w-full rounded-[1.1rem] bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary/90 disabled:opacity-60"
-                    disabled={loadingIndex || questionIndex.length === 0}
-                  >
-                    Iniciar exame
-                  </button>
-                </div>
-              </div>
+                </>
+              )}
             </div>
 
             {activeSessions.length > 0 && (
@@ -708,16 +768,26 @@ export default function TreinoPage() {
                           <p className="text-xs text-muted-foreground">
                             {score.respondidas}/{score.total} respondidas
                             {session.time_left_sec != null &&
-                              ` · Tempo: ${formatTime(session.time_left_sec)}`}
+                              ` · Tempo na pergunta: ${formatTime(session.time_left_sec)}`}
                           </p>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => retomarSessao(session)}
-                          className="rounded-full border border-border/70 bg-card/70 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-foreground hover:border-foreground/40"
-                        >
-                          Retomar sessão
-                        </button>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => retomarSessao(session)}
+                            className="rounded-full border border-border/70 bg-card/70 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-foreground hover:border-foreground/40"
+                          >
+                            Retomar sessão
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void eliminarSessao(session.id)}
+                            className="rounded-full border border-red-200 bg-red-50 px-3 py-2 text-red-700 transition hover:border-red-300 hover:bg-red-100"
+                            aria-label="Eliminar sessão"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </div>
                     );
                   })}
@@ -752,9 +822,19 @@ export default function TreinoPage() {
                             Resultado: {score.corretas}/{score.total}
                           </p>
                         </div>
-                        <span className="text-xs text-muted-foreground">
-                          {session.updated_at ? new Date(session.updated_at).toLocaleDateString("pt-PT") : ""}
-                        </span>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-xs text-muted-foreground">
+                            {session.updated_at ? new Date(session.updated_at).toLocaleDateString("pt-PT") : ""}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => void eliminarSessao(session.id)}
+                            className="rounded-full border border-red-200 bg-red-50 px-3 py-2 text-red-700 transition hover:border-red-300 hover:bg-red-100"
+                            aria-label="Eliminar sessão"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </div>
                     );
                   })}
@@ -791,9 +871,8 @@ export default function TreinoPage() {
             </div>
 
             {loading && (
-              <div className="mt-6 flex items-center gap-2 text-muted-foreground text-sm">
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                A carregar perguntas...
+              <div className="mt-6">
+                <LoadingSpinner label="A carregar perguntas..." />
               </div>
             )}
 
@@ -820,7 +899,7 @@ export default function TreinoPage() {
                     )}
                     {mode === "simulado" && (
                       <span className="rounded-full border border-border/70 bg-card/70 px-3 py-1 text-xs font-semibold text-foreground">
-                        Tempo: {timeLeftSec !== null ? formatTime(timeLeftSec) : "--:--"}
+                        Tempo na pergunta: {elapsedSec !== null ? formatTime(elapsedSec) : "00:00"}
                       </span>
                     )}
                   </div>
@@ -837,6 +916,11 @@ export default function TreinoPage() {
                       if (!showResult) {
                         optionClass += "border-border/70 bg-card/70 hover:bg-secondary/70";
                       } else if (isSelected && opt.is_correct) {
+                        optionClass += "border-success bg-success/10 text-foreground";
+                      } else if (
+                        !currentAnswer?.is_correct &&
+                        correctOptionId === opt.id
+                      ) {
                         optionClass += "border-success bg-success/10 text-foreground";
                       } else if (isSelected && !opt.is_correct) {
                         optionClass += "border-destructive bg-destructive/10 text-foreground";
@@ -861,6 +945,14 @@ export default function TreinoPage() {
                                 {opt.is_correct ? "✅" : "✖️"}
                               </span>
                             )}
+                            {showResult &&
+                              !currentAnswer?.is_correct &&
+                              correctOptionId === opt.id &&
+                              !isSelected && (
+                                <span className="mt-0.5 text-base font-semibold text-success">
+                                  ✅
+                                </span>
+                              )}
                             <span>{opt.text}</span>
                           </span>
                         </button>
@@ -885,14 +977,12 @@ export default function TreinoPage() {
                     <div className="rounded-2xl border border-border/70 bg-muted/60 p-4">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="text-sm font-semibold text-foreground">Explicação</p>
-                        {question.explanation.startsWith(AI_EXPLANATION_PREFIX) && (
-                          <span className="rounded-full border border-border/70 bg-card/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                            IA
-                          </span>
-                        )}
+                        <span className="rounded-full border border-border/70 bg-card/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                          Explicação gerada por IA
+                        </span>
                       </div>
                       <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
-                        {question.explanation}
+                        {getExplanationText(question.explanation)}
                       </p>
                     </div>
                   )}

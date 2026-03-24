@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
 import {
   INTERNATO_DRE_LINK,
   INTERNATO_STAGES,
@@ -336,6 +337,19 @@ export default function InternatoPage() {
           </div>
         ) : null}
 
+        {loading ? (
+          <div className="space-y-6">
+            <LoadingSkeleton className="h-72 rounded-[2rem]" />
+            <div className="grid gap-4 md:grid-cols-3">
+              <LoadingSkeleton className="h-40 rounded-[1.5rem]" />
+              <LoadingSkeleton className="h-40 rounded-[1.5rem]" />
+              <LoadingSkeleton className="h-40 rounded-[1.5rem]" />
+            </div>
+            <LoadingSkeleton className="h-16 rounded-[1.4rem]" />
+            <LoadingSkeleton className="h-64 rounded-[1.8rem]" />
+          </div>
+        ) : (
+        <>
         <div className="relative mb-6 overflow-hidden rounded-[2rem] border border-border/70 bg-card/85 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-blue-500/10 via-emerald-400/10 to-fuchsia-500/10" />
           <div className="grid gap-0 lg:grid-cols-[1.25fr_0.75fr]">
@@ -721,6 +735,8 @@ export default function InternatoPage() {
             );
           })}
         </div>
+        </>
+        )}
 
       </section>
     </main>

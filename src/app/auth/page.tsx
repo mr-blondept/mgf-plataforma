@@ -3,9 +3,10 @@
 import { FormEvent, Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { Stethoscope } from "lucide-react";
+import { Chrome, Stethoscope } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function AuthPage() {
   return (
@@ -19,7 +20,7 @@ function AuthPageFallback() {
   return (
     <main className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center px-4 py-12">
       <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground shadow-md sm:p-8">
-        A carregar autenticação...
+        <LoadingSpinner label="A carregar autenticação..." />
       </div>
     </main>
   );
@@ -46,6 +47,35 @@ function AuthPageContent() {
   const [workplace, setWorkplace] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("error") === "oauth") {
+      setErrorMsg("Não foi possível concluir a autenticação com Google.");
+    }
+  }, [searchParams]);
+
+  async function handleGoogleAuth() {
+    setGoogleLoading(true);
+    setErrorMsg(null);
+
+    try {
+      const supabase = createClient();
+      const redirectTo = `${window.location.origin}/auth/callback`;
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo,
+        },
+      });
+
+      if (error) throw error;
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : "Ocorreu um erro ao iniciar sessão com Google.");
+      setGoogleLoading(false);
+    }
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -171,6 +201,30 @@ function AuthPageContent() {
             >
               Criar conta
             </button>
+          </div>
+
+          <div className="mb-6 space-y-3">
+            <button
+              type="button"
+              onClick={() => void handleGoogleAuth()}
+              disabled={loading || googleLoading}
+              className="flex h-11 w-full items-center justify-center gap-3 rounded-xl border border-border/70 bg-background px-4 text-sm font-medium text-foreground shadow-sm transition hover:border-foreground/20 hover:bg-secondary/40 disabled:opacity-50"
+            >
+              {googleLoading ? (
+                <LoadingSpinner label="A redirecionar para Google..." sizeClassName="h-4 w-4" />
+              ) : (
+                <>
+                  <Chrome className="h-4 w-4" />
+                  <span>Continuar com Google</span>
+                </>
+              )}
+            </button>
+
+            <div className="flex items-center gap-3 text-xs uppercase tracking-[0.24em] text-muted-foreground">
+              <span className="h-px flex-1 bg-border" />
+              <span>ou com email</span>
+              <span className="h-px flex-1 bg-border" />
+            </div>
           </div>
 
           <form className="space-y-4" onSubmit={handleSubmit}>
