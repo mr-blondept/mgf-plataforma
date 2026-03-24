@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Sora, Space_Grotesk } from "next/font/google";
+import Script from "next/script";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import AppHeader from "@/components/AppHeader";
 import "./globals.css";
@@ -156,6 +157,32 @@ export default function RootLayout({
           {children}
           <SpeedInsights />
         </div>
+
+        <Script id="statcounter-config" strategy="lazyOnload">
+          {`
+            var sc_project=13212648;
+            var sc_invisible=1;
+            var sc_security="61ce3788";
+          `}
+        </Script>
+        <Script
+          id="statcounter-script"
+          src="https://www.statcounter.com/counter/counter.js"
+          strategy="lazyOnload"
+        />
+        <noscript>
+          <div className="statcounter">
+            <a title="Web Analytics" href="https://statcounter.com/" target="_blank" rel="noreferrer">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                className="statcounter"
+                src="https://c.statcounter.com/13212648/0/61ce3788/1/"
+                alt="Web Analytics"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </a>
+          </div>
+        </noscript>
       </body>
     </html>
   );

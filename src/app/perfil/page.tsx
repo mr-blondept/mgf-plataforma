@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, FormEvent } from "react";
+import { useEffect, useState, FormEvent, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,40 @@ type ProfileForm = {
 };
 
 export default function PerfilPage() {
+  return (
+    <Suspense fallback={<PerfilPageFallback />}>
+      <PerfilPageContent />
+    </Suspense>
+  );
+}
+
+function PerfilPageFallback() {
+  return (
+    <main className="relative min-h-[calc(100vh-3.5rem)] app-surface">
+      <div className="absolute inset-0 hero-surface" />
+      <div className="absolute inset-0 soft-grain opacity-30" />
+      <div className="relative mx-auto w-full max-w-2xl px-4 py-10">
+        <section className="rounded-3xl border border-border/70 bg-card/80 p-6 shadow-md backdrop-blur sm:p-8">
+          <div className="flex flex-col gap-2">
+            <LoadingSkeleton className="h-8 w-52" />
+            <LoadingSkeleton className="h-4 w-full max-w-md" />
+          </div>
+          <div className="mt-8 space-y-4">
+            <LoadingSkeleton className="h-5 w-40" />
+            <LoadingSkeleton className="h-11 rounded-xl" />
+            <LoadingSkeleton className="h-5 w-28" />
+            <LoadingSkeleton className="h-11 rounded-xl" />
+            <LoadingSkeleton className="h-5 w-32" />
+            <LoadingSkeleton className="h-11 rounded-xl" />
+            <LoadingSkeleton className="h-12 rounded-2xl" />
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
+
+function PerfilPageContent() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
