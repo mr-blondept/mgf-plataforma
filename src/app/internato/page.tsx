@@ -337,30 +337,25 @@ export default function InternatoPage() {
         ) : null}
 
         <div className="relative mb-6 overflow-hidden rounded-[2rem] border border-border/70 bg-card/85 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-r from-blue-500/10 via-emerald-400/10 to-fuchsia-500/10" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-blue-500/10 via-emerald-400/10 to-fuchsia-500/10" />
           <div className="grid gap-0 lg:grid-cols-[1.25fr_0.75fr]">
             <div className="border-b border-border/60 px-6 py-7 lg:border-b-0 lg:border-r">
-              <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-muted-foreground shadow-sm">
-                <GraduationCap className="h-3.5 w-3.5" />
-                Grelha interativa
-              </div>
-              <h1 className="mt-4 max-w-3xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                Acompanha o internato com uma vista clara por etapa, documentos e provas.
+              <h1 className="max-w-3xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                Progresso do internato, organizado por etapa e sem ruído.
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-                A grelha foi reorganizada para ficar mais visual e mais facil de usar no dia a dia.
-                Cada check fica gravado apenas para ti e o progresso atualiza-se em tempo real.
+                Consulta o que falta em MGF 1, MGF 2 e MGF 3, marca o que ja concluíste e acompanha tudo num so sitio.
               </p>
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
                 <div className="rounded-2xl border border-blue-200/70 bg-blue-50/80 px-4 py-3 shadow-sm dark:border-blue-400/20 dark:bg-blue-500/10">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-700 dark:text-blue-200">
-                    Estrutura
+                    Etapas
                   </p>
                   <p className="mt-1 text-sm font-medium text-foreground">MGF 1 a MGF 3</p>
                 </div>
                 <div className="rounded-2xl border border-emerald-200/70 bg-emerald-50/80 px-4 py-3 shadow-sm dark:border-emerald-400/20 dark:bg-emerald-500/10">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-700 dark:text-emerald-200">
-                    Conteudo
+                    Itens
                   </p>
                   <p className="mt-1 text-sm font-medium text-foreground">Estagios, provas e docs</p>
                 </div>
@@ -402,25 +397,24 @@ export default function InternatoPage() {
               <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
                 <div className="rounded-2xl border border-border/60 bg-background/70 px-4 py-3 shadow-sm">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                    Estado atual
+                    Feitos
                   </p>
                   <p className="mt-1 text-sm text-foreground">
-                    Visao rapida do percurso inteiro com atualizacao imediata.
+                    {globalStats.done} itens concluídos neste percurso.
                   </p>
                 </div>
                 <div className="rounded-2xl border border-border/60 bg-background/70 px-4 py-3 shadow-sm">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                    Utilizacao
+                    Em falta
                   </p>
                   <p className="mt-1 text-sm text-foreground">
-                    Entra numa etapa, abre uma secao e marca o que ja concluiste.
+                    {globalStats.total - globalStats.done} itens ainda por fechar.
                   </p>
                 </div>
               </div>
-              <div className="mt-5 space-y-2 text-sm text-muted-foreground">
-                <p>Inclui estagios, formacao, documentos e avaliacao final.</p>
-                <p>Usa os blocos abaixo para ver detalhe por etapa e marcar o que ja completaste.</p>
-              </div>
+              <p className="mt-5 text-sm leading-6 text-muted-foreground">
+                Usa os blocos abaixo para abrir cada etapa e marcar o que ja completaste.
+              </p>
             </div>
           </div>
         </div>
