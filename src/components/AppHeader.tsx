@@ -5,9 +5,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
+  BarChart3,
+  BookOpenCheck,
+  Calculator,
+  CalendarDays,
+  GraduationCap,
   LayoutDashboard,
   Menu,
+  Power,
+  Search,
   Stethoscope,
+  Syringe,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -40,6 +48,15 @@ export default function AppHeader() {
       icon: LayoutDashboard,
       hint: "Visão geral",
     },
+  ];
+  const primaryLinks = [
+    { href: "/treino", label: "Banco de Perguntas", icon: BookOpenCheck, hint: "Treino e simulados" },
+    { href: "/icpc2", label: "ICPC-2", icon: Search, hint: "Pesquisa clinica" },
+    { href: "/calculadoras", label: "Calculadoras", icon: Calculator, hint: "Ferramentas" },
+    { href: "/vacinacao", label: "Vacinação", icon: Syringe, hint: "PNV" },
+    { href: "/calendario", label: "Calendário", icon: CalendarDays, hint: "Agenda" },
+    { href: "/internato", label: "Internato MGF", icon: GraduationCap, hint: "Progresso" },
+    { href: "/estatisticas", label: "Estatísticas", icon: BarChart3, hint: "Indicadores" },
   ];
   const createAccountHref = "/auth?mode=signup";
   const loginHref = "/auth";
@@ -120,6 +137,27 @@ export default function AppHeader() {
                   {link.label}
                 </Link>
               ))}
+              <div className="flex items-center gap-1 border-l border-border/70 pl-2">
+                {primaryLinks.map((link) => {
+                  const Icon = link.icon;
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      aria-label={link.label}
+                      title={link.label}
+                      className={cn(
+                        "flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-foreground/90 transition-colors",
+                        isActive(link.href)
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "hover:bg-secondary/80",
+                      )}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </Link>
+                  );
+                })}
+              </div>
               <Link
                 href="/perfil"
                 aria-label={avatarLabel}
@@ -144,9 +182,11 @@ export default function AppHeader() {
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="rounded-full border border-border/70 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-foreground/90 transition-colors hover:bg-secondary/80"
+                aria-label="Sair"
+                title="Sair"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 text-foreground/90 transition-colors hover:bg-secondary/80"
               >
-                Sair
+                <Power className="h-4 w-4" />
               </button>
             </>
           ) : (

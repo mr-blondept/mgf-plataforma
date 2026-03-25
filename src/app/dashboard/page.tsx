@@ -7,6 +7,7 @@ import {
   ArrowUpRight,
   BarChart3,
   BookOpenCheck,
+  Calculator,
   CalendarDays,
   Clock3,
   GraduationCap,
@@ -49,6 +50,13 @@ const FEATURE_CARDS = [
     description: "Pesquisar códigos e descrições de forma rápida.",
     icon: Search,
     accent: "from-sky-500/20 to-cyan-500/5",
+  },
+  {
+    href: "/calculadoras",
+    title: "Calculadoras",
+    description: "Dose pediatrica oral e futuras ferramentas clinicas.",
+    icon: Calculator,
+    accent: "from-cyan-500/20 to-sky-500/5",
   },
   {
     href: "/vacinacao",
