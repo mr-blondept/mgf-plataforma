@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   Menu,
   Stethoscope,
-  UserRound,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -40,12 +39,6 @@ export default function AppHeader() {
       label: "Painel",
       icon: LayoutDashboard,
       hint: "Visão geral",
-    },
-    {
-      href: "/perfil",
-      label: "Perfil",
-      icon: UserRound,
-      hint: "Conta",
     },
   ];
   const createAccountHref = "/auth?mode=signup";
@@ -85,6 +78,7 @@ export default function AppHeader() {
     user?.identities?.[0]?.identity_data?.full_name ??
     user?.identities?.[0]?.identity_data?.name ??
     "Perfil";
+  const avatarInitials = getInitials(avatarLabel);
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/70 backdrop-blur">
@@ -142,7 +136,9 @@ export default function AppHeader() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <UserRound className="h-4 w-4 text-foreground/90" />
+                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/90">
+                    {avatarInitials}
+                  </span>
                 )}
               </Link>
               <button
@@ -213,7 +209,11 @@ export default function AppHeader() {
             <div className="mt-5 space-y-4">
               {user ? (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-3 rounded-2xl border border-border/70 bg-card/70 px-4 py-3">
+                  <Link
+                    href="/perfil"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 rounded-2xl border border-border/70 bg-card/70 px-4 py-3"
+                  >
                     <span className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-border/70 bg-background shadow-sm">
                       {avatarUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -223,14 +223,16 @@ export default function AppHeader() {
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <UserRound className="h-4 w-4 text-foreground/90" />
+                        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/90">
+                          {avatarInitials}
+                        </span>
                       )}
                     </span>
                     <div>
                       <p className="text-sm font-semibold text-foreground">{avatarLabel}</p>
-                      <p className="text-xs text-muted-foreground">Conta autenticada</p>
+                      <p className="text-xs text-muted-foreground">Abrir perfil</p>
                     </div>
-                  </div>
+                  </Link>
                   <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">
                     Conta
                   </p>
@@ -303,4 +305,16 @@ export default function AppHeader() {
       )}
     </header>
   );
+}
+
+function getInitials(name: string) {
+  const parts = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2);
+
+  if (parts.length === 0) return "PF";
+
+  return parts.map((part) => part[0]?.toUpperCase() ?? "").join("");
 }
