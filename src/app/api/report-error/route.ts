@@ -19,10 +19,22 @@ export async function POST(request: Request) {
   const body = (await request.json()) as {
     message?: string;
     pathname?: string;
+    pageUrl?: string;
+    userAgent?: string;
+    reportType?: string;
+    questionId?: string;
+    questionTopic?: string;
+    questionStem?: string;
   };
 
   const message = body.message?.trim() ?? "";
   const pathname = body.pathname?.trim() ?? "";
+  const pageUrl = body.pageUrl?.trim() ?? "";
+  const userAgent = body.userAgent?.trim() ?? "";
+  const reportType = body.reportType?.trim() ?? "geral";
+  const questionId = body.questionId?.trim() ?? "";
+  const questionTopic = body.questionTopic?.trim() ?? "";
+  const questionStem = body.questionStem?.trim() ?? "";
 
   if (message.length < 10) {
     return NextResponse.json(
@@ -59,7 +71,12 @@ export async function POST(request: Request) {
   const formData = new URLSearchParams();
   formData.set("from", mailgunFrom);
   formData.set("to", errorReportTo);
-  formData.set("subject", `Novo reporte de erro - ${reporterName}`);
+  formData.set(
+    "subject",
+    reportType === "question"
+      ? `Reporte de erro na pergunta - ${reporterName}`
+      : `Novo reporte de erro - ${reporterName}`
+  );
   formData.set(
     "text",
     [
@@ -67,6 +84,12 @@ export async function POST(request: Request) {
       `Email: ${reporterEmail}`,
       `User ID: ${user.id}`,
       `Página: ${pathname || "não indicada"}`,
+      `URL completa: ${pageUrl || "não indicada"}`,
+      `Tipo de reporte: ${reportType}`,
+      ...(questionId ? [`Pergunta ID: ${questionId}`] : []),
+      ...(questionTopic ? [`Tópico: ${questionTopic}`] : []),
+      ...(questionStem ? [`Enunciado: ${questionStem}`] : []),
+      ...(userAgent ? [`User agent: ${userAgent}`] : []),
       "",
       "Mensagem:",
       message,

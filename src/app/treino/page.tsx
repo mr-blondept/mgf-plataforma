@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Pause, Trash2 } from "lucide-react";
+import { Flag, Pause, Trash2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
@@ -139,6 +139,10 @@ export default function TreinoPage() {
   const [sessionQuestionIds, setSessionQuestionIds] = useState<string[] | null>(null);
   const [simuladoCategories, setSimuladoCategories] = useState<string[]>([]);
   const [simuladoCount, setSimuladoCount] = useState(MAX_SIMULADO_QUESTIONS);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportMessage, setReportMessage] = useState("");
+  const [reportStatus, setReportStatus] = useState<"idle" | "sending" | "sent">("idle");
+  const [reportError, setReportError] = useState<string | null>(null);
 
   const categoryNames = useMemo(() => {
     const unique = new Set<string>();
@@ -533,6 +537,56 @@ export default function TreinoPage() {
     }
   }
 
+  async function handleQuestionReport(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!question) return;
+
+    setReportStatus("sending");
+    setReportError(null);
+
+    const response = await fetch("/api/report-error", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        reportType: "question",
+        message: reportMessage,
+        pathname: window.location.pathname,
+        pageUrl: window.location.href,
+        userAgent: window.navigator.userAgent,
+        questionId: question.id,
+        questionTopic: question.topic ?? "",
+        questionStem: question.stem,
+      }),
+    });
+
+    const data = (await response.json()) as { error?: string };
+
+    if (!response.ok) {
+      setReportError(data.error ?? "Não foi possível enviar o reporte.");
+      setReportStatus("idle");
+      return;
+    }
+
+    setReportStatus("sent");
+    setReportMessage("");
+  }
+
+  function openQuestionReport() {
+    setReportOpen(true);
+    setReportMessage("");
+    setReportStatus("idle");
+    setReportError(null);
+  }
+
+  function closeQuestionReport() {
+    setReportOpen(false);
+    setReportMessage("");
+    setReportStatus("idle");
+    setReportError(null);
+  }
+
   useEffect(() => {
     if (view !== "session" || mode !== "simulado" || simuladoFinalizado) return;
 
@@ -902,6 +956,14 @@ export default function TreinoPage() {
                         Tempo na pergunta: {elapsedSec !== null ? formatTime(elapsedSec) : "00:00"}
                       </span>
                     )}
+                    <button
+                      type="button"
+                      onClick={openQuestionReport}
+                      className="ml-auto inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-3 py-1 text-xs font-semibold text-foreground transition hover:border-amber-300/80 hover:bg-amber-50 hover:text-amber-800"
+                    >
+                      <Flag className="h-3.5 w-3.5" />
+                      Reportar erro na pergunta
+                    </button>
                   </div>
                   <p className="text-lg font-medium text-foreground leading-relaxed whitespace-pre-line">
                     {question.stem}
@@ -1047,6 +1109,78 @@ export default function TreinoPage() {
           </section>
         )}
       </div>
+
+      {reportOpen && question ? (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center px-4 py-8">
+          <button
+            type="button"
+            aria-label="Fechar modal"
+            className="absolute inset-0 bg-slate-950/45 backdrop-blur-[3px]"
+            onClick={closeQuestionReport}
+          />
+          <div className="relative w-full max-w-lg overflow-hidden rounded-[2rem] border border-border/70 bg-background p-6 shadow-2xl sm:p-7">
+            <button
+              type="button"
+              aria-label="Fechar"
+              onClick={closeQuestionReport}
+              className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border/70 bg-secondary/60 text-foreground transition hover:bg-secondary"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-700">
+              <Flag className="h-5 w-5" />
+            </div>
+            <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+              Reportar erro na pergunta
+            </p>
+            <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight text-foreground">
+              Encontraste um problema?
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              Explica brevemente o erro na pergunta ou na resposta. Obrigado por ajudares a construir a plataforma.
+            </p>
+
+            <form className="mt-4 space-y-4" onSubmit={handleQuestionReport}>
+              <textarea
+                value={reportMessage}
+                onChange={(event) => setReportMessage(event.target.value)}
+                placeholder="Ex.: a resposta correta parece estar errada, o enunciado tem um lapso, a explicação não corresponde..."
+                rows={6}
+                className="w-full rounded-2xl border border-input bg-card px-4 py-3 text-sm text-foreground transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                required
+                minLength={10}
+              />
+              {reportError ? (
+                <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  {reportError}
+                </div>
+              ) : null}
+              {reportStatus === "sent" ? (
+                <div className="rounded-xl border border-emerald-300/40 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                  Obrigado por teres reportado. A tua ajuda melhora a qualidade da plataforma.
+                </div>
+              ) : null}
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  disabled={reportStatus === "sending"}
+                  className="inline-flex h-11 items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:opacity-50"
+                >
+                  {reportStatus === "sending" ? "A enviar..." : "Enviar reporte"}
+                </button>
+                <button
+                  type="button"
+                  onClick={closeQuestionReport}
+                  className="inline-flex h-11 items-center justify-center rounded-xl border border-border/70 px-5 text-sm font-semibold text-foreground transition hover:bg-secondary/80"
+                >
+                  Fechar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
