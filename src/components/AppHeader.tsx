@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { getAvatarPublicUrl } from "@/lib/avatar";
 import { createClient } from "@/lib/supabase/client";
 import {
   BarChart3,
@@ -38,6 +39,12 @@ export default function AppHeader() {
       } | null;
     }> | null;
   } | null>(null);
+  const [profile, setProfile] = useState<{
+    avatar_path?: string | null;
+    provider_avatar_path?: string | null;
+    provider_avatar_url?: string | null;
+    full_name?: string | null;
+  } | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
 
@@ -63,11 +70,46 @@ export default function AppHeader() {
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user: u } }) => setUser(u ?? null));
+    async function loadHeaderState() {
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
+
+      setUser(currentUser ?? null);
+
+      if (!currentUser) {
+        setProfile(null);
+        return;
+      }
+
+      const { data: currentProfile } = await supabase
+        .from("profiles")
+        .select("avatar_path, provider_avatar_path, provider_avatar_url, full_name")
+        .eq("id", currentUser.id)
+        .maybeSingle();
+
+      setProfile(currentProfile ?? null);
+    }
+
+    void loadHeaderState();
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+
+      if (!session?.user) {
+        setProfile(null);
+        return;
+      }
+
+      supabase
+        .from("profiles")
+        .select("avatar_path, provider_avatar_path, provider_avatar_url, full_name")
+        .eq("id", session.user.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          setProfile(data ?? null);
+        });
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -84,12 +126,16 @@ export default function AppHeader() {
   }
 
   const avatarUrl =
+    getAvatarPublicUrl(createClient(), profile?.avatar_path) ??
+    getAvatarPublicUrl(createClient(), profile?.provider_avatar_path) ??
+    profile?.provider_avatar_url ??
     user?.user_metadata?.avatar_url ??
     user?.user_metadata?.picture ??
     user?.identities?.[0]?.identity_data?.avatar_url ??
     user?.identities?.[0]?.identity_data?.picture ??
     null;
   const avatarLabel =
+    profile?.full_name ??
     user?.user_metadata?.full_name ??
     user?.user_metadata?.name ??
     user?.identities?.[0]?.identity_data?.full_name ??
@@ -184,7 +230,7 @@ export default function AppHeader() {
                 onClick={handleSignOut}
                 aria-label="Sair"
                 title="Sair"
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 text-foreground/90 transition-colors hover:bg-secondary/80"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 text-foreground/90 transition-colors hover:border-red-300/80 hover:bg-red-50 hover:text-red-600"
               >
                 <Power className="h-4 w-4" />
               </button>
@@ -325,7 +371,7 @@ export default function AppHeader() {
                       setMenuOpen(false);
                       handleSignOut();
                     }}
-                    className="w-full rounded-2xl border border-border/70 bg-secondary/80 px-4 py-3 text-sm font-semibold text-foreground"
+                    className="w-full rounded-2xl border border-border/70 bg-secondary/80 px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:border-red-300/80 hover:bg-red-50 hover:text-red-600"
                   >
                     Sair
                   </button>

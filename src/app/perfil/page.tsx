@@ -2,6 +2,14 @@
 
 import { useEffect, useState, FormEvent, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { Camera } from "lucide-react";
+import {
+  AVATAR_BUCKET,
+  buildCustomAvatarPath,
+  getAvatarPublicUrl,
+  getProviderAvatarUrlFromMetadata,
+} from "@/lib/avatar";
+import { compressProfileImage } from "@/lib/image";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
@@ -51,7 +59,11 @@ function PerfilPageContent() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const [email, setEmail] = useState<string>("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarPath, setAvatarPath] = useState<string | null>(null);
   const [form, setForm] = useState<ProfileForm>({
     full_name: "",
     medical_order_number: "",
@@ -72,12 +84,13 @@ function PerfilPageContent() {
         return;
       }
 
+      setUserId(user.id);
       setEmail(user.email ?? "");
       const meta = user.user_metadata ?? {};
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("full_name, medical_order_number, graduation_year, workplace")
+        .select("full_name, medical_order_number, graduation_year, workplace, avatar_path, provider_avatar_path, provider_avatar_url")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -86,6 +99,15 @@ function PerfilPageContent() {
           `Não foi possível carregar o perfil. (${error.message})`
         );
       }
+
+      const storedAvatarUrl = getAvatarPublicUrl(supabase, data?.avatar_path);
+      const storedProviderAvatarUrl =
+        getAvatarPublicUrl(supabase, data?.provider_avatar_path) ??
+        (data?.provider_avatar_url as string | null) ??
+        getProviderAvatarUrlFromMetadata(meta);
+
+      setAvatarPath((data?.avatar_path as string | null) ?? null);
+      setAvatarUrl(storedAvatarUrl ?? storedProviderAvatarUrl);
 
       setForm({
         full_name:
@@ -217,6 +239,75 @@ function PerfilPageContent() {
     setSaving(false);
   }
 
+  async function handleAvatarUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file || !userId) return;
+
+    if (!file.type.startsWith("image/")) {
+      setErrorMsg("Seleciona um ficheiro de imagem válido.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMsg("A imagem deve ter no máximo 5MB.");
+      return;
+    }
+
+    setUploadingAvatar(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    let optimizedFile: File;
+    try {
+      optimizedFile = await compressProfileImage(file);
+    } catch (error) {
+      setErrorMsg(
+        error instanceof Error ? error.message : "Não foi possível processar a imagem."
+      );
+      setUploadingAvatar(false);
+      return;
+    }
+
+    const supabase = createClient();
+    const newAvatarPath = buildCustomAvatarPath(userId, optimizedFile);
+
+    const { error: uploadError } = await supabase.storage
+      .from(AVATAR_BUCKET)
+      .upload(newAvatarPath, optimizedFile, {
+        contentType: optimizedFile.type,
+        upsert: true,
+      });
+
+    if (uploadError) {
+      setErrorMsg(`Erro ao enviar fotografia. (${uploadError.message})`);
+      setUploadingAvatar(false);
+      return;
+    }
+
+    const previousAvatarPath = avatarPath;
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({ avatar_path: newAvatarPath })
+      .eq("id", userId);
+
+    if (profileError) {
+      setErrorMsg(`Erro ao guardar fotografia. (${profileError.message})`);
+      setUploadingAvatar(false);
+      return;
+    }
+
+    if (previousAvatarPath && previousAvatarPath !== newAvatarPath) {
+      await supabase.storage.from(AVATAR_BUCKET).remove([previousAvatarPath]);
+    }
+
+    setAvatarPath(newAvatarPath);
+    setAvatarUrl(getAvatarPublicUrl(supabase, newAvatarPath));
+    setSuccessMsg("Fotografia de perfil atualizada.");
+    setUploadingAvatar(false);
+  }
+
   return (
     <main className="relative min-h-[calc(100vh-3.5rem)] app-surface">
       <div className="absolute inset-0 hero-surface" />
@@ -251,6 +342,36 @@ function PerfilPageContent() {
             </div>
           ) : (
             <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+              <div className="flex flex-col items-center pb-2 text-center">
+                <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border border-border/70 bg-background shadow-sm sm:h-36 sm:w-36">
+                  {avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={avatarUrl}
+                      alt={form.full_name || "Fotografia de perfil"}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-xl font-semibold uppercase text-foreground">
+                      {getInitials(form.full_name || email || "Perfil")}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-5">
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/90">
+                    <Camera className="h-4 w-4" />
+                    {uploadingAvatar ? "A enviar..." : "Enviar foto"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploadingAvatar}
+                      onChange={(event) => void handleAvatarUpload(event)}
+                    />
+                  </label>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
                   Email
@@ -445,4 +566,15 @@ function PerfilPageContent() {
       </div>
     </main>
   );
+}
+
+function getInitials(value: string) {
+  const parts = value
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2);
+
+  if (parts.length === 0) return "PF";
+  return parts.map((part) => part[0]?.toUpperCase() ?? "").join("");
 }
