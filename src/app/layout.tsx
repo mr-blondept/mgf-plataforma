@@ -3,6 +3,7 @@ import { Sora, Space_Grotesk } from "next/font/google";
 import Script from "next/script";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import AppHeader from "@/components/AppHeader";
+import AppFooter from "@/components/AppFooter";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -155,6 +156,7 @@ export default function RootLayout({
         <div id="app-shell">
           <AppHeader />
           {children}
+          <AppFooter />
           <SpeedInsights />
         </div>
 
