@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getAvatarPublicUrl } from "@/lib/avatar";
+import { getAvatarPublicUrl, getProviderAvatarUrlFromMetadata } from "@/lib/avatar";
 import { createClient } from "@/lib/supabase/client";
 import {
   BarChart3,
@@ -21,30 +21,53 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function AppHeader() {
-  const [user, setUser] = useState<{
-    id: string;
-    user_metadata?: {
+type HeaderUser = {
+  id: string;
+  user_metadata?: {
+    avatar_url?: string | null;
+    picture?: string | null;
+    full_name?: string | null;
+    name?: string | null;
+  };
+  identities?: Array<{
+    identity_data?: {
       avatar_url?: string | null;
       picture?: string | null;
       full_name?: string | null;
       name?: string | null;
-    };
-    identities?: Array<{
-      identity_data?: {
-        avatar_url?: string | null;
-        picture?: string | null;
-        full_name?: string | null;
-        name?: string | null;
-      } | null;
-    }> | null;
-  } | null>(null);
-  const [profile, setProfile] = useState<{
-    avatar_path?: string | null;
-    provider_avatar_path?: string | null;
-    provider_avatar_url?: string | null;
-    full_name?: string | null;
-  } | null>(null);
+    } | null;
+  }> | null;
+};
+
+type HeaderProfile = {
+  avatar_path?: string | null;
+  provider_avatar_path?: string | null;
+  provider_avatar_url?: string | null;
+  full_name?: string | null;
+} | null;
+
+function resolveAvatarUrl(
+  supabase: ReturnType<typeof createClient>,
+  user: HeaderUser | null,
+  profile: HeaderProfile,
+) {
+  return (
+    getAvatarPublicUrl(supabase, profile?.avatar_path) ??
+    getAvatarPublicUrl(supabase, profile?.provider_avatar_path) ??
+    profile?.provider_avatar_url ??
+    getProviderAvatarUrlFromMetadata((user?.user_metadata as Record<string, unknown>) ?? {}) ??
+    getProviderAvatarUrlFromMetadata(
+      (user?.identities?.[0]?.identity_data as Record<string, unknown>) ?? {},
+    ) ??
+    null
+  );
+}
+
+export default function AppHeader() {
+  const [user, setUser] = useState<HeaderUser | null>(null);
+  const [profile, setProfile] = useState<HeaderProfile>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [isAvatarReady, setIsAvatarReady] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
 
@@ -70,17 +93,20 @@ export default function AppHeader() {
 
   useEffect(() => {
     const supabase = createClient();
-    async function loadHeaderState() {
-      const {
-        data: { user: currentUser },
-      } = await supabase.auth.getUser();
 
-      setUser(currentUser ?? null);
+    async function syncHeaderState(currentUser: HeaderUser | null) {
+      setUser(currentUser);
 
       if (!currentUser) {
         setProfile(null);
+        setAvatarUrl(null);
+        setIsAvatarReady(true);
         return;
       }
+
+      setProfile(null);
+      setAvatarUrl(null);
+      setIsAvatarReady(false);
 
       const { data: currentProfile } = await supabase
         .from("profiles")
@@ -88,28 +114,24 @@ export default function AppHeader() {
         .eq("id", currentUser.id)
         .maybeSingle();
 
-      setProfile(currentProfile ?? null);
+      const nextProfile = currentProfile ?? null;
+      setProfile(nextProfile);
+      setAvatarUrl(resolveAvatarUrl(supabase, currentUser, nextProfile));
+      setIsAvatarReady(true);
+    }
+
+    async function loadHeaderState() {
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
+      await syncHeaderState((currentUser as HeaderUser | null) ?? null);
     }
 
     void loadHeaderState();
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-
-      if (!session?.user) {
-        setProfile(null);
-        return;
-      }
-
-      supabase
-        .from("profiles")
-        .select("avatar_path, provider_avatar_path, provider_avatar_url, full_name")
-        .eq("id", session.user.id)
-        .maybeSingle()
-        .then(({ data }) => {
-          setProfile(data ?? null);
-        });
+      void syncHeaderState((session?.user as HeaderUser | null) ?? null);
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -125,15 +147,6 @@ export default function AppHeader() {
     return pathname === path || pathname.startsWith(`${path}/`);
   }
 
-  const avatarUrl =
-    getAvatarPublicUrl(createClient(), profile?.avatar_path) ??
-    getAvatarPublicUrl(createClient(), profile?.provider_avatar_path) ??
-    profile?.provider_avatar_url ??
-    user?.user_metadata?.avatar_url ??
-    user?.user_metadata?.picture ??
-    user?.identities?.[0]?.identity_data?.avatar_url ??
-    user?.identities?.[0]?.identity_data?.picture ??
-    null;
   const avatarLabel =
     profile?.full_name ??
     user?.user_metadata?.full_name ??
@@ -212,7 +225,7 @@ export default function AppHeader() {
                   isActive("/perfil") && "ring-2 ring-primary/20",
                 )}
               >
-                {avatarUrl ? (
+                {avatarUrl && isAvatarReady ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={avatarUrl}
@@ -301,7 +314,7 @@ export default function AppHeader() {
                     className="flex items-center gap-3 rounded-2xl border border-border/70 bg-card/70 px-4 py-3"
                   >
                     <span className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-border/70 bg-background shadow-sm">
-                      {avatarUrl ? (
+                      {avatarUrl && isAvatarReady ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={avatarUrl}

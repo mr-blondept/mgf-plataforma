@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type DragEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   ArrowUpRight,
@@ -11,6 +12,7 @@ import {
   CalendarDays,
   Clock3,
   GraduationCap,
+  GripVertical,
   Search,
   Syringe,
   UserRound,
@@ -19,6 +21,17 @@ import { format, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
+import PageLoadingView from "@/components/PageLoadingView";
+
+type FeatureId =
+  | "treino"
+  | "icpc2"
+  | "calculadoras"
+  | "vacinacao"
+  | "calendario"
+  | "internato"
+  | "estatisticas"
+  | "perfil";
 
 type UserEvent = {
   id: string;
@@ -38,6 +51,7 @@ type QuestionSession = {
 
 const FEATURE_CARDS = [
   {
+    id: "treino",
     href: "/treino",
     title: "Banco de Perguntas",
     description: "Criar treino, lançar simulados e retomar sessões.",
@@ -45,6 +59,7 @@ const FEATURE_CARDS = [
     accent: "from-amber-500/20 to-orange-500/5",
   },
   {
+    id: "icpc2",
     href: "/icpc2",
     title: "ICPC-2",
     description: "Pesquisar códigos e descrições de forma rápida.",
@@ -52,6 +67,7 @@ const FEATURE_CARDS = [
     accent: "from-sky-500/20 to-cyan-500/5",
   },
   {
+    id: "calculadoras",
     href: "/calculadoras",
     title: "Calculadoras",
     description: "Dose pediatrica oral e futuras ferramentas clinicas.",
@@ -59,6 +75,7 @@ const FEATURE_CARDS = [
     accent: "from-cyan-500/20 to-sky-500/5",
   },
   {
+    id: "vacinacao",
     href: "/vacinacao",
     title: "Vacinação",
     description: "Abrir o mapa vacinal e rever o PNV por idade.",
@@ -66,6 +83,7 @@ const FEATURE_CARDS = [
     accent: "from-emerald-500/20 to-lime-500/5",
   },
   {
+    id: "calendario",
     href: "/calendario",
     title: "Calendário",
     description: "Organizar estudo, consultas e eventos importantes.",
@@ -73,6 +91,7 @@ const FEATURE_CARDS = [
     accent: "from-fuchsia-500/20 to-rose-500/5",
   },
   {
+    id: "internato",
     href: "/internato",
     title: "Internato MGF",
     description: "Acompanha o progresso do internato com uma grelha completa e guardada por utilizador.",
@@ -80,6 +99,7 @@ const FEATURE_CARDS = [
     accent: "from-sky-500/20 to-blue-500/5",
   },
   {
+    id: "estatisticas",
     href: "/estatisticas",
     title: "Estatísticas",
     description: "Consultar progresso quando precisares de detalhe.",
@@ -87,41 +107,131 @@ const FEATURE_CARDS = [
     accent: "from-indigo-500/20 to-violet-500/5",
   },
   {
+    id: "perfil",
     href: "/perfil",
     title: "Perfil",
     description: "Gerir dados pessoais e definições da conta.",
     icon: UserRound,
     accent: "from-slate-500/20 to-zinc-500/5",
   },
-];
+] as const satisfies ReadonlyArray<{
+  id: FeatureId;
+  href: string;
+  title: string;
+  description: string;
+  icon: typeof BookOpenCheck;
+  accent: string;
+}>;
+
+function sanitizeFeatureIds(ids: string[] | null | undefined) {
+  return (ids ?? []).filter(
+    (id): id is FeatureId => FEATURE_CARDS.some((card) => card.id === id),
+  );
+}
+
+function defaultFeatureOrder() {
+  return FEATURE_CARDS.map((card) => card.id);
+}
+
+function sortFeatureCards(order: FeatureId[]) {
+  const positions = new Map(order.map((id, index) => [id, index]));
+
+  return [...FEATURE_CARDS].sort((a, b) => {
+    const aIndex = positions.get(a.id);
+    const bIndex = positions.get(b.id);
+
+    if (aIndex === undefined && bIndex === undefined) {
+      return FEATURE_CARDS.findIndex((item) => item.id === a.id) - FEATURE_CARDS.findIndex((item) => item.id === b.id);
+    }
+
+    if (aIndex === undefined) {
+      return 1;
+    }
+
+    if (bIndex === undefined) {
+      return -1;
+    }
+
+    return aIndex - bIndex;
+  });
+}
+
+function moveItem(order: FeatureId[], draggedId: FeatureId, targetId: FeatureId) {
+  if (draggedId === targetId) {
+    return order;
+  }
+
+  const next = [...order];
+  const fromIndex = next.indexOf(draggedId);
+  const targetIndex = next.indexOf(targetId);
+
+  if (fromIndex === -1 || targetIndex === -1) {
+    return order;
+  }
+
+  next.splice(fromIndex, 1);
+  next.splice(targetIndex, 0, draggedId);
+  return next;
+}
 
 function FeatureCard({
+  id,
   href,
   title,
   description,
   icon: Icon,
   accent,
-}: (typeof FEATURE_CARDS)[number]) {
+  draggable = false,
+  onDragStart,
+  onDragOver,
+  onDrop,
+}: (typeof FEATURE_CARDS)[number] & {
+  draggable?: boolean;
+  onDragStart?: (event: DragEvent<HTMLSpanElement>, id: FeatureId) => void;
+  onDragOver?: (event: DragEvent<HTMLElement>, id: FeatureId) => void;
+  onDrop?: (event: DragEvent<HTMLElement>, id: FeatureId) => void;
+}) {
+  const router = useRouter();
+
   return (
-    <Link
-      href={href}
+    <article
+      onClick={() => router.push(href)}
+      onDragOver={onDragOver ? (event) => onDragOver(event, id) : undefined}
+      onDrop={onDrop ? (event) => onDrop(event, id) : undefined}
       className="group relative overflow-hidden rounded-[1.75rem] border border-border/70 bg-card/80 p-5 shadow-sm transition hover:-translate-y-1 hover:border-foreground/30 hover:bg-card"
     >
       <div className={cn("absolute inset-0 bg-gradient-to-br opacity-80", accent)} />
       <div className="absolute inset-0 soft-grain opacity-20" />
-      <div className="relative flex items-start justify-between gap-4">
+      <div className="relative z-10 flex items-start justify-between gap-4">
         <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-border/70 bg-background/75 shadow-sm">
           <Icon className="h-5 w-5 text-foreground" />
         </span>
-        <ArrowUpRight className="h-4 w-4 text-muted-foreground transition group-hover:text-foreground" />
+
+        <div className="flex items-center gap-2">
+          {draggable ? (
+            <span
+              draggable
+              onDragStart={onDragStart ? (event) => onDragStart(event, id) : undefined}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+              }}
+              className="relative z-20 flex h-9 w-9 cursor-grab items-center justify-center rounded-2xl border border-border/70 bg-background/80 text-muted-foreground active:cursor-grabbing"
+            >
+              <GripVertical className="h-4 w-4" />
+            </span>
+          ) : null}
+
+          <ArrowUpRight className="h-4 w-4 text-muted-foreground transition group-hover:text-foreground" />
+        </div>
       </div>
-      <div className="relative mt-5">
+      <div className="relative z-10 mt-5">
         <h2 className="text-lg font-semibold text-foreground">{title}</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           {description}
         </p>
       </div>
-    </Link>
+    </article>
   );
 }
 
@@ -130,6 +240,10 @@ export default function PainelPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [nextEvents, setNextEvents] = useState<UserEvent[]>([]);
   const [sessions, setSessions] = useState<QuestionSession[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [featureOrder, setFeatureOrder] = useState<FeatureId[]>(defaultFeatureOrder);
+  const [draggedFeatureId, setDraggedFeatureId] = useState<FeatureId | null>(null);
+  const [savingOrder, setSavingOrder] = useState(false);
 
   useEffect(() => {
     async function loadDashboard() {
@@ -146,9 +260,10 @@ export default function PainelPage() {
         return;
       }
 
+      setUserId(user.id);
       const now = new Date().toISOString();
 
-      const [eventsResult, sessionsResult] = await Promise.all([
+      const [eventsResult, sessionsResult, preferencesResult] = await Promise.all([
         supabase
           .from("user_events")
           .select("id, title, start_at")
@@ -161,9 +276,14 @@ export default function PainelPage() {
           .select("id, mode, status, category, categories, total_questions, updated_at")
           .eq("user_id", user.id)
           .order("updated_at", { ascending: false }),
+        supabase
+          .from("user_calculator_preferences")
+          .select("dashboard_feature_order")
+          .eq("user_id", user.id)
+          .maybeSingle(),
       ]);
 
-      if (eventsResult.error || sessionsResult.error) {
+      if (eventsResult.error || sessionsResult.error || preferencesResult.error) {
         setErrorMsg("Não foi possível carregar o Painel.");
         setLoading(false);
         return;
@@ -171,6 +291,11 @@ export default function PainelPage() {
 
       setNextEvents((eventsResult.data ?? []) as UserEvent[]);
       setSessions((sessionsResult.data ?? []) as QuestionSession[]);
+      const storedOrder = sanitizeFeatureIds(preferencesResult.data?.dashboard_feature_order);
+      setFeatureOrder([
+        ...storedOrder,
+        ...defaultFeatureOrder().filter((id) => !storedOrder.includes(id)),
+      ]);
       setLoading(false);
     }
 
@@ -182,12 +307,64 @@ export default function PainelPage() {
     [sessions],
   );
 
+  const orderedFeatureCards = useMemo(() => sortFeatureCards(featureOrder), [featureOrder]);
+
+  async function persistFeatureOrder(nextOrder: FeatureId[]) {
+    if (!userId) {
+      return;
+    }
+
+    setSavingOrder(true);
+
+    const supabase = createClient();
+    const { error } = await supabase.from("user_calculator_preferences").upsert(
+      {
+        user_id: userId,
+        dashboard_feature_order: nextOrder,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id" },
+    );
+
+    if (error) {
+      setErrorMsg("Não foi possível guardar a ordem das funcionalidades do Painel.");
+    }
+
+    setSavingOrder(false);
+  }
+
+  function handleDragStart(_event: DragEvent<HTMLSpanElement>, id: FeatureId) {
+    setDraggedFeatureId(id);
+  }
+
+  function handleDragOver(event: DragEvent<HTMLElement>) {
+    event.preventDefault();
+  }
+
+  function handleDrop(_event: DragEvent<HTMLElement>, targetId: FeatureId) {
+    if (!draggedFeatureId) {
+      return;
+    }
+
+    const nextOrder = moveItem(featureOrder, draggedFeatureId, targetId);
+    setFeatureOrder(nextOrder);
+    setDraggedFeatureId(null);
+    void persistFeatureOrder(nextOrder);
+  }
+
   return (
     <main className="relative min-h-[calc(100vh-3.5rem)] app-surface">
       <div className="absolute inset-0 hero-surface opacity-70" />
       <div className="absolute inset-0 soft-grain opacity-25" />
 
       <div className="relative mx-auto w-full max-w-7xl px-4 py-8">
+        {loading ? (
+          <PageLoadingView
+            label="A carregar painel"
+            detail="A preparar funcionalidades, sessoes e proximos eventos antes de mostrar o Painel."
+          />
+        ) : (
+          <>
         {errorMsg ? (
           <div className="mt-6 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             {errorMsg}
@@ -204,11 +381,23 @@ export default function PainelPage() {
                 Tudo acessível a partir daqui
               </h2>
             </div>
+            {savingOrder ? (
+              <div className="rounded-2xl border border-border/70 bg-background/70 px-4 py-2 text-sm text-muted-foreground">
+                A guardar ordem...
+              </div>
+            ) : null}
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {FEATURE_CARDS.map((card) => (
-              <FeatureCard key={card.href} {...card} />
+            {orderedFeatureCards.map((card) => (
+              <FeatureCard
+                key={card.id}
+                {...card}
+                draggable
+                onDragStart={handleDragStart}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+              />
             ))}
           </div>
         </section>
@@ -342,7 +531,8 @@ export default function PainelPage() {
             </Link>
           </div>
         </section>
-
+          </>
+        )}
       </div>
     </main>
   );
