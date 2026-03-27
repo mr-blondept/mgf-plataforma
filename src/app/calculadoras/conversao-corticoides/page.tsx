@@ -159,17 +159,17 @@ export default function ConversaoCorticoidesPage() {
               </span>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                  Conversao de corticoides
+                  Conversão de corticoides
                 </p>
                 <h1 className="font-display text-2xl font-semibold text-foreground">
-                  Glucocorticoides sistemicos
+                  Glucocorticoides sistémicos
                 </h1>
               </div>
             </div>
 
             <div className="mt-4 rounded-[1.5rem] border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              Conversao baseada na potencia anti-inflamatoria equivalente. Nao aplicar a
-              formulacoes topicas, inaladas, intra-articulares ou intramusculares.
+              Conversão baseada na potência anti-inflamatória equivalente. Não aplicar a
+              formulações tópicas, inaladas, intra-articulares ou intramusculares.
             </div>
 
             <div className="mt-6 grid gap-5">
@@ -300,7 +300,7 @@ export default function ConversaoCorticoidesPage() {
                 </div>
               ) : (
                 <div className="mt-5 rounded-[1.5rem] border border-dashed border-border/70 bg-background/55 p-5 text-sm text-muted-foreground">
-                  Escolhe os corticoides e introduz uma dose para obter a equivalencia.
+                  Escolhe os corticoides e introduz uma dose para obter a equivalência.
                 </div>
               )}
             </section>
@@ -311,12 +311,12 @@ export default function ConversaoCorticoidesPage() {
               </p>
               <div className="mt-4 space-y-3 text-sm leading-relaxed text-muted-foreground">
                 <p>
-                  A equivalencia usada reflete potencia glucocorticoide anti-inflamatoria, nao
-                  atividade mineralocorticoide.
+                  A equivalência usada reflete a potência glucocorticoide anti-inflamatória, não
+                  a atividade mineralocorticoide.
                 </p>
                 <p>
-                  Em doentes com uso cronico, doenca aguda ou necessidade de desmame, a dose final
-                  deve ser ajustada ao contexto clinico.
+                  Em doentes com uso crónico, doença aguda ou necessidade de desmame, a dose final
+                  deve ser ajustada ao contexto clínico.
                 </p>
               </div>
             </section>

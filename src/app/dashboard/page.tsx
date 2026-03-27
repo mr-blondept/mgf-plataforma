@@ -70,7 +70,7 @@ const FEATURE_CARDS = [
     id: "calculadoras",
     href: "/calculadoras",
     title: "Calculadoras",
-    description: "Dose pediatrica oral e futuras ferramentas clinicas.",
+    description: "Dose pediátrica oral e futuras ferramentas clínicas.",
     icon: Calculator,
     accent: "from-cyan-500/20 to-sky-500/5",
   },
@@ -361,7 +361,7 @@ export default function PainelPage() {
         {loading ? (
           <PageLoadingView
             label="A carregar painel"
-            detail="A preparar funcionalidades, sessoes e proximos eventos antes de mostrar o Painel."
+            detail="A preparar funcionalidades, sessões e próximos eventos antes de mostrar o Painel."
           />
         ) : (
           <>
@@ -446,7 +446,7 @@ export default function PainelPage() {
                       <p className="mt-1 text-sm text-muted-foreground">
                         {session.total_questions ?? 0} questões
                         {session.updated_at
-                          ? ` · atualizado a ${format(parseISO(session.updated_at), "d MMM, HH:mm", {
+                          ? ` · atualizado às ${format(parseISO(session.updated_at), "d MMM, HH:mm", {
                               locale: pt,
                             })}`
                           : ""}

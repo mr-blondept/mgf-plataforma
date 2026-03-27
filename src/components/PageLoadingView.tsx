@@ -10,7 +10,7 @@ type PageLoadingViewProps = {
 
 export default function PageLoadingView({
   label = "A carregar",
-  detail = "A preparar o conteudo para mostrar tudo de uma vez.",
+  detail = "A preparar o conteúdo para mostrar tudo de uma vez.",
   className,
   compact = false,
 }: PageLoadingViewProps) {

@@ -49,11 +49,11 @@ function classifyLdl(ldl: number, unit: Unit) {
   const valueMgDl = unit === "mg/dL" ? ldl : ldl * 38.67;
 
   if (valueMgDl < 100) {
-    return "Otimo";
+    return "Ótimo";
   }
 
   if (valueMgDl < 130) {
-    return "Quase otimo";
+    return "Quase ótimo";
   }
 
   if (valueMgDl < 160) {
@@ -135,7 +135,7 @@ export default function LdlPage() {
             </div>
 
             <div className="mt-4 rounded-[1.5rem] border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              Usa a formula de Friedewald. O resultado perde fiabilidade com trigliceridos altos.
+              Usa a fórmula de Friedewald. O resultado perde fiabilidade com triglicéridos altos.
             </div>
 
             <div className="mt-6 grid gap-5">
@@ -212,7 +212,7 @@ export default function LdlPage() {
 
               <label className="grid gap-2">
                 <span className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                  Trigliceridos
+                  Triglicéridos
                 </span>
                 <div className="flex items-center rounded-2xl border border-border/70 bg-secondary/60 px-4">
                   <input
@@ -257,13 +257,13 @@ export default function LdlPage() {
                       </span>
                     </p>
                     <p className="mt-2 text-sm text-muted-foreground">
-                      Classificacao: {results.classification}.
+                      Classificação: {results.classification}.
                     </p>
                   </div>
 
                   <div className="rounded-[1.5rem] border border-border/70 bg-background/60 p-4">
                     <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                      Colesterol nao-HDL
+                      Colesterol não-HDL
                     </p>
                     <p className="mt-2 text-xl font-semibold text-foreground">
                       {formatNumber(results.nonHdl)}
@@ -275,15 +275,15 @@ export default function LdlPage() {
 
                   {results.unreliable ? (
                     <div className="rounded-[1.5rem] border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                      Trigliceridos em {formatNumber(Number(form.triglycerides))} {form.unit}. A
-                      formula de Friedewald e menos fiavel a partir de {results.threshold}{" "}
+                      Triglicéridos em {formatNumber(Number(form.triglycerides))} {form.unit}. A
+                      fórmula de Friedewald é menos fiável a partir de {results.threshold}{" "}
                       {form.unit}; considera doseamento direto de LDL.
                     </div>
                   ) : null}
                 </div>
               ) : (
                 <div className="mt-5 rounded-[1.5rem] border border-dashed border-border/70 bg-background/55 p-5 text-sm text-muted-foreground">
-                  Introduz colesterol total, HDL e trigliceridos para calcular o LDL.
+                  Introduz colesterol total, HDL e triglicéridos para calcular o LDL.
                 </div>
               )}
             </section>
@@ -294,12 +294,12 @@ export default function LdlPage() {
               </p>
               <div className="mt-4 space-y-3 text-sm leading-relaxed text-muted-foreground">
                 <p>
-                  Em {form.unit}, LDL = colesterol total - HDL - trigliceridos /
+                  Em {form.unit}, LDL = colesterol total - HDL - triglicéridos /
                   {form.unit === "mg/dL" ? " 5" : " 2,2"}.
                 </p>
                 <p>
-                  A estimativa e classica e simples, mas pode subestimar o LDL quando os
-                  trigliceridos estao elevados.
+                  A estimativa é clássica e simples, mas pode subestimar o LDL quando os
+                  triglicéridos estão elevados.
                 </p>
               </div>
             </section>

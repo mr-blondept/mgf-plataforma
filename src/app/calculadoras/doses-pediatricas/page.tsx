@@ -425,7 +425,7 @@ export default function DosesPediatricasPage() {
                 </div>
               ) : (
                 <div className="mt-5 rounded-[1.5rem] border border-dashed border-border/70 bg-background/55 p-5 text-sm text-muted-foreground">
-                  Preenche os campos da esquerda para gerar o calculo.
+                  Preenche os campos da esquerda para gerar o cálculo.
                 </div>
               )}
             </section>

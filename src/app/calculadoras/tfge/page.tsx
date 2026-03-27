@@ -155,7 +155,7 @@ export default function TfgePage() {
             </div>
 
             <div className="mt-4 rounded-[1.5rem] border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              Uso em adultos com 18 ou mais anos. Esta equacao requer creatinina padronizada
+              Uso em adultos com 18 ou mais anos. Esta equação requer creatinina padronizada
               para IDMS.
             </div>
 
@@ -307,7 +307,7 @@ export default function TfgePage() {
               </p>
               <div className="mt-4 space-y-3 text-sm leading-relaxed text-muted-foreground">
                 <p>
-                  G1 e G2, isoladamente, nao confirmam DRC sem outros marcadores de lesao renal
+                  G1 e G2, isoladamente, não confirmam DRC sem outros marcadores de lesão renal
                   persistentes por pelo menos 3 meses.
                 </p>
               </div>

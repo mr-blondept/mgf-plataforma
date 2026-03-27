@@ -167,7 +167,7 @@ export default function ConversaoBenzodiazepinasPage() {
               </span>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                  Conversao de benzodiazepinas
+                  Conversão de benzodiazepinas
                 </p>
                 <h1 className="font-display text-2xl font-semibold text-foreground">
                   Equivalencia oral aproximada
@@ -176,8 +176,8 @@ export default function ConversaoBenzodiazepinasPage() {
             </div>
 
             <div className="mt-4 rounded-[1.5rem] border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              Conversoes entre benzodiazepinas sao aproximadas. A substituicao clinica deve ser
-              feita com precaucao, especialmente em idosos, insuficiencia hepatica e desmame.
+              Conversões entre benzodiazepinas são aproximadas. A substituição clínica deve ser
+              feita com precaução, especialmente em idosos, insuficiência hepática e desmame.
             </div>
 
             <div className="mt-6 grid gap-5">
@@ -314,7 +314,7 @@ export default function ConversaoBenzodiazepinasPage() {
                 </div>
               ) : (
                 <div className="mt-5 rounded-[1.5rem] border border-dashed border-border/70 bg-background/55 p-5 text-sm text-muted-foreground">
-                  Escolhe as benzodiazepinas e introduz uma dose para obter a equivalencia.
+                  Escolhe as benzodiazepinas e introduz uma dose para obter a equivalência.
                 </div>
               )}
             </section>
@@ -325,12 +325,12 @@ export default function ConversaoBenzodiazepinasPage() {
               </p>
               <div className="mt-4 space-y-3 text-sm leading-relaxed text-muted-foreground">
                 <p>
-                  Estas equivalencias sao baseadas em tabelas de referencia e opiniao experiente;
+                  Estas equivalências são baseadas em tabelas de referência e opinião experiente;
                   diferentes fontes podem divergir ligeiramente.
                 </p>
                 <p>
-                  Em trocas por seguranca ou desmame, costuma ser prudente arredondar por defeito e
-                  monitorizar sedacao, abstinencia e funcao respiratoria.
+                  Em trocas por segurança ou desmame, costuma ser prudente arredondar por defeito e
+                  monitorizar sedação, abstinência e função respiratória.
                 </p>
               </div>
             </section>

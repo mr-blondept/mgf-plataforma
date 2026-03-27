@@ -34,7 +34,7 @@ const factorDefinitions = [
   {
     key: "hypertension",
     label: "Hipertensao",
-    description: "Tratada ou nao tratada",
+    description: "Tratada ou não tratada",
   },
   {
     key: "diabetes",
@@ -128,7 +128,7 @@ function getRecommendation(score: number, sex: Sex) {
   if ((sex === "male" && score === 0) || (sex === "female" && score === 1)) {
     return {
       band: "Baixo risco",
-      summary: "Anticoagulacao oral geralmente nao indicada apenas com base no score.",
+      summary: "Anticoagulação oral geralmente não indicada apenas com base no score.",
       tone: "neutral" as const,
     };
   }
@@ -136,14 +136,14 @@ function getRecommendation(score: number, sex: Sex) {
   if ((sex === "male" && score === 1) || (sex === "female" && score === 2)) {
     return {
       band: "Risco intermédio",
-      summary: "Anticoagulacao oral pode ser considerada apos avaliacao individual.",
+      summary: "Anticoagulação oral pode ser considerada após avaliação individual.",
       tone: "warning" as const,
     };
   }
 
   return {
     band: "Risco elevado",
-    summary: "Anticoagulacao oral geralmente recomendada se nao houver contraindicacoes.",
+    summary: "Anticoagulação oral geralmente recomendada se não houver contraindicações.",
     tone: "high" as const,
   };
 }
@@ -185,8 +185,8 @@ export default function Cha2ds2VascPage() {
             </div>
 
             <div className="mt-4 rounded-[1.5rem] border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              Para fibrilhacao auricular nao valvular. O score estima risco tromboembolico, mas nao
-              substitui avaliacao de risco hemorragico e contexto clinico.
+              Para fibrilhação auricular não valvular. O score estima risco tromboembólico, mas não
+              substitui a avaliação do risco hemorrágico e o contexto clínico.
             </div>
 
             <div className="mt-6 grid gap-5">
@@ -297,9 +297,9 @@ export default function Cha2ds2VascPage() {
                           : "border-border/70 bg-background/60 text-foreground",
                     )}
                   >
-                    Em homens, anticoagulacao e geralmente recomendada a partir de 2 pontos. Em
-                    mulheres, a partir de 3 pontos; 1 ponto isolado por sexo feminino nao conta
-                    como indicacao autonoma.
+                    Em homens, a anticoagulação é geralmente recomendada a partir de 2 pontos. Em
+                    mulheres, a partir de 3 pontos; 1 ponto isolado por sexo feminino não conta
+                    como indicação autónoma.
                   </div>
 
                   <div className="rounded-[1.5rem] border border-border/70 bg-background/60 p-4">
@@ -336,9 +336,9 @@ export default function Cha2ds2VascPage() {
                 Componentes
               </p>
               <div className="mt-4 space-y-3 text-sm leading-relaxed text-muted-foreground">
-                <p>C: insuficiencia cardiaca, H: hipertensao, D: diabetes, V: doenca vascular.</p>
+                <p>C: insuficiência cardíaca, H: hipertensão, D: diabetes, V: doença vascular.</p>
                 <p>A idade vale 2 pontos se for 75 ou mais, e 1 ponto entre 65 e 74 anos.</p>
-                <p>S2 corresponde a AVC, AIT ou embolia previa e vale 2 pontos.</p>
+                <p>S2 corresponde a AVC, AIT ou embolia prévia e vale 2 pontos.</p>
               </div>
             </section>
           </div>

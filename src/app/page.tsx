@@ -23,35 +23,35 @@ const FEATURES = [
   {
     title: "Explorador ICPC-2",
     description:
-      "Pesquisa rapida de codigos e descricoes clinicas durante a consulta.",
+      "Pesquisa rápida de códigos e descrições clínicas durante a consulta.",
     icon: Search,
   },
   {
-    title: "Calculadoras Medicas",
+    title: "Calculadoras Médicas",
     description:
-      "Ferramentas clinicas essenciais reunidas num unico painel.",
+      "Ferramentas clínicas essenciais reunidas num único painel.",
     icon: Calculator,
   },
   {
-    title: "Calendario Clinico",
+    title: "Calendário Clínico",
     description:
       "Planeamento de atividades, guardas e objetivos de estudo.",
     icon: Calendar,
   },
   {
-    title: "Estatisticas e Progresso",
+    title: "Estatísticas e Progresso",
     description:
-      "Acompanha evolucao, pontos fortes e areas a reforcar.",
+      "Acompanha a evolução, os pontos fortes e as áreas a reforçar.",
     icon: BarChart3,
   },
   {
-    title: "Plano de Vacinacao",
+    title: "Plano de Vacinação",
     description:
       "Consulta interativa do PNV 2020 com esquema por idade e resumo das vacinas.",
     icon: Syringe,
   },
   {
-    title: "Progressao do Internato",
+    title: "Progressão do Internato",
     description:
       "Grelha detalhada de MGF 1, MGF 2 e MGF 3 com progresso pessoal guardado por utilizador.",
     icon: GraduationCap,
@@ -73,7 +73,7 @@ export default function HomePage() {
             </h1>
 
             <p className="mx-auto max-w-xl text-base leading-8 text-muted-foreground sm:text-lg lg:mx-0">
-              Um espaco unico para estudar, consultar ferramentas clinicas e organizar o percurso.
+              Um espaço único para estudar, consultar ferramentas clínicas e organizar o percurso.
             </p>
 
             <div className="flex items-center justify-center lg:justify-start">

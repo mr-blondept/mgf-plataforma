@@ -17,25 +17,25 @@ const questions = [
     key: "cutDown",
     letter: "C",
     title: "Cut down",
-    question: "Alguma vez sentiu que devia reduzir o consumo de alcool?",
+    question: "Alguma vez sentiu que devia reduzir o consumo de álcool?",
   },
   {
     key: "annoyed",
     letter: "A",
     title: "Annoyed",
-    question: "As criticas de outras pessoas ao seu consumo de alcool ja o incomodaram?",
+    question: "As críticas de outras pessoas ao seu consumo de álcool já o incomodaram?",
   },
   {
     key: "guilty",
     letter: "G",
     title: "Guilty",
-    question: "Alguma vez se sentiu mal ou culpado em relacao ao seu consumo de alcool?",
+    question: "Alguma vez se sentiu mal ou culpado em relação ao seu consumo de álcool?",
   },
   {
     key: "eyeOpener",
     letter: "E",
     title: "Eye-opener",
-    question: "Alguma vez precisou de beber logo de manha para acalmar os nervos ou aliviar a ressaca?",
+    question: "Alguma vez precisou de beber logo de manhã para acalmar os nervos ou aliviar a ressaca?",
   },
 ] as const satisfies ReadonlyArray<{
   key: keyof FormState;
@@ -55,7 +55,7 @@ function interpretScore(score: number) {
   if (score <= 1) {
     return {
       label: "Baixa suspeita",
-      description: "Um resultado de 0-1 nao sugere fortemente dependencia alcoolica pelo CAGE.",
+      description: "Um resultado de 0-1 não sugere fortemente dependência alcoólica pelo CAGE.",
       tone: "neutral" as const,
     };
   }
@@ -63,14 +63,14 @@ function interpretScore(score: number) {
   if (score <= 3) {
     return {
       label: "Suspeita aumentada",
-      description: "Um score de 2-3 sugere elevada suspeita e justifica avaliacao adicional.",
+      description: "Um score de 2-3 sugere elevada suspeita e justifica avaliação adicional.",
       tone: "warning" as const,
     };
   }
 
   return {
     label: "Muito sugestivo",
-    description: "Um score de 4 e altamente sugestivo de problema relacionado com alcool.",
+    description: "Um score de 4 é altamente sugestivo de problema relacionado com álcool.",
     tone: "high" as const,
   };
 }
@@ -117,14 +117,14 @@ export default function CagePage() {
                   CAGE
                 </p>
                 <h1 className="font-display text-2xl font-semibold text-foreground">
-                  Uso de alcool
+                  Uso de álcool
                 </h1>
               </div>
             </div>
 
             <div className="mt-4 rounded-[1.5rem] border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              Ferramenta breve de rastreio. Nao estabelece diagnostico e deve ser interpretada no
-              contexto clinico.
+              Ferramenta breve de rastreio. Não estabelece diagnóstico e deve ser interpretada no
+              contexto clínico.
             </div>
 
             <div className="mt-6 grid gap-4">
@@ -158,7 +158,7 @@ export default function CagePage() {
                           : "border-border/70 bg-background/80 text-muted-foreground hover:border-foreground/40",
                       )}
                     >
-                      {form[item.key] ? "Sim" : "Nao"}
+                      {form[item.key] ? "Sim" : "Não"}
                     </button>
                   </div>
                 </div>
@@ -221,7 +221,7 @@ export default function CagePage() {
 
             <section className="rounded-[2rem] border border-border/70 bg-card/80 p-6 shadow-sm backdrop-blur">
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                Nota clinica
+                Nota clínica
               </p>
               <div className="mt-4 space-y-3 text-sm leading-relaxed text-muted-foreground">
                 <p>
@@ -229,8 +229,8 @@ export default function CagePage() {
                   atual sem consequencias aparentes.
                 </p>
                 <p>
-                  Se o rastreio for positivo, deve seguir-se avaliacao adicional com historia
-                  clinica e instrumento complementar apropriado.
+                  Se o rastreio for positivo, deve seguir-se avaliação adicional com história
+                  clínica e instrumento complementar apropriado.
                 </p>
               </div>
             </section>

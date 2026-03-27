@@ -81,7 +81,7 @@ export default function AppHeader() {
   ];
   const primaryLinks = [
     { href: "/treino", label: "Banco de Perguntas", icon: BookOpenCheck, hint: "Treino e simulados" },
-    { href: "/icpc2", label: "ICPC-2", icon: Search, hint: "Pesquisa clinica" },
+    { href: "/icpc2", label: "ICPC-2", icon: Search, hint: "Pesquisa clínica" },
     { href: "/calculadoras", label: "Calculadoras", icon: Calculator, hint: "Ferramentas" },
     { href: "/vacinacao", label: "Vacinação", icon: Syringe, hint: "PNV" },
     { href: "/calendario", label: "Calendário", icon: CalendarDays, hint: "Agenda" },

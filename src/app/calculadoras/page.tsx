@@ -52,7 +52,7 @@ const calculators: CalculatorItem[] = [
     id: "doses-pediatricas",
     href: "/calculadoras/doses-pediatricas",
     title: "Doses pediátricas",
-    description: "Calculo de dose oral por peso, frequencia, concentracao e limite maximo.",
+    description: "Cálculo de dose oral por peso, frequência, concentração e limite máximo.",
     category: "pediatria",
     icon: Syringe,
     gradientClassName: "from-sky-500/20 to-cyan-500/5",
@@ -61,7 +61,7 @@ const calculators: CalculatorItem[] = [
     id: "tfge",
     href: "/calculadoras/tfge",
     title: "TFGe",
-    description: "CKD-EPI creatinina 2021 para estimativa da taxa de filtracao glomerular.",
+    description: "CKD-EPI creatinina 2021 para estimativa da taxa de filtração glomerular.",
     category: "nefrologia",
     icon: Activity,
     gradientClassName: "from-emerald-500/18 to-cyan-500/5",
@@ -70,7 +70,7 @@ const calculators: CalculatorItem[] = [
     id: "ldl",
     href: "/calculadoras/ldl",
     title: "LDL",
-    description: "Calcula LDL pela formula de Friedewald a partir de colesterol total, HDL e trigliceridos.",
+    description: "Calcula LDL pela fórmula de Friedewald a partir de colesterol total, HDL e triglicéridos.",
     category: "cardiologia",
     icon: HeartPulse,
     gradientClassName: "from-rose-500/16 to-orange-500/5",
@@ -79,7 +79,7 @@ const calculators: CalculatorItem[] = [
     id: "cha2ds2-vasc",
     href: "/calculadoras/cha2ds2-vasc",
     title: "CHA2DS2-VASc",
-    description: "Estratificacao do risco tromboembolico na fibrilhacao auricular nao valvular.",
+    description: "Estratificação do risco tromboembólico na fibrilhação auricular não valvular.",
     category: "cardiologia",
     icon: ShieldPlus,
     gradientClassName: "from-violet-500/14 to-fuchsia-500/5",
@@ -88,7 +88,7 @@ const calculators: CalculatorItem[] = [
     id: "imc",
     href: "/calculadoras/imc",
     title: "IMC",
-    description: "Indice de massa corporal com peso em quilogramas e altura em centimetros.",
+    description: "Índice de massa corporal com peso em quilogramas e altura em centímetros.",
     category: "medicina-geral",
     icon: Scale,
     gradientClassName: "from-lime-500/16 to-emerald-500/5",
@@ -96,8 +96,8 @@ const calculators: CalculatorItem[] = [
   {
     id: "conversao-corticoides",
     href: "/calculadoras/conversao-corticoides",
-    title: "Conversao de corticoides",
-    description: "Converte doses equivalentes entre glucocorticoides sistemicos por potencia anti-inflamatoria.",
+    title: "Conversão de corticoides",
+    description: "Converte doses equivalentes entre glucocorticoides sistémicos por potência anti-inflamatória.",
     category: "farmacologia",
     icon: Pill,
     gradientClassName: "from-amber-500/16 to-yellow-500/5",
@@ -106,7 +106,7 @@ const calculators: CalculatorItem[] = [
     id: "cage",
     href: "/calculadoras/cage",
     title: "CAGE",
-    description: "Questionario breve de rastreio para consumo problematico de alcool.",
+    description: "Questionário breve de rastreio para consumo problemático de álcool.",
     category: "saude-mental",
     icon: CircleHelp,
     gradientClassName: "from-red-500/14 to-amber-500/5",
@@ -114,7 +114,7 @@ const calculators: CalculatorItem[] = [
   {
     id: "conversao-benzodiazepinas",
     href: "/calculadoras/conversao-benzodiazepinas",
-    title: "Conversao de benzodiazepinas",
+    title: "Conversão de benzodiazepinas",
     description: "Estima doses orais equivalentes entre benzodiazepinas de uso habitual.",
     category: "farmacologia",
     icon: Waves,
@@ -128,7 +128,7 @@ const categories: Array<{ id: CategoryId; title: string }> = [
   { id: "pediatria", title: "Pediatria" },
   { id: "medicina-geral", title: "Medicina Geral" },
   { id: "farmacologia", title: "Farmacologia" },
-  { id: "saude-mental", title: "Saude Mental e Dependencias" },
+  { id: "saude-mental", title: "Saúde Mental e Dependências" },
 ];
 
 function sortByStoredOrder(items: CalculatorItem[], order: CalculatorId[]) {
@@ -318,7 +318,7 @@ export default function CalculadorasPage() {
 
       if (error) {
         setErrorMsg(
-          "Nao foi possivel carregar as preferencias das calculadoras. Se a tabela ainda nao existir, corre o SQL desta funcionalidade.",
+          "Não foi possível carregar as preferências das calculadoras. Se a tabela ainda não existir, corre o SQL desta funcionalidade.",
         );
         setLoadingPreferences(false);
         return;
@@ -369,7 +369,7 @@ export default function CalculadorasPage() {
     );
 
     if (error) {
-      setErrorMsg("Nao foi possivel guardar a ordem ou os favoritos das calculadoras.");
+      setErrorMsg("Não foi possível guardar a ordem ou os favoritos das calculadoras.");
     }
 
     setSavingPreferences(false);
@@ -456,7 +456,7 @@ export default function CalculadorasPage() {
         {loadingPreferences ? (
           <PageLoadingView
             label="A carregar calculadoras"
-            detail="A recuperar favoritos e a tua organizacao personalizada."
+            detail="A recuperar favoritos e a tua organização personalizada."
           />
         ) : (
         <section className="space-y-8">
@@ -508,8 +508,8 @@ export default function CalculadorasPage() {
             ) : (
               <div className="mt-6 rounded-[1.5rem] border border-dashed border-border/70 bg-background/55 p-5 text-sm text-muted-foreground">
                 {loadingPreferences
-                  ? "A carregar as tuas preferencias..."
-                  : "Ainda nao tens favoritas. Clica na estrela de qualquer calculadora para a fixares aqui."}
+                  ? "A carregar as tuas preferências..."
+                  : "Ainda não tens favoritas. Clica na estrela de qualquer calculadora para a fixares aqui."}
               </div>
             )}
           </div>

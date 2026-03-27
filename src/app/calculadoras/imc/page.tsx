@@ -32,7 +32,7 @@ function classifyBmi(bmi: number) {
 
   if (bmi < 25) {
     return {
-      label: "Peso saudavel",
+      label: "Peso saudável",
       description: "Entre 18,5 e 24,9 kg/m²",
       tone: "good" as const,
     };
@@ -123,13 +123,13 @@ export default function ImcPage() {
                   IMC
                 </p>
                 <h1 className="font-display text-2xl font-semibold text-foreground">
-                  Indice de massa corporal
+                  Índice de massa corporal
                 </h1>
               </div>
             </div>
 
             <div className="mt-4 rounded-[1.5rem] border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              Calculadora para adultos com peso em quilogramas e altura em centimetros.
+              Calculadora para adultos com peso em quilogramas e altura em centímetros.
             </div>
 
             <div className="mt-6 grid gap-5">
@@ -186,7 +186,7 @@ export default function ImcPage() {
                 <div className="mt-5 space-y-4">
                   <div className="rounded-[1.5rem] border border-primary/20 bg-primary/8 p-5">
                     <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                      Indice de massa corporal
+                      Índice de massa corporal
                     </p>
                     <p className="mt-2 text-3xl font-semibold text-foreground">
                       {formatNumber(results.bmi)}
@@ -195,7 +195,7 @@ export default function ImcPage() {
                       </span>
                     </p>
                     <p className="mt-2 text-sm text-muted-foreground">
-                      Classificacao: {results.classification.label}.
+                      Classificação: {results.classification.label}.
                     </p>
                   </div>
 
@@ -227,8 +227,8 @@ export default function ImcPage() {
               <div className="mt-4 space-y-3 text-sm leading-relaxed text-muted-foreground">
                 <p>IMC = peso em kg / (altura em metros × altura em metros).</p>
                 <p>
-                  O IMC e uma medida de rastreio e deve ser interpretado em conjunto com o contexto
-                  clinico.
+                  O IMC é uma medida de rastreio e deve ser interpretado em conjunto com o contexto
+                  clínico.
                 </p>
               </div>
             </section>

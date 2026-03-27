@@ -12,27 +12,45 @@ const modalContent = {
     icon: Users,
     eyebrow: "Sobre",
     title: "MediFam",
-    body:
-      "Plataforma focada em apoiar o estudo, a organização e a prática diária em Medicina Geral e Familiar.",
+    body: [
+      "Esta plataforma nasceu de uma necessidade real: a de ter, num só lugar, as ferramentas que fazem falta no dia a dia do internato e da consulta de medicina geral e familiar.",
+      "Sabemos o que é estudar para o exame sem saber por onde começar. Sabemos o que é estar numa consulta e precisar de confirmar um código ICPC-2 ou verificar o esquema vacinal de um doente. Sabemos o que é querer acompanhar o próprio progresso sem perder tempo com folhas de cálculo.",
+      "Por isso criámos esta plataforma como uma ferramenta pensada por e para quem vive a MGF todos os dias.",
+      "Seja interno a dar os primeiros passos, médico de família experiente, estudante de medicina a descobrir a especialidade, ou docente a acompanhar os seus formandos - aqui encontras o que precisas, quando precisas.",
+      "Porque a medicina de família merece ferramentas à sua altura.",
+    ],
     ctaLabel: "Fechar",
   },
   join: {
     icon: Mail,
     eyebrow: "Junta-te a nós",
     title: "Queres colaborar?",
-    body:
+    body: [
       "Se quiseres contribuir com ideias, conteúdos ou feedback, entra em contacto connosco para avaliarmos novas colaborações.",
+    ],
     ctaLabel: "Percebi",
   },
   report: {
     icon: TriangleAlert,
     eyebrow: "Reporta um erro",
     title: "Encontraste um problema?",
-    body:
+    body: [
       "Envia uma descrição breve do que aconteceu, em que página estavas e, se possível, os passos para reproduzir o erro.",
+    ],
     ctaLabel: "Fechar",
   },
 } as const;
+
+const collaborationAreas = [
+  "Perguntas e treino",
+  "Calculadoras clínicas",
+  "ICPC-2 e apoio a consulta",
+  "Vacinação e PNV",
+  "Conteúdos de internato",
+  "UX / produto",
+  "Correção de erros",
+  "Parcerias e docencia",
+] as const;
 
 export default function AppFooter() {
   const [activeModal, setActiveModal] = useState<FooterModalKey>(null);
@@ -41,6 +59,9 @@ export default function AppFooter() {
     "idle"
   );
   const [reportError, setReportError] = useState<string | null>(null);
+  const [joinAreas, setJoinAreas] = useState<string[]>([]);
+  const [joinStatus, setJoinStatus] = useState<"idle" | "sending" | "sent">("idle");
+  const [joinError, setJoinError] = useState<string | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -63,6 +84,9 @@ export default function AppFooter() {
     setReportMessage("");
     setReportError(null);
     setReportStatus("idle");
+    setJoinAreas([]);
+    setJoinError(null);
+    setJoinStatus("idle");
   }
 
   function closeModal() {
@@ -70,6 +94,9 @@ export default function AppFooter() {
     setReportMessage("");
     setReportError(null);
     setReportStatus("idle");
+    setJoinAreas([]);
+    setJoinError(null);
+    setJoinStatus("idle");
   }
 
   async function handleSubmitReport(event: React.FormEvent<HTMLFormElement>) {
@@ -101,32 +128,80 @@ export default function AppFooter() {
     setReportMessage("");
   }
 
+  async function handleSubmitJoin(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (joinAreas.length === 0) {
+      setJoinError("Seleciona pelo menos uma área.");
+      return;
+    }
+
+    setJoinStatus("sending");
+    setJoinError(null);
+
+    const response = await fetch("/api/join-platform", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        areas: joinAreas,
+        pathname,
+      }),
+    });
+
+    const data = (await response.json()) as { error?: string };
+
+    if (!response.ok) {
+      setJoinError(data.error ?? "Não foi possível enviar o pedido.");
+      setJoinStatus("idle");
+      return;
+    }
+
+    setJoinStatus("sent");
+    setJoinAreas([]);
+  }
+
+  function toggleJoinArea(area: string) {
+    setJoinAreas((current) =>
+      current.includes(area)
+        ? current.filter((item) => item !== area)
+        : [...current, area],
+    );
+  }
+
   return (
     <>
       <footer className="border-t border-border/70 bg-background/70 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-5 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground/80">
-            MediFam
-          </p>
-          <div className="flex flex-wrap items-center gap-4 sm:justify-end">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-5 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground/80">
+              MediFam
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Ferramenta pensada para Medicina Geral e Familiar.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
             <button
               type="button"
               onClick={() => openModal("about")}
-              className="transition-colors hover:text-foreground"
+              className="rounded-full border border-border/70 bg-card/70 px-3 py-2 text-sm font-medium transition hover:border-foreground/20 hover:bg-secondary/70 hover:text-foreground"
             >
               Sobre
             </button>
             <button
               type="button"
               onClick={() => openModal("join")}
-              className="transition-colors hover:text-foreground"
+              className="rounded-full border border-border/70 bg-card/70 px-3 py-2 text-sm font-medium transition hover:border-foreground/20 hover:bg-secondary/70 hover:text-foreground"
             >
               Junta-te a nós
             </button>
             <button
               type="button"
               onClick={() => openModal("report")}
-              className="transition-colors hover:text-foreground"
+              className="rounded-full border border-border/70 bg-card/70 px-3 py-2 text-sm font-medium transition hover:border-foreground/20 hover:bg-secondary/70 hover:text-foreground"
             >
               Reporta um erro
             </button>
@@ -143,6 +218,8 @@ export default function AppFooter() {
             onClick={closeModal}
           />
           <div className="relative w-full max-w-md overflow-hidden rounded-[2rem] border border-border/70 bg-background p-6 shadow-2xl sm:p-7">
+            <div className="absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.14),transparent_42%),radial-gradient(circle_at_top_right,rgba(20,184,166,0.12),transparent_38%)]" />
+
             <button
               type="button"
               aria-label="Fechar"
@@ -152,7 +229,7 @@ export default function AppFooter() {
               <X className="h-4 w-4" />
             </button>
 
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
               <currentModal.icon className="h-5 w-5" />
             </div>
             <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
@@ -161,11 +238,16 @@ export default function AppFooter() {
             <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight text-foreground">
               {currentModal.title}
             </h2>
+
             {activeModal === "report" ? (
               <form className="mt-4 space-y-4" onSubmit={handleSubmitReport}>
-                <p className="text-sm leading-6 text-muted-foreground">
-                  {currentModal.body}
-                </p>
+                <div className="space-y-3">
+                  {currentModal.body.map((paragraph) => (
+                    <p key={paragraph} className="text-sm leading-6 text-muted-foreground">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
                 <textarea
                   value={reportMessage}
                   onChange={(event) => setReportMessage(event.target.value)}
@@ -204,11 +286,82 @@ export default function AppFooter() {
                   </button>
                 </div>
               </form>
+            ) : activeModal === "join" ? (
+              <form className="mt-4 space-y-4" onSubmit={handleSubmitJoin}>
+                <div className="space-y-3">
+                  {currentModal.body.map((paragraph) => (
+                    <p key={paragraph} className="text-sm leading-6 text-muted-foreground">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+
+                <div className="grid gap-2">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                    Áreas de interesse
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {collaborationAreas.map((area) => {
+                      const selected = joinAreas.includes(area);
+
+                      return (
+                        <button
+                          key={area}
+                          type="button"
+                          onClick={() => toggleJoinArea(area)}
+                          className={cn(
+                            "rounded-full border px-3 py-2 text-sm font-medium transition",
+                            selected
+                              ? "border-primary bg-primary/10 text-foreground"
+                              : "border-border/70 bg-card/70 text-muted-foreground hover:border-foreground/20 hover:text-foreground",
+                          )}
+                        >
+                          {area}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {joinError ? (
+                  <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                    {joinError}
+                  </div>
+                ) : null}
+                {joinStatus === "sent" ? (
+                  <div className="rounded-xl border border-emerald-300/40 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                    Pedido enviado com sucesso. Vamos analisar as áreas que escolheste.
+                  </div>
+                ) : null}
+
+                <div className="flex gap-3">
+                  <button
+                    type="submit"
+                    disabled={joinStatus === "sending"}
+                    className={cn(
+                      "inline-flex h-11 items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:opacity-50"
+                    )}
+                  >
+                    {joinStatus === "sending" ? "A enviar..." : "Enviar interesse"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="inline-flex h-11 items-center justify-center rounded-xl border border-border/70 px-5 text-sm font-semibold text-foreground transition hover:bg-secondary/80"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
             ) : (
               <>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                  {currentModal.body}
-                </p>
+                <div className="mt-3 space-y-3">
+                  {currentModal.body.map((paragraph) => (
+                    <p key={paragraph} className="text-sm leading-6 text-muted-foreground">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
 
                 <div className="mt-6">
                   <button
