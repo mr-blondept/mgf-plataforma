@@ -2,6 +2,10 @@
 
 /* Palette: neo_sky */
 :root {
+  --font-space-grotesk:
+    "Avenir Next", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-sora:
+    "Avenir Next", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --background: #f6f7fb;
   --foreground: #0f172a;
   --card: #ffffff;

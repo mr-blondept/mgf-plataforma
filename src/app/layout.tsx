@@ -1,20 +1,9 @@
 import type { Metadata } from "next";
-import { Sora, Space_Grotesk } from "next/font/google";
 import Script from "next/script";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import AppHeader from "@/components/AppHeader";
 import AppFooter from "@/components/AppFooter";
 import "./globals.css";
-
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
-  subsets: ["latin"],
-});
-
-const sora = Sora({
-  variable: "--font-sora",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "MediFam - Plataforma de estudo",
@@ -79,9 +68,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/favicon.svg" />
         <script dangerouslySetInnerHTML={{ __html: unsupportedBrowserScript }} />
       </head>
-      <body
-        className={`${spaceGrotesk.variable} ${sora.variable} min-h-screen app-surface`}
-      >
+      <body className="min-h-screen app-surface">
         <div
           id="unsupported-browser"
           style={{ display: "none" }}

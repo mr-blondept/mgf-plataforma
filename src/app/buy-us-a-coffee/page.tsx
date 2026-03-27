@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, Coffee, HeartHandshake } from "lucide-react";
@@ -13,7 +13,7 @@ const donationOptions = [
   { amountCents: 2000, label: "20 €", hint: "Grande incentivo" },
 ] as const;
 
-export default function BuyUsACoffeePage() {
+function BuyUsACoffeeContent() {
   const searchParams = useSearchParams();
   const [selectedAmount, setSelectedAmount] = useState<number>(500);
   const [status, setStatus] = useState<"idle" | "sending">("idle");
@@ -166,5 +166,25 @@ export default function BuyUsACoffeePage() {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function BuyUsACoffeePage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="relative min-h-[calc(100vh-3.5rem)] app-surface">
+          <div className="absolute inset-0 hero-surface opacity-70" />
+          <div className="absolute inset-0 soft-grain opacity-25" />
+          <div className="relative mx-auto w-full max-w-5xl px-4 py-8">
+            <div className="rounded-[2rem] border border-border/70 bg-card/80 p-6 shadow-sm backdrop-blur">
+              <p className="text-sm text-muted-foreground">A preparar página de apoio...</p>
+            </div>
+          </div>
+        </main>
+      }
+    >
+      <BuyUsACoffeeContent />
+    </Suspense>
   );
 }
