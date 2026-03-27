@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Mail, TriangleAlert, Users, X } from "lucide-react";
+import { Coffee, Mail, TriangleAlert, Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type FooterModalKey = "about" | "join" | "report" | null;
@@ -183,41 +184,49 @@ export default function AppFooter() {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+          <div className="flex flex-wrap items-stretch gap-2 sm:justify-end">
             <button
               type="button"
               onClick={() => openModal("about")}
-              className="rounded-full border border-border/70 bg-card/70 px-3 py-2 text-sm font-medium transition hover:border-foreground/20 hover:bg-secondary/70 hover:text-foreground"
+              className="min-h-10 rounded-full border border-border/70 bg-card/70 px-3 py-2 text-sm font-medium transition hover:border-foreground/20 hover:bg-secondary/70 hover:text-foreground max-sm:flex-1"
             >
               Sobre
             </button>
             <button
               type="button"
               onClick={() => openModal("join")}
-              className="rounded-full border border-border/70 bg-card/70 px-3 py-2 text-sm font-medium transition hover:border-foreground/20 hover:bg-secondary/70 hover:text-foreground"
+              className="min-h-10 rounded-full border border-border/70 bg-card/70 px-3 py-2 text-sm font-medium transition hover:border-foreground/20 hover:bg-secondary/70 hover:text-foreground max-sm:flex-1"
             >
               Junta-te a nós
             </button>
             <button
               type="button"
               onClick={() => openModal("report")}
-              className="rounded-full border border-border/70 bg-card/70 px-3 py-2 text-sm font-medium transition hover:border-foreground/20 hover:bg-secondary/70 hover:text-foreground"
+              className="min-h-10 rounded-full border border-border/70 bg-card/70 px-3 py-2 text-sm font-medium transition hover:border-foreground/20 hover:bg-secondary/70 hover:text-foreground max-sm:flex-1"
             >
               Reporta um erro
             </button>
+            <Link
+              href="/buy-us-a-coffee"
+              aria-label="Apoiar o MediFam"
+              title="Apoiar o MediFam"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-card/70 text-muted-foreground transition hover:border-amber-700/30 hover:bg-amber-50 hover:text-amber-800"
+            >
+              <Coffee className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </footer>
 
       {currentModal ? (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center px-4 py-8">
+        <div className="fixed inset-0 z-[70] overflow-y-auto px-4 py-4 sm:flex sm:items-center sm:justify-center sm:py-8">
           <button
             type="button"
             aria-label="Fechar modal"
             className="absolute inset-0 bg-slate-950/45 backdrop-blur-[3px]"
             onClick={closeModal}
           />
-          <div className="relative w-full max-w-md overflow-hidden rounded-[2rem] border border-border/70 bg-background p-6 shadow-2xl sm:p-7">
+          <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-[2rem] border border-border/70 bg-background p-5 shadow-2xl sm:p-7">
             <div className="absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.14),transparent_42%),radial-gradient(circle_at_top_right,rgba(20,184,166,0.12),transparent_38%)]" />
 
             <button

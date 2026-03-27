@@ -223,7 +223,7 @@ function CalculatorCard({
       onDragOver={onDragOver ? (event) => onDragOver(event, item.id) : undefined}
       onDrop={onDrop ? (event) => onDrop(event, item.id) : undefined}
       className={cn(
-        "group relative overflow-hidden rounded-[1.75rem] border border-border/70 bg-card/80 p-5 shadow-sm transition hover:-translate-y-1 hover:border-foreground/30 hover:bg-card cursor-pointer",
+        "group relative cursor-pointer overflow-hidden rounded-[1.75rem] border border-border/70 bg-card/80 p-4 shadow-sm transition hover:-translate-y-1 hover:border-foreground/30 hover:bg-card sm:p-5",
       )}
     >
       <div className={cn("absolute inset-0 bg-gradient-to-br opacity-80", item.gradientClassName)} />
@@ -270,7 +270,7 @@ function CalculatorCard({
         </div>
       </div>
 
-      <div className="relative z-10 mt-5">
+      <div className="relative z-10 mt-4 sm:mt-5">
         <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
           {categoryTitle}
         </p>
@@ -452,7 +452,7 @@ export default function CalculadorasPage() {
       <div className="absolute inset-0 hero-surface opacity-70" />
       <div className="absolute inset-0 soft-grain opacity-25" />
 
-      <div className="relative mx-auto w-full max-w-7xl px-4 py-8">
+      <div className="relative mx-auto w-full max-w-7xl px-4 py-6 sm:py-8">
         {loadingPreferences ? (
           <PageLoadingView
             label="A carregar calculadoras"
@@ -460,8 +460,8 @@ export default function CalculadorasPage() {
           />
         ) : (
         <section className="space-y-8">
-          <div className="rounded-[2rem] border border-border/70 bg-card/80 p-6 shadow-sm backdrop-blur">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="rounded-[2rem] border border-border/70 bg-card/80 p-5 shadow-sm backdrop-blur sm:p-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
               <div>
                 <h1 className="font-display text-2xl font-semibold text-foreground">Favoritos</h1>
               </div>
@@ -514,7 +514,7 @@ export default function CalculadorasPage() {
             )}
           </div>
 
-          <section className="rounded-[2rem] border border-border/70 bg-card/70 p-6 shadow-sm backdrop-blur">
+          <section className="rounded-[2rem] border border-border/70 bg-card/70 p-5 shadow-sm backdrop-blur sm:p-6">
             <div className="mb-5">
               <h2 className="font-display text-2xl font-semibold text-foreground">
                 Todas as calculadoras

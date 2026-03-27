@@ -61,25 +61,25 @@ const FEATURES = [
 export default function HomePage() {
   return (
     <main className="min-h-[calc(100vh-3.5rem)] app-surface">
-      <section className="relative overflow-hidden px-4 pb-10 pt-12 sm:pb-14 sm:pt-16">
+      <section className="relative overflow-hidden px-4 pb-10 pt-10 sm:pb-14 sm:pt-16">
         <div className="absolute inset-0 hero-surface opacity-70" />
         <div className="absolute inset-0 soft-grain opacity-30" />
         <div className="absolute left-1/2 top-12 h-56 w-56 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
 
         <div className="relative mx-auto grid max-w-6xl gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,320px)] lg:items-center">
-          <div className="space-y-6 text-center lg:text-left">
-            <h1 className="font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+          <div className="space-y-5 text-center lg:text-left">
+            <h1 className="font-display text-[2.15rem] font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
               Plataforma para acompanhar o MGF.
             </h1>
 
-            <p className="mx-auto max-w-xl text-base leading-8 text-muted-foreground sm:text-lg lg:mx-0">
+            <p className="mx-auto max-w-xl text-sm leading-7 text-muted-foreground sm:text-lg lg:mx-0">
               Um espaço único para estudar, consultar ferramentas clínicas e organizar o percurso.
             </p>
 
             <div className="flex items-center justify-center lg:justify-start">
               <Link
                 href="/auth"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-primary-foreground shadow-md transition-all hover:bg-primary/90"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-primary-foreground shadow-md transition-all hover:bg-primary/90"
               >
                 Entrar
                 <ArrowRight className="h-4 w-4" />
@@ -108,7 +108,7 @@ export default function HomePage() {
             {FEATURES.map((feature) => (
               <article
                 key={feature.title}
-                className="rounded-2xl border border-border/70 bg-card/85 p-5 shadow-sm backdrop-blur"
+                className="rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm backdrop-blur sm:p-5"
               >
                 <div className="flex items-start gap-4">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-secondary/80 text-primary">

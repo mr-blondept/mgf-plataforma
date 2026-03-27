@@ -198,7 +198,7 @@ function FeatureCard({
       onClick={() => router.push(href)}
       onDragOver={onDragOver ? (event) => onDragOver(event, id) : undefined}
       onDrop={onDrop ? (event) => onDrop(event, id) : undefined}
-      className="group relative overflow-hidden rounded-[1.75rem] border border-border/70 bg-card/80 p-5 shadow-sm transition hover:-translate-y-1 hover:border-foreground/30 hover:bg-card"
+      className="group relative overflow-hidden rounded-[1.75rem] border border-border/70 bg-card/80 p-4 shadow-sm transition hover:-translate-y-1 hover:border-foreground/30 hover:bg-card sm:p-5"
     >
       <div className={cn("absolute inset-0 bg-gradient-to-br opacity-80", accent)} />
       <div className="absolute inset-0 soft-grain opacity-20" />
@@ -225,7 +225,7 @@ function FeatureCard({
           <ArrowUpRight className="h-4 w-4 text-muted-foreground transition group-hover:text-foreground" />
         </div>
       </div>
-      <div className="relative z-10 mt-5">
+      <div className="relative z-10 mt-4 sm:mt-5">
         <h2 className="text-lg font-semibold text-foreground">{title}</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           {description}
@@ -357,7 +357,7 @@ export default function PainelPage() {
       <div className="absolute inset-0 hero-surface opacity-70" />
       <div className="absolute inset-0 soft-grain opacity-25" />
 
-      <div className="relative mx-auto w-full max-w-7xl px-4 py-8">
+      <div className="relative mx-auto w-full max-w-7xl px-4 py-6 sm:py-8">
         {loading ? (
           <PageLoadingView
             label="A carregar painel"
@@ -371,8 +371,8 @@ export default function PainelPage() {
           </div>
         ) : null}
 
-        <section className="mt-8">
-          <div className="mb-4 flex items-center justify-between gap-3">
+        <section className="mt-6 sm:mt-8">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
                 Funcionalidades
@@ -403,7 +403,7 @@ export default function PainelPage() {
         </section>
 
         <section className="mt-8 grid gap-6 xl:grid-cols-2">
-          <div className="rounded-[2rem] border border-border/70 bg-card/80 p-6 shadow-sm backdrop-blur">
+          <div className="rounded-[2rem] border border-border/70 bg-card/80 p-5 shadow-sm backdrop-blur sm:p-6">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
@@ -466,7 +466,7 @@ export default function PainelPage() {
             </Link>
           </div>
 
-          <div className="rounded-[2rem] border border-border/70 bg-card/80 p-6 shadow-sm backdrop-blur">
+          <div className="rounded-[2rem] border border-border/70 bg-card/80 p-5 shadow-sm backdrop-blur sm:p-6">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
@@ -497,7 +497,7 @@ export default function PainelPage() {
                   return (
                     <div
                       key={event.id}
-                      className="flex items-center justify-between gap-4 rounded-[1.5rem] border border-border/70 bg-background/60 px-4 py-4"
+                      className="flex flex-col gap-3 rounded-[1.5rem] border border-border/70 bg-background/60 px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
                     >
                       <div className="flex items-center gap-4">
                         <div className="rounded-2xl border border-border/70 bg-card/80 px-3 py-2 text-center">
@@ -515,7 +515,7 @@ export default function PainelPage() {
                           </p>
                         </div>
                       </div>
-                      <Clock3 className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <Clock3 className="h-4 w-4 shrink-0 self-end text-muted-foreground sm:self-auto" />
                     </div>
                   );
                 })}

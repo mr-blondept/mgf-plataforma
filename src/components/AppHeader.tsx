@@ -136,6 +136,18 @@ export default function AppHeader() {
     return () => subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (!menuOpen) {
+      document.body.style.overflow = "";
+      return;
+    }
+
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
+
   async function handleSignOut() {
     const supabase = createClient();
     await supabase.auth.signOut();
@@ -158,7 +170,7 @@ export default function AppHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/70 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:h-16">
         <Link
           href="/"
           className="group flex items-center gap-3 text-base font-semibold tracking-tight text-foreground transition"
@@ -268,7 +280,7 @@ export default function AppHeader() {
 
         <button
           type="button"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-border/70 bg-secondary/70 text-foreground shadow-sm md:hidden"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-border/70 bg-secondary/70 text-foreground shadow-sm md:hidden"
           onClick={() => setMenuOpen(true)}
           aria-label="Abrir menu"
         >
@@ -282,7 +294,7 @@ export default function AppHeader() {
             className="absolute inset-0 animate-fade-in bg-black/40 backdrop-blur-[2px]"
             onClick={() => setMenuOpen(false)}
           />
-          <div className="absolute inset-x-3 top-3 animate-fade-in rounded-[2rem] border border-border/70 bg-background/95 p-4 shadow-2xl backdrop-blur">
+          <div className="absolute inset-x-3 top-3 max-h-[calc(100dvh-1.5rem)] overflow-y-auto animate-fade-in rounded-[2rem] border border-border/70 bg-background/95 p-4 shadow-2xl backdrop-blur">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-border/70 bg-secondary/80 text-foreground shadow-sm">
@@ -375,6 +387,38 @@ export default function AppHeader() {
                   </Link>
                 </div>
               )}
+
+              <div className="space-y-2 border-t border-border/70 pt-4">
+                <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+                  Explorar
+                </p>
+                <div className="grid gap-2">
+                  {primaryLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setMenuOpen(false)}
+                      className={cn(
+                        "flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-semibold transition",
+                        isActive(link.href)
+                          ? "border-primary/40 bg-primary/10 text-foreground"
+                          : "border-border/70 bg-card/70 text-foreground",
+                      )}
+                    >
+                      <span className="flex items-center gap-3">
+                        <link.icon className="h-4 w-4" />
+                        <span>
+                          <span className="block">{link.label}</span>
+                          <span className="mt-0.5 block text-xs font-medium text-muted-foreground">
+                            {link.hint}
+                          </span>
+                        </span>
+                      </span>
+                      <span className="text-xs text-muted-foreground">Abrir</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
 
               <div className="border-t border-border/70 pt-4">
                 {user ? (

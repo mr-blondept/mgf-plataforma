@@ -466,12 +466,12 @@ export default function VacinacaoPage() {
   }
 
   return (
-    <main className="relative h-[calc(100vh-3.5rem)] overflow-hidden app-surface">
+    <main className="relative min-h-[calc(100vh-3.5rem)] app-surface lg:h-[calc(100vh-3.5rem)] lg:overflow-hidden">
       <div className="absolute inset-0 hero-surface" />
       <div className="absolute inset-0 soft-grain opacity-30" />
 
       <div className="relative flex h-full flex-col px-4 py-4 xl:px-6">
-        <section className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-border/70 bg-card/75 px-5 py-4 shadow-sm backdrop-blur">
+        <section className="flex flex-col gap-3 rounded-3xl border border-border/70 bg-card/75 px-4 py-4 shadow-sm backdrop-blur sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:px-5">
           <div className="flex flex-wrap items-center gap-3">
             <span className="rounded-full border border-border/70 bg-secondary/70 px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.35em] text-muted-foreground">
               PNV 2020
@@ -491,8 +491,8 @@ export default function VacinacaoPage() {
           </a>
         </section>
 
-        <section className="relative mt-4 min-h-0 flex-1 overflow-hidden rounded-[2rem] border border-border/70 bg-card/85 shadow-sm backdrop-blur">
-          <div className="border-b border-border/70 bg-secondary/35 px-5 py-4">
+        <section className="relative mt-4 rounded-[2rem] border border-border/70 bg-card/85 shadow-sm backdrop-blur lg:min-h-0 lg:flex-1 lg:overflow-hidden">
+          <div className="border-b border-border/70 bg-secondary/35 px-4 py-4 sm:px-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <CalendarClock className="h-5 w-5 text-primary" />
@@ -503,7 +503,63 @@ export default function VacinacaoPage() {
               </div>
           </div>
 
-          <div className="relative h-[calc(100%-73px)] overflow-auto">
+          <div className="grid gap-4 p-4 sm:p-5 lg:hidden">
+            {vaccineRows.map((vaccine) => {
+              const nextDose = vaccine.placements[0];
+              return (
+                <button
+                  key={vaccine.id}
+                  type="button"
+                  onClick={() => openVaccine(vaccine)}
+                  className="rounded-[1.5rem] border border-border/70 bg-background/75 p-4 text-left shadow-sm transition hover:border-primary/30 hover:bg-background"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold italic text-foreground">
+                        {vaccine.disease}
+                      </p>
+                      <p className="mt-1 text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                        {vaccine.shortName}
+                      </p>
+                    </div>
+                    <span
+                      className={cn(
+                        "inline-flex shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold shadow-sm",
+                        vaccine.colorClass,
+                      )}
+                    >
+                      {CATEGORY_LABELS[vaccine.category]}
+                    </span>
+                  </div>
+
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                    {vaccine.summary}
+                  </p>
+
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-2xl border border-border/70 bg-card/80 px-3 py-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                        Próxima dose
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-foreground">
+                        {nextDose?.doseLabel ?? "Sem dose indicada"}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-border/70 bg-card/80 px-3 py-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                        Esquema
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-foreground">
+                        {vaccine.scheduleSummary.join(" · ")}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="relative hidden h-[calc(100%-73px)] overflow-auto lg:block">
             <div className="min-h-full min-w-[1160px]">
               <div
                 className="sticky top-0 z-10 grid border-b border-border/70 bg-secondary/20 backdrop-blur"
@@ -582,88 +638,81 @@ export default function VacinacaoPage() {
             </div>
           </div>
 
+        </section>
+      </div>
+
+      {isOverlayOpen ? (
+        <div className="fixed inset-0 z-[70] overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
           <button
             type="button"
-            aria-hidden={!isOverlayOpen}
-            tabIndex={isOverlayOpen ? 0 : -1}
-            className={cn(
-              "absolute inset-0 z-20 transition",
-              isOverlayOpen
-                ? "pointer-events-auto bg-background/35 backdrop-blur-[2px]"
-                : "pointer-events-none bg-transparent",
-            )}
+            aria-label="Fechar detalhe da vacina"
+            className="absolute inset-0 bg-slate-950/45 backdrop-blur-[3px]"
             onClick={closeOverlay}
           />
 
-          <aside
-            className={cn(
-              "absolute inset-y-0 right-0 z-30 flex w-full max-w-[820px] flex-col border-l border-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,248,246,0.94))] shadow-[0_30px_80px_rgba(15,23,42,0.22)] backdrop-blur-xl transition-transform duration-300 ease-out",
-              isOverlayOpen
-                ? "pointer-events-auto translate-x-0"
-                : "pointer-events-none translate-x-full",
-            )}
-          >
-            <div className="border-b border-border/70 bg-background/70 px-6 py-5">
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-[0.35em] text-muted-foreground">
-                    Vacina selecionada
-                  </p>
-                  <h2 className="mt-2 truncate text-3xl font-semibold tracking-tight text-foreground">
-                    {selectedVaccine?.shortName}
-                  </h2>
-                  <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
-                    {selectedVaccine?.disease}
-                  </p>
-                </div>
+          <div className="relative mx-auto flex min-h-full max-w-5xl items-start">
+            <div className="relative flex min-h-0 w-full flex-col overflow-hidden rounded-[2rem] border border-border/70 bg-background shadow-[0_30px_80px_-30px_rgba(15,23,42,0.55)]">
+            <div className="relative shrink-0 overflow-hidden border-b border-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(247,250,252,0.94))] px-5 pb-5 pt-6 sm:px-7 sm:pb-6 sm:pt-7">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.14),transparent_30%),radial-gradient(circle_at_top_right,rgba(20,184,166,0.10),transparent_26%)]" />
+              <div className="absolute inset-0 soft-grain opacity-15" />
 
-                <button
-                  type="button"
-                  onClick={closeOverlay}
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/70 bg-background/90 text-muted-foreground transition hover:-translate-y-0.5 hover:text-foreground hover:shadow-md"
-                  aria-label="Fechar detalhe da vacina"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={closeOverlay}
+                className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-border/70 bg-background/90 text-muted-foreground shadow-sm transition hover:bg-secondary hover:text-foreground sm:right-5 sm:top-5"
+                aria-label="Fechar detalhe da vacina"
+              >
+                <X className="h-4 w-4" />
+              </button>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-border/70 bg-card/80 p-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                    Categoria
-                  </p>
-                  <p
+              <div className="relative pr-12 sm:pr-16">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-muted-foreground">
+                  Vacina selecionada
+                </p>
+                <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-[2rem]">
+                      {selectedVaccine?.shortName}
+                    </h2>
+                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                      {selectedVaccine?.disease}
+                    </p>
+                  </div>
+                  <div
                     className={cn(
-                      "mt-2 inline-flex rounded-full border px-3 py-1 text-xs font-semibold",
+                      "inline-flex w-fit rounded-full border px-3 py-1 text-xs font-semibold shadow-sm",
                       selectedVaccine?.colorClass,
                     )}
                   >
                     {selectedVaccine ? CATEGORY_LABELS[selectedVaccine.category] : ""}
-                  </p>
+                  </div>
                 </div>
-                <div className="rounded-2xl border border-border/70 bg-card/80 p-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                    Dose ativa
-                  </p>
-                  <p className="mt-2 text-sm font-semibold text-foreground">
-                    {selectedPlacement?.doseLabel}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-border/70 bg-card/80 p-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                    Momento
-                  </p>
-                  <p className="mt-2 text-sm font-semibold text-foreground">
-                    {selectedPlacement?.ageId
-                      ? AGE_COLUMNS.find((column) => column.id === selectedPlacement.ageId)?.label
-                      : "Sem seleção"}
-                  </p>
+
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-border/70 bg-background/78 p-4 shadow-sm backdrop-blur-sm">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                      Dose ativa
+                    </p>
+                    <p className="mt-2 text-base font-semibold text-foreground">
+                      {selectedPlacement?.doseLabel}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-border/70 bg-background/78 p-4 shadow-sm backdrop-blur-sm">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                      Momento
+                    </p>
+                    <p className="mt-2 text-base font-semibold text-foreground">
+                      {selectedPlacement?.ageId
+                        ? AGE_COLUMNS.find((column) => column.id === selectedPlacement.ageId)?.label
+                        : "Sem seleção"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <section className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
-              <div className="grid gap-4">
+            <section className="max-h-[calc(100vh-22rem)] min-h-0 overflow-y-auto bg-[linear-gradient(180deg,rgba(248,250,252,0.55),rgba(255,255,255,0.94))] px-5 py-5 sm:max-h-[calc(100vh-20rem)] sm:px-6 sm:py-6">
+              <div className="grid gap-4 sm:gap-5">
                 <div className="rounded-[1.75rem] border border-border/70 bg-card/85 p-5 shadow-sm">
                   <div className="flex items-center gap-2">
                     <Info className="h-4 w-4 text-primary" />
@@ -676,8 +725,8 @@ export default function VacinacaoPage() {
                   </p>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-[1.75rem] border border-border/70 bg-secondary/30 p-5">
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <div className="rounded-[1.75rem] border border-border/70 bg-secondary/35 p-5 shadow-sm">
                     <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
                       Esquema resumido
                     </p>
@@ -691,7 +740,7 @@ export default function VacinacaoPage() {
                     </ul>
                   </div>
 
-                  <div className="rounded-[1.75rem] border border-border/70 bg-card/80 p-5">
+                  <div className="rounded-[1.75rem] border border-border/70 bg-card/80 p-5 shadow-sm">
                     <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
                       Como administrar
                     </p>
@@ -706,8 +755,8 @@ export default function VacinacaoPage() {
                   </div>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-[1.75rem] border border-border/70 bg-card/80 p-5">
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <div className="rounded-[1.75rem] border border-border/70 bg-card/80 p-5 shadow-sm">
                     <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
                       Nomes comerciais usuais
                     </p>
@@ -721,7 +770,7 @@ export default function VacinacaoPage() {
                     </ul>
                   </div>
 
-                  <div className="rounded-[1.75rem] border border-border/70 bg-card/80 p-5">
+                  <div className="rounded-[1.75rem] border border-border/70 bg-card/80 p-5 shadow-sm">
                     <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
                       Efeitos secundários
                     </p>
@@ -736,7 +785,7 @@ export default function VacinacaoPage() {
                   </div>
                 </div>
 
-                <div className="rounded-[1.75rem] border border-border/70 bg-card/80 p-5">
+                <div className="rounded-[1.75rem] border border-border/70 bg-card/80 p-5 shadow-sm">
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
                     Pontos-chave da norma
                   </p>
@@ -755,20 +804,19 @@ export default function VacinacaoPage() {
                     Nota clínica
                   </p>
                   <p className="mt-3 text-sm leading-relaxed text-amber-950/80">
-                    Os nomes comerciais apresentados são exemplos usuais e podem
-                    variar conforme aquisição institucional, formulação
-                    disponível e atualização regulamentar. Esta visualização
-                    resume o esquema vacinal geral e não substitui a consulta
-                    dos RCM, esquemas de atraso, grupos de risco,
-                    contraindicações, vacinas extra-PNV ou atualizações
-                    posteriores da DGS.
+                    Os nomes comerciais apresentados são exemplos usuais e podem variar conforme a
+                    aquisição institucional, a formulação disponível e a atualização regulamentar.
+                    Esta visualização resume o esquema vacinal geral e não substitui a consulta dos
+                    RCM, dos esquemas de atraso, dos grupos de risco, das contraindicações, das
+                    vacinas extra-PNV ou de atualizações posteriores da DGS.
                   </p>
                 </div>
               </div>
             </section>
-          </aside>
-        </section>
-      </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
