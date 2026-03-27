@@ -202,9 +202,9 @@ function CalculatorCard({
   isFavorite: boolean;
   onToggleFavorite: (id: CalculatorId) => void;
   draggable?: boolean;
-  onDragStart?: (event: DragEvent<article>, id: CalculatorId) => void;
-  onDragOver?: (event: DragEvent<article>, id: CalculatorId) => void;
-  onDrop?: (event: DragEvent<article>, id: CalculatorId) => void;
+  onDragStart?: (event: DragEvent<HTMLSpanElement>, id: CalculatorId) => void;
+  onDragOver?: (event: DragEvent<HTMLElement>, id: CalculatorId) => void;
+  onDrop?: (event: DragEvent<HTMLElement>, id: CalculatorId) => void;
   personalizationEnabled?: boolean;
 }) {
   const Icon = item.icon;
@@ -408,7 +408,7 @@ export default function CalculadorasPage() {
   }
 
   function handleDragStart(
-    _event: DragEvent<article>,
+    _event: DragEvent<HTMLSpanElement>,
     id: CalculatorId,
     context: "favorites" | "all",
   ) {
@@ -420,11 +420,15 @@ export default function CalculadorasPage() {
     setDragContext(context);
   }
 
-  function handleDragOver(event: DragEvent<article>) {
+  function handleDragOver(event: DragEvent<HTMLElement>) {
     event.preventDefault();
   }
 
-  function handleDrop(_event: DragEvent<article>, targetId: CalculatorId, context: "favorites" | "all") {
+  function handleDrop(
+    _event: DragEvent<HTMLElement>,
+    targetId: CalculatorId,
+    context: "favorites" | "all",
+  ) {
     if (!draggedId || dragContext !== context || !userId) {
       return;
     }
